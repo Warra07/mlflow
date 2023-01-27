@@ -7,9 +7,7 @@ from setuptools import setup, find_packages
 
 _MLFLOW_SKINNY_ENV_VAR = "MLFLOW_SKINNY"
 
-version = (
-    SourceFileLoader("mlflow.version", os.path.join("mlflow", "version.py")).load_module().VERSION
-)
+version = 3
 
 
 # Get a list of all files in the directory to include in our module
