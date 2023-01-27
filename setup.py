@@ -30,20 +30,20 @@ def remove_comments_and_empty_lines(lines):
     return [line for line in lines if not is_comment_or_empty(line)]
 
 
-# Prints out a set of paths (relative to the mlflow/ directory) of files in mlflow/server/js/build
-# to include in the wheel, e.g. "../mlflow/server/js/build/index.html"
-js_files = package_files("mlflow/server/js/build")
-models_container_server_files = package_files("mlflow/models/container")
+# Prints out a set of paths (relative to the mlflowacim/ directory) of files in mlflowacim/server/js/build
+# to include in the wheel, e.g. "../mlflowacim/server/js/build/index.html"
+js_files = package_files("mlflowacim/server/js/build")
+models_container_server_files = package_files("mlflowacim/models/container")
 alembic_files = [
-    "../mlflow/store/db_migrations/alembic.ini",
-    "../mlflow/temporary_db_migrations_for_pre_1_users/alembic.ini",
+    "../mlflowacim/store/db_migrations/alembic.ini",
+    "../mlflowacim/temporary_db_migrations_for_pre_1_users/alembic.ini",
 ]
 extra_files = [
     "pypi_package_index.json",
     "pyspark/ml/log_model_allowlist.txt",
 ]
-recipes_template_files = package_files("mlflow/recipes/resources")
-recipes_files = package_files("mlflow/recipes/cards/templates")
+recipes_template_files = package_files("mlflowacim/recipes/resources")
+recipes_files = package_files("mlflowacim/recipes/cards/templates")
 
 
 """
@@ -177,8 +177,8 @@ setup(
     url="https://mlflow.org/",
     python_requires=f">={MINIMUM_SUPPORTED_PYTHON_VERSION}",
     project_urls={
-        "Bug Tracker": "https://github.com/mlflow/mlflow/issues",
+        "Bug Tracker": "https://github.com/mlflowacim/mlflowacim/issues",
         "Documentation": "https://mlflow.org/docs/latest/index.html",
-        "Source Code": "https://github.com/mlflow/mlflow",
+        "Source Code": "https://github.com/mlflowacim/mlflow",
     },
 )
