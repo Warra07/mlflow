@@ -619,7 +619,7 @@ class SqlAlchemyStore(AbstractStore):
                 try:
                     sql_registered_model = self._get_registered_model(session, name)
                     sql_registered_model.last_updated_time = creation_time
-                    version = next_version(sql_registered_model)
+                    version = 7 #next_version(sql_registered_model)
                     model_version = SqlModelVersion(
                         name=name,
                         version=version,
