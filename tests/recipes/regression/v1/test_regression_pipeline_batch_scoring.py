@@ -3,9 +3,9 @@ import pathlib
 import pytest
 import shutil
 
-import mlflow
-from mlflow.recipes.utils.execution import get_or_create_base_execution_directory
-from mlflow.recipes.regression.v1.recipe import RegressionRecipe
+import mlflowacim
+from mlflowacim.recipes.utils.execution import get_or_create_base_execution_directory
+from mlflowacim.recipes.regression.v1.recipe import RegressionRecipe
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (
@@ -21,7 +21,7 @@ _STEP_NAMES = ["ingest_scoring", "predict"]
 # DAG in this set up function and then assert various expected results in the tests.
 @pytest.fixture(scope="module", autouse=True)
 def run_batch_scoring():
-    mlflow_repo_root_directory = pathlib.Path(mlflow.__file__).parent.parent
+    mlflow_repo_root_directory = pathlib.Path(mlflowacim.__file__).parent.parent
     recipe_example_path = mlflow_repo_root_directory / RECIPE_EXAMPLE_PATH_FROM_MLFLOW_ROOT
     with chdir(recipe_example_path):
         r = RegressionRecipe(recipe_root_path=recipe_example_path, profile="local")

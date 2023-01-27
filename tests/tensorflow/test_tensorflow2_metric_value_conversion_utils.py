@@ -1,10 +1,10 @@
 import pytest
 
-import mlflow
-from mlflow import tracking
-from mlflow.tracking.fluent import start_run
-from mlflow.exceptions import MlflowException, INVALID_PARAMETER_VALUE, ErrorCode
-from mlflow.tracking.metric_value_conversion_utils import convert_metric_value_to_float_if_possible
+import mlflowacim
+from mlflowacim import tracking
+from mlflowacim.tracking.fluent import start_run
+from mlflowacim.exceptions import MlflowException, INVALID_PARAMETER_VALUE, ErrorCode
+from mlflowacim.tracking.metric_value_conversion_utils import convert_metric_value_to_float_if_possible
 
 import tensorflow as tf
 
@@ -28,7 +28,7 @@ def test_log_tf_tensor_as_metric():
     tf_tensor_float_val = float(tf_tensor_val.numpy())
 
     with start_run() as run:
-        mlflow.log_metric("name_tf", tf_tensor_val)
+        mlflowacim.log_metric("name_tf", tf_tensor_val)
 
     finished_run = tracking.MlflowClient().get_run(run.info.run_id)
     assert finished_run.data.metrics == {"name_tf": tf_tensor_float_val}

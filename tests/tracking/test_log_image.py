@@ -4,8 +4,8 @@ import posixpath
 import pytest
 from unittest import mock
 
-import mlflow
-from mlflow.utils.file_utils import local_file_uri_to_path
+import mlflowacim
+from mlflowacim.utils.file_utils import local_file_uri_to_path
 
 
 @pytest.mark.parametrize("subdir", [None, ".", "dir", "dir1/dir2", "dir/.."])
@@ -18,11 +18,11 @@ def test_log_image_numpy(subdir):
 
     image = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
 
-    with mlflow.start_run():
-        mlflow.log_image(image, artifact_file)
+    with mlflowacim.start_run():
+        mlflowacim.log_image(image, artifact_file)
 
         artifact_path = None if subdir is None else posixpath.normpath(subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path)
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -41,11 +41,11 @@ def test_log_image_pillow(subdir):
 
     image = Image.new("RGB", (100, 100))
 
-    with mlflow.start_run():
-        mlflow.log_image(image, artifact_file)
+    with mlflowacim.start_run():
+        mlflowacim.log_image(image, artifact_file)
 
         artifact_path = None if subdir is None else posixpath.normpath(subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path)
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -70,9 +70,9 @@ def test_log_image_numpy_shape(size):
     filename = "image.png"
     image = np.random.randint(0, 256, size=size, dtype=np.uint8)
 
-    with mlflow.start_run():
-        mlflow.log_image(image, filename)
-        artifact_uri = mlflow.get_artifact_uri()
+    with mlflowacim.start_run():
+        mlflowacim.log_image(image, filename)
+        artifact_uri = mlflowacim.get_artifact_uri()
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -101,9 +101,9 @@ def test_log_image_numpy_dtype(dtype):
     filename = "image.png"
     image = np.random.randint(0, 2, size=(100, 100, 3)).astype(np.dtype(dtype))
 
-    with mlflow.start_run():
-        mlflow.log_image(image, filename)
-        artifact_uri = mlflow.get_artifact_uri()
+    with mlflowacim.start_run():
+        mlflowacim.log_image(image, filename)
+        artifact_uri = mlflowacim.get_artifact_uri()
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -118,8 +118,8 @@ def test_log_image_numpy_emits_warning_for_out_of_range_values(array):
 
     image = np.array(array).astype(type(array[0][0]))
 
-    with mlflow.start_run(), mock.patch("mlflow.tracking.client._logger.warning") as warn_mock:
-        mlflow.log_image(image, "image.png")
+    with mlflowacim.start_run(), mock.patch("mlflow.tracking.client._logger.warning") as warn_mock:
+        mlflowacim.log_image(image, "image.png")
         range_str = "[0, 255]" if isinstance(array[0][0], int) else "[0, 1]"
         msg = "Out-of-range values are detected. Clipping array (dtype: '{}') to {}".format(
             image.dtype, range_str
@@ -130,24 +130,24 @@ def test_log_image_numpy_emits_warning_for_out_of_range_values(array):
 def test_log_image_numpy_raises_exception_for_invalid_array_data_type():
     import numpy as np
 
-    with mlflow.start_run(), pytest.raises(TypeError, match="Invalid array data type"):
-        mlflow.log_image(np.tile("a", (1, 1, 3)), "image.png")
+    with mlflowacim.start_run(), pytest.raises(TypeError, match="Invalid array data type"):
+        mlflowacim.log_image(np.tile("a", (1, 1, 3)), "image.png")
 
 
 def test_log_image_numpy_raises_exception_for_invalid_array_shape():
     import numpy as np
 
-    with mlflow.start_run(), pytest.raises(ValueError, match="`image` must be a 2D or 3D array"):
-        mlflow.log_image(np.zeros((1,), dtype=np.uint8), "image.png")
+    with mlflowacim.start_run(), pytest.raises(ValueError, match="`image` must be a 2D or 3D array"):
+        mlflowacim.log_image(np.zeros((1,), dtype=np.uint8), "image.png")
 
 
 def test_log_image_numpy_raises_exception_for_invalid_channel_length():
     import numpy as np
 
-    with mlflow.start_run(), pytest.raises(ValueError, match="Invalid channel length"):
-        mlflow.log_image(np.zeros((1, 1, 5), dtype=np.uint8), "image.png")
+    with mlflowacim.start_run(), pytest.raises(ValueError, match="Invalid channel length"):
+        mlflowacim.log_image(np.zeros((1, 1, 5), dtype=np.uint8), "image.png")
 
 
 def test_log_image_raises_exception_for_unsupported_image_object_type():
-    with mlflow.start_run(), pytest.raises(TypeError, match="Unsupported image object type"):
-        mlflow.log_image("not_image", "image.png")
+    with mlflowacim.start_run(), pytest.raises(TypeError, match="Unsupported image object type"):
+        mlflowacim.log_image("not_image", "image.png")

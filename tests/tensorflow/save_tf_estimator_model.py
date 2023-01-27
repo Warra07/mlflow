@@ -9,12 +9,12 @@ import tensorflow as tf
 from tensorflow import estimator as tf_estimator
 import iris_data_utils
 
-import mlflow
-from mlflow.utils.file_utils import TempDir
+import mlflowacim
+from mlflowacim.utils.file_utils import TempDir
 import pickle
 import argparse
 
-assert mlflow.__version__ == "1.28.0"
+assert mlflowacim.__version__ == "1.28.0"
 
 
 parser = argparse.ArgumentParser()
@@ -27,7 +27,7 @@ parser.add_argument("--save_path")
 
 args = parser.parse_args()
 
-mlflow.set_tracking_uri(args.tracking_uri)
+mlflowacim.set_tracking_uri(args.tracking_uri)
 
 SavedModelInfo = collections.namedtuple(
     "SavedModelInfo",
@@ -213,9 +213,9 @@ with TempDir() as tmp:
     saved_model = gen_model_fn(tmp.path())
 
     if args.task_type == "log_model":
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-            mlflow.tensorflow.log_model(
+            mlflowacim.tensorflow.log_model(
                 tf_saved_model_dir=saved_model.path,
                 tf_meta_graph_tags=saved_model.meta_graph_tags,
                 tf_signature_def_key=saved_model.signature_def_key,
@@ -224,7 +224,7 @@ with TempDir() as tmp:
             run_id = run.info.run_id
     elif args.task_type == "save_model":
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-        mlflow.tensorflow.save_model(
+        mlflowacim.tensorflow.save_model(
             tf_saved_model_dir=saved_model.path,
             tf_meta_graph_tags=saved_model.meta_graph_tags,
             tf_signature_def_key=saved_model.signature_def_key,

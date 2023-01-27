@@ -1,9 +1,9 @@
 import json
 import pytest
 
-from mlflow.entities import RunTag
-from mlflow.models import Model
-from mlflow.utils.mlflow_tags import MLFLOW_LOGGED_MODELS
+from mlflowacim.entities import RunTag
+from mlflowacim.models import Model
+from mlflowacim.utils.mlflow_tags import MLFLOW_LOGGED_MODELS
 
 
 class AbstractStoreTest:

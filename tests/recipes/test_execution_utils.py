@@ -7,12 +7,12 @@ from unittest import mock
 import pandas as pd
 import pytest
 
-from mlflow.recipes import Recipe
-from mlflow.recipes.steps.ingest import IngestStep
-from mlflow.recipes.steps.split import SplitStep
-from mlflow.recipes.steps.transform import TransformStep
-from mlflow.recipes.step import StepStatus
-from mlflow.recipes.utils.execution import (
+from mlflowacim.recipes import Recipe
+from mlflowacim.recipes.steps.ingest import IngestStep
+from mlflowacim.recipes.steps.split import SplitStep
+from mlflowacim.recipes.steps.transform import TransformStep
+from mlflowacim.recipes.step import StepStatus
+from mlflowacim.recipes.utils.execution import (
     _get_or_create_execution_directory,
     run_recipe_step,
     get_step_output_path,

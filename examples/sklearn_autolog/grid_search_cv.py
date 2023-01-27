@@ -4,12 +4,12 @@ import pandas as pd
 from sklearn import svm, datasets
 from sklearn.model_selection import GridSearchCV
 
-import mlflow
+import mlflowacim
 from utils import fetch_logged_data
 
 
 def main():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     iris = datasets.load_iris()
     parameters = {"kernel": ("linear", "rbf"), "C": [1, 10]}
@@ -17,7 +17,7 @@ def main():
     clf = GridSearchCV(svc, parameters)
 
     clf.fit(iris.data, iris.target)
-    run_id = mlflow.last_active_run().info.run_id
+    run_id = mlflowacim.last_active_run().info.run_id
 
     # show data logged in the parent run
     print("========== parent run ==========")
@@ -27,7 +27,7 @@ def main():
 
     # show data logged in the child runs
     filter_child_runs = "tags.mlflow.parentRunId = '{}'".format(run_id)
-    runs = mlflow.search_runs(filter_string=filter_child_runs)
+    runs = mlflowacim.search_runs(filter_string=filter_child_runs)
     param_cols = ["params.{}".format(p) for p in parameters.keys()]
     metric_cols = ["metrics.mean_test_score"]
 

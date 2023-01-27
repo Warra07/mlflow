@@ -1,7 +1,7 @@
 import os
 import ast
 
-import mlflow
+import mlflowacim
 
 
 def read_file(path):
@@ -37,4 +37,4 @@ def test_all_flavors_can_be_accessed_from_mlflow():
     flavor_names = list(iter_flavor_names())
     assert len(flavor_names) != 0
     for flavor_name in flavor_names:
-        assert hasattr(mlflow, flavor_name)
+        assert hasattr(mlflowacim, flavor_name)

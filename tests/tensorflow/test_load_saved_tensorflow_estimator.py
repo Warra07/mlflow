@@ -10,13 +10,13 @@ import pandas.testing
 import tensorflow as tf
 import iris_data_utils
 
-import mlflow
-import mlflow.pyfunc.scoring_server as pyfunc_scoring_server
-from mlflow import pyfunc
-from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-from mlflow.utils.environment import _mlflow_conda_env
-from mlflow.tensorflow import _TF2Wrapper
-from mlflow.utils.conda import get_or_create_conda_env
+import mlflowacim
+import mlflowacim.pyfunc.scoring_server as pyfunc_scoring_server
+from mlflowacim import pyfunc
+from mlflowacim.store.artifact.s3_artifact_repo import S3ArtifactRepository
+from mlflowacim.utils.environment import _mlflow_conda_env
+from mlflowacim.tensorflow import _TF2Wrapper
+from mlflowacim.utils.conda import get_or_create_conda_env
 
 from tests.helper_functions import (
     pyfunc_serve_and_score_model,
@@ -52,7 +52,7 @@ def save_or_log_tf_model_by_mlflow128(tmpdir, model_type, task_type, save_path=N
     tf_tests_dir = os.path.dirname(__file__)
     conda_env = get_or_create_conda_env(os.path.join(tf_tests_dir, "mlflow-128-tf-23-env.yaml"))
     output_data_file_path = os.path.join(tmpdir, "output_data.pkl")
-    tracking_uri = mlflow.get_tracking_uri()
+    tracking_uri = mlflowacim.get_tracking_uri()
     exec_py_path = os.path.join(tf_tests_dir, "save_tf_estimator_model.py")
     mlflow_repo_path = os.path.dirname(os.path.dirname(tf_tests_dir))
 
@@ -69,7 +69,7 @@ def save_or_log_tf_model_by_mlflow128(tmpdir, model_type, task_type, save_path=N
 
 
 def test_load_model_from_remote_uri_succeeds(tmp_path, model_path, mock_s3_bucket, monkeypatch):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     monkeypatch.chdir(tmp_path)
     model_data_info = save_or_log_tf_model_by_mlflow128(tmp_path, "iris", "save_model", model_path)
 
@@ -79,7 +79,7 @@ def test_load_model_from_remote_uri_succeeds(tmp_path, model_path, mock_s3_bucke
     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
 
     model_uri = artifact_root + "/" + artifact_path
-    infer = mlflow.tensorflow.load_model(model_uri=model_uri)
+    infer = mlflowacim.tensorflow.load_model(model_uri=model_uri)
     feed_dict = {
         df_column_name: tf.constant(model_data_info.inference_df[df_column_name])
         for df_column_name in list(model_data_info.inference_df)
@@ -96,11 +96,11 @@ def test_load_model_from_remote_uri_succeeds(tmp_path, model_path, mock_s3_bucke
 
 
 def test_iris_model_can_be_loaded_and_evaluated_successfully(tmp_path, model_path, monkeypatch):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     monkeypatch.chdir(tmp_path)
     model_data_info = save_or_log_tf_model_by_mlflow128(tmp_path, "iris", "save_model", model_path)
 
-    infer = mlflow.tensorflow.load_model(model_uri=model_path)
+    infer = mlflowacim.tensorflow.load_model(model_uri=model_path)
     feed_dict = {
         df_column_name: tf.constant(model_data_info.inference_df[df_column_name])
         for df_column_name in list(model_data_info.inference_df)
@@ -112,15 +112,15 @@ def test_iris_model_can_be_loaded_and_evaluated_successfully(tmp_path, model_pat
 
 
 def test_log_and_load_model_persists_and_restores_model_successfully(tmp_path, monkeypatch):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     monkeypatch.chdir(tmp_path)
     model_data_info = save_or_log_tf_model_by_mlflow128(tmp_path, "iris", "log_model")
     model_uri = f"runs:/{model_data_info.run_id}/model"
-    mlflow.tensorflow.load_model(model_uri=model_uri)
+    mlflowacim.tensorflow.load_model(model_uri=model_uri)
 
 
 def test_iris_data_model_can_be_loaded_and_evaluated_as_pyfunc(tmp_path, model_path, monkeypatch):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     monkeypatch.chdir(tmp_path)
     model_data_info = save_or_log_tf_model_by_mlflow128(tmp_path, "iris", "save_model", model_path)
 
@@ -154,7 +154,7 @@ def test_iris_data_model_can_be_loaded_and_evaluated_as_pyfunc(tmp_path, model_p
 
 
 def test_categorical_model_can_be_loaded_and_evaluated_as_pyfunc(tmp_path, model_path, monkeypatch):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     monkeypatch.chdir(tmp_path)
     model_data_info = save_or_log_tf_model_by_mlflow128(
         tmp_path, "categorical", "save_model", model_path
@@ -194,7 +194,7 @@ def test_categorical_model_can_be_loaded_and_evaluated_as_pyfunc(tmp_path, model
 
 
 def test_pyfunc_serve_and_score(tmp_path, monkeypatch):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     monkeypatch.chdir(tmp_path)
     model_data_info = save_or_log_tf_model_by_mlflow128(tmp_path, "iris", "log_model")
     model_uri = f"runs:/{model_data_info.run_id}/model"

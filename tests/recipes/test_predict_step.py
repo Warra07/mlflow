@@ -7,13 +7,13 @@ from pyspark.sql import SparkSession
 from sklearn.datasets import load_diabetes
 from unittest import mock
 
-import mlflow
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.artifacts import RegisteredModelVersionInfo
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
-from mlflow.recipes.steps.predict import PredictStep, _INPUT_FILE_NAME, _SCORED_OUTPUT_FILE_NAME
-from mlflow.recipes.steps.register import _REGISTERED_MV_INFO_FILE
-from mlflow.utils.file_utils import read_yaml
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.artifacts import RegisteredModelVersionInfo
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.recipes.steps.predict import PredictStep, _INPUT_FILE_NAME, _SCORED_OUTPUT_FILE_NAME
+from mlflowacim.recipes.steps.register import _REGISTERED_MV_INFO_FILE
+from mlflowacim.utils.file_utils import read_yaml
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (
@@ -82,7 +82,7 @@ experiment:
   name: "test"
   tracking_uri: {tracking_uri}
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
         )
     )
     return predict_step_output_dir
@@ -430,10 +430,10 @@ def test_predict_uses_registry_uri(
 ):
     registry_uri = registry_uri_path
     model_name = "model_" + get_random_id()
-    mlflow.set_registry_uri(registry_uri)
+    mlflowacim.set_registry_uri(registry_uri)
     model_uri = train_log_and_register_model(model_name, is_dummy=True)
     # reset model registry
-    mlflow.set_registry_uri("")
+    mlflowacim.set_registry_uri("")
 
     recipe_config = read_yaml(tmp_recipe_root_path, _RECIPE_CONFIG_FILE_NAME)
     recipe_config.update({"model_registry": {"registry_uri": str(registry_uri)}})
@@ -454,5 +454,5 @@ def test_predict_uses_registry_uri(
         recipe_config,
         str(tmp_recipe_root_path),
     ).run(str(predict_step_output_dir))
-    assert mlflow.get_registry_uri() == registry_uri
+    assert mlflowacim.get_registry_uri() == registry_uri
     prediction_assertions(predict_step_output_dir, "parquet", "output", spark_session)

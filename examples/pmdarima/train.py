@@ -1,4 +1,4 @@
-import mlflow
+import mlflowacim
 import json
 import numpy as np
 from pmdarima import auto_arima
@@ -14,7 +14,7 @@ def calculate_cv_metrics(model, endog, metric, cv):
     return cv_metric[~np.isnan(cv_metric)].mean()
 
 
-with mlflow.start_run():
+with mlflowacim.start_run():
 
     data = load_wineind()
 
@@ -45,14 +45,14 @@ with mlflow.start_run():
     print(f"Metrics: \n{json.dumps(metrics, indent=2)}")
     print(f"Parameters: \n{json.dumps(parameters, indent=2)}")
 
-    mlflow.pmdarima.log_model(pmdarima_model=arima, artifact_path=ARTIFACT_PATH)
-    mlflow.log_params(parameters)
-    mlflow.log_metrics(metrics)
-    model_uri = mlflow.get_artifact_uri(ARTIFACT_PATH)
+    mlflowacim.pmdarima.log_model(pmdarima_model=arima, artifact_path=ARTIFACT_PATH)
+    mlflowacim.log_params(parameters)
+    mlflowacim.log_metrics(metrics)
+    model_uri = mlflowacim.get_artifact_uri(ARTIFACT_PATH)
 
     print(f"Model artifact logged to: {model_uri}")
 
-loaded_model = mlflow.pmdarima.load_model(model_uri)
+loaded_model = mlflowacim.pmdarima.load_model(model_uri)
 
 forecast = loaded_model.predict(30)
 

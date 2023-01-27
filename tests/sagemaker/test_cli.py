@@ -1,7 +1,7 @@
 import pytest
 from click.testing import CliRunner
 
-from mlflow.sagemaker.cli import build_and_push_container
+from mlflowacim.sagemaker.cli import build_and_push_container
 
 
 @pytest.mark.parametrize("env_manager", ["conda", "virtualenv"])

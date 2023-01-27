@@ -5,8 +5,8 @@ will use to supplement our input and train using.
 """
 import click
 
-import mlflow
-import mlflow.spark
+import mlflowacim
+import mlflowacim.spark
 
 from itertools import chain
 import pyspark
@@ -31,7 +31,7 @@ def train_keras(ratings_data, als_model_uri, hidden_units):
     tf.set_random_seed(42)  # For reproducibility
 
     spark = pyspark.sql.SparkSession.builder.getOrCreate()
-    als_model = mlflow.spark.load_model(als_model_uri).stages[0]
+    als_model = mlflowacim.spark.load_model(als_model_uri).stages[0]
 
     ratings_df = spark.read.parquet(ratings_data)
 
@@ -39,8 +39,8 @@ def train_keras(ratings_data, als_model_uri, hidden_units):
     training_df.cache()
     test_df.cache()
 
-    mlflow.log_metric("training_nrows", training_df.count())
-    mlflow.log_metric("test_nrows", test_df.count())
+    mlflowacim.log_metric("training_nrows", training_df.count())
+    mlflowacim.log_metric("test_nrows", test_df.count())
 
     print("Training: {}, test: {}".format(training_df.count(), test_df.count()))
 
@@ -105,11 +105,11 @@ def train_keras(ratings_data, als_model_uri, hidden_units):
 
     train_mse = model.evaluate(x_train, pandas_df["rating"], verbose=2)
     test_mse = model.evaluate(x_test, pandas_test_df["rating"], verbose=2)
-    mlflow.log_metric("test_mse", test_mse)
-    mlflow.log_metric("train_mse", train_mse)
+    mlflowacim.log_metric("test_mse", test_mse)
+    mlflowacim.log_metric("train_mse", train_mse)
 
     print("The model had a MSE on the test set of {}".format(test_mse))
-    mlflow.tensorflow.log_model(model, "keras-model")
+    mlflowacim.tensorflow.log_model(model, "keras-model")
 
 
 if __name__ == "__main__":

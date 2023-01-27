@@ -3,8 +3,8 @@ import posixpath
 
 import pytest
 
-import mlflow
-from mlflow.utils.file_utils import local_file_uri_to_path
+import mlflowacim
+from mlflowacim.utils.file_utils import local_file_uri_to_path
 
 
 @pytest.mark.parametrize("subdir", [None, ".", "dir", "dir1/dir2", "dir/.."])
@@ -17,12 +17,12 @@ def test_log_figure_matplotlib(subdir):
     fig, ax = plt.subplots()
     ax.plot([0, 1], [2, 3])
 
-    with mlflow.start_run():
-        mlflow.log_figure(fig, artifact_file)
+    with mlflowacim.start_run():
+        mlflowacim.log_figure(fig, artifact_file)
         plt.close(fig)
 
         artifact_path = None if subdir is None else posixpath.normpath(subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path)
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -36,11 +36,11 @@ def test_log_figure_plotly_html(subdir):
 
     fig = go.Figure(go.Scatter(x=[0, 1], y=[2, 3]))
 
-    with mlflow.start_run():
-        mlflow.log_figure(fig, artifact_file)
+    with mlflowacim.start_run():
+        mlflowacim.log_figure(fig, artifact_file)
 
         artifact_path = None if subdir is None else posixpath.normpath(subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path)
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -55,11 +55,11 @@ def test_log_figure_plotly_image(extension):
 
     fig = go.Figure(go.Scatter(x=[0, 1], y=[2, 3]))
 
-    with mlflow.start_run():
-        mlflow.log_figure(fig, artifact_file)
+    with mlflowacim.start_run():
+        mlflowacim.log_figure(fig, artifact_file)
 
         artifact_path = None if subdir is None else posixpath.normpath(subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path)
         run_artifact_dir = local_file_uri_to_path(artifact_uri)
         assert os.listdir(run_artifact_dir) == [filename]
 
@@ -73,12 +73,12 @@ def test_log_figure_raises_error_for_unsupported_file_extension(extension):
 
     fig = go.Figure(go.Scatter(x=[0, 1], y=[2, 3]))
 
-    with mlflow.start_run(), pytest.raises(
+    with mlflowacim.start_run(), pytest.raises(
         TypeError, match=f"Unsupported file extension for plotly figure: '{extension}'"
     ):
-        mlflow.log_figure(fig, artifact_file)
+        mlflowacim.log_figure(fig, artifact_file)
 
 
 def test_log_figure_raises_error_for_unsupported_figure_object_type():
-    with mlflow.start_run(), pytest.raises(TypeError, match="Unsupported figure object type"):
-        mlflow.log_figure("not_figure", "figure.png")
+    with mlflowacim.start_run(), pytest.raises(TypeError, match="Unsupported figure object type"):
+        mlflowacim.log_figure("not_figure", "figure.png")

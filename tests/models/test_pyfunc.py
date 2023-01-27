@@ -6,7 +6,7 @@ class PyFuncTestModel:
         self._check_version = check_version
 
     def predict(self, df):
-        from mlflow.version import VERSION
+        from mlflowacim.version import VERSION
 
         if self._check_version:
             assert VERSION == MLFLOW_VERSION

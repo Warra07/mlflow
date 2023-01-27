@@ -2,12 +2,12 @@ import pytest
 from unittest import mock
 from importlib import reload
 
-import mlflow.tracking.request_header.registry
-from mlflow.tracking.request_header.registry import (
+import mlflowacim.tracking.request_header.registry
+from mlflowacim.tracking.request_header.registry import (
     RequestHeaderProviderRegistry,
     resolve_request_headers,
 )
-from mlflow.tracking.request_header.databricks_request_header_provider import (
+from mlflowacim.tracking.request_header.databricks_request_header_provider import (
     DatabricksRequestHeaderProvider,
 )
 
@@ -61,7 +61,7 @@ def test_request_header_provider_registry_register_entrypoints_handles_exception
 def _currently_registered_request_header_provider_classes():
     return {
         provider.__class__
-        for provider in mlflow.tracking.request_header.registry._request_header_provider_registry
+        for provider in mlflowacim.tracking.request_header.registry._request_header_provider_registry
     }
 
 
@@ -82,7 +82,7 @@ def test_registry_instance_loads_entrypoints():
     ) as mock_get_group_all:
         # Entrypoints are registered at import time, so we need to reload the module to register the
         # entrypoint given by the mocked entrypoints.get_group_all
-        reload(mlflow.tracking.request_header.registry)
+        reload(mlflowacim.tracking.request_header.registry)
 
     assert MockRequestHeaderProvider in _currently_registered_request_header_provider_classes()
     mock_get_group_all.assert_called_once_with("mlflow.request_header_provider")
@@ -91,7 +91,7 @@ def test_registry_instance_loads_entrypoints():
 def test_run_context_provider_registry_with_installed_plugin():
     """This test requires the package in tests/resources/mlflow-test-plugin to be installed"""
 
-    reload(mlflow.tracking.request_header.registry)
+    reload(mlflowacim.tracking.request_header.registry)
 
     from mlflow_test_plugin.request_header_provider import PluginRequestHeaderProvider
 

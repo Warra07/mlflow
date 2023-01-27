@@ -3,15 +3,15 @@ import pytest
 import shutil
 import tempfile
 
-import mlflow
+import mlflowacim
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.types import StructType, IntegerType, StringType, StructField
 
-from mlflow._spark_autologging import _SPARK_TABLE_INFO_TAG_NAME
+from mlflowacim._spark_autologging import _SPARK_TABLE_INFO_TAG_NAME
 
 
 def _get_mlflow_spark_jar_path():
-    jar_dir = os.path.join(os.path.dirname(mlflow.__file__), "java", "spark", "target")
+    jar_dir = os.path.join(os.path.dirname(mlflowacim.__file__), "java", "spark", "target")
     jar_filenames = [
         fname
         for fname in os.listdir(jar_dir)

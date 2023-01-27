@@ -15,16 +15,16 @@ from urllib.parse import urlparse, unquote
 import numpy as np
 import pandas as pd
 
-import mlflow
-from mlflow.cli import server, gc, doctor
-from mlflow import pyfunc
-from mlflow.server import handlers
-from mlflow.store.tracking.sqlalchemy_store import SqlAlchemyStore
-from mlflow.store.tracking.file_store import FileStore
-from mlflow.exceptions import MlflowException
-from mlflow.entities import ViewType
-from mlflow.utils.rest_utils import augmented_raise_for_status
-from mlflow.utils.time_utils import get_current_time_millis
+import mlflowacim
+from mlflowacim.cli import server, gc, doctor
+from mlflowacim import pyfunc
+from mlflowacim.server import handlers
+from mlflowacim.store.tracking.sqlalchemy_store import SqlAlchemyStore
+from mlflowacim.store.tracking.file_store import FileStore
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.entities import ViewType
+from mlflowacim.utils.rest_utils import augmented_raise_for_status
+from mlflowacim.utils.time_utils import get_current_time_millis
 
 from tests.helper_functions import pyfunc_serve_and_score_model, get_safe_port, PROTOBUF_REQUIREMENT
 from tests.tracking.integration_test_utils import _await_server_up_or_die
@@ -118,7 +118,7 @@ def test_registry_store_uri_different_from_tracking_store(command):
     handlers._tracking_store = None
     handlers._model_registry_store = None
 
-    from mlflow.server.handlers import (
+    from mlflowacim.server.handlers import (
         TrackingStoreRegistryWrapper,
         ModelRegistryStoreRegistryWrapper,
     )
@@ -398,11 +398,11 @@ def test_mlflow_models_serve(enable_mlserver):
 
     model = MyModel()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         if enable_mlserver:
             # We need MLServer to be present on the Conda environment, so we'll
             # add that as an extra requirement.
-            mlflow.pyfunc.log_model(
+            mlflowacim.pyfunc.log_model(
                 artifact_path="model",
                 python_model=model,
                 extra_pip_requirements=[
@@ -412,8 +412,8 @@ def test_mlflow_models_serve(enable_mlserver):
                 ],
             )
         else:
-            mlflow.pyfunc.log_model(artifact_path="model", python_model=model)
-        model_uri = mlflow.get_artifact_uri("model")
+            mlflowacim.pyfunc.log_model(artifact_path="model", python_model=model)
+        model_uri = mlflowacim.get_artifact_uri("model")
 
     data = pd.DataFrame({"a": [0]})
 
@@ -515,7 +515,7 @@ def test_cli_with_python_mod():
         ],
         text=True,
     )
-    assert stdout.rstrip().endswith(mlflow.__version__)
+    assert stdout.rstrip().endswith(mlflowacim.__version__)
     stdout = subprocess.check_output(
         [
             sys.executable,

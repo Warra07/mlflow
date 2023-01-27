@@ -1,5 +1,5 @@
 import os
-import mlflow
+import mlflowacim
 
 from pyspark.sql import SparkSession
 
@@ -20,8 +20,8 @@ def test_custom_log_model_allowlist(tmpdir):
         .getOrCreate()
     )
 
-    mlflow.pyspark.ml.autolog()
-    assert mlflow.pyspark.ml._log_model_allowlist == {
+    mlflowacim.pyspark.ml.autolog()
+    assert mlflowacim.pyspark.ml._log_model_allowlist == {
         "pyspark.ml.regression.LinearRegressionModel",
         "pyspark.ml.classification.NaiveBayesModel",
     }
@@ -41,9 +41,9 @@ def test_log_model_allowlist_from_url():
         .getOrCreate()
     )
 
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
-    assert mlflow.pyspark.ml._log_model_allowlist == {
+    assert mlflowacim.pyspark.ml._log_model_allowlist == {
         "pyspark.ml.classification.LinearSVCModel",
         "pyspark.ml.classification.DecisionTreeClassificationModel",
         "pyspark.ml.classification.GBTClassificationModel",

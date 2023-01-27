@@ -17,8 +17,8 @@ import click
 import pandas as pd
 import sqlalchemy as sa
 
-import mlflow
-from mlflow.store.tracking.dbmodels.models import (
+import mlflowacim
+from mlflowacim.store.tracking.dbmodels.models import (
     SqlExperiment,
     SqlRun,
     SqlMetric,
@@ -27,7 +27,7 @@ from mlflow.store.tracking.dbmodels.models import (
     SqlExperimentTag,
     SqlLatestMetric,
 )
-from mlflow.store.model_registry.dbmodels.models import (
+from mlflowacim.store.model_registry.dbmodels.models import (
     SqlRegisteredModel,
     SqlModelVersion,
     SqlRegisteredModelTag,
@@ -50,21 +50,21 @@ TABLES = [
 SNAPSHOTS_DIR = Path(__file__).parent / "snapshots"
 
 
-class Model(mlflow.pyfunc.PythonModel):
+class Model(mlflowacim.pyfunc.PythonModel):
     def predict(self, context, model_input):
         return [0]
 
 
 def log_everything():
-    exp_id = mlflow.create_experiment(uuid.uuid4().hex, tags={"tag": "experiment"})
-    mlflow.set_experiment(experiment_id=exp_id)
-    with mlflow.start_run() as run:
-        mlflow.log_params({"param": "value"})
-        mlflow.log_metrics({"metric": 0.1})
-        mlflow.set_tags({"tag": "run"})
-        model_info = mlflow.pyfunc.log_model(python_model=Model(), artifact_path="model")
+    exp_id = mlflowacim.create_experiment(uuid.uuid4().hex, tags={"tag": "experiment"})
+    mlflowacim.set_experiment(experiment_id=exp_id)
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_params({"param": "value"})
+        mlflowacim.log_metrics({"metric": 0.1})
+        mlflowacim.set_tags({"tag": "run"})
+        model_info = mlflowacim.pyfunc.log_model(python_model=Model(), artifact_path="model")
 
-    client = mlflow.MlflowClient()
+    client = mlflowacim.MlflowClient()
     registered_model_name = uuid.uuid4().hex
     client.create_registered_model(
         registered_model_name, tags={"tag": "registered_model"}, description="description"

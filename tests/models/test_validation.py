@@ -1,16 +1,16 @@
-from mlflow.exceptions import MlflowException
-from mlflow.models.evaluation import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models.evaluation import (
     evaluate,
     EvaluationResult,
     ModelEvaluator,
     MetricThreshold,
 )
-from mlflow.models.evaluation.validation import (
+from mlflowacim.models.evaluation.validation import (
     _MetricValidationResult,
     ModelValidationFailedException,
     MetricThresholdClassException,
 )
-from mlflow.models.evaluation.evaluator_registry import _model_evaluation_registry
+from mlflowacim.models.evaluation.evaluator_registry import _model_evaluation_registry
 from unittest import mock
 import pytest
 

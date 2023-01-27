@@ -8,24 +8,24 @@ from databricks_cli.configure.provider import DatabricksConfig
 import databricks_cli
 import pytest
 
-import mlflow
-from mlflow import cli, MlflowClient
-from mlflow.exceptions import MlflowException
-from mlflow.projects.databricks import DatabricksJobRunner, _get_cluster_mlflow_run_cmd
-from mlflow.protos.databricks_pb2 import ErrorCode, INVALID_PARAMETER_VALUE
-from mlflow.entities import RunStatus
-from mlflow.projects import databricks, ExecutionException
-from mlflow.utils import file_utils
-from mlflow.store.tracking.file_store import FileStore
-from mlflow.utils.mlflow_tags import (
+import mlflowacim
+from mlflowacim import cli, MlflowClient
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.projects.databricks import DatabricksJobRunner, _get_cluster_mlflow_run_cmd
+from mlflowacim.protos.databricks_pb2 import ErrorCode, INVALID_PARAMETER_VALUE
+from mlflowacim.entities import RunStatus
+from mlflowacim.projects import databricks, ExecutionException
+from mlflowacim.utils import file_utils
+from mlflowacim.store.tracking.file_store import FileStore
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_DATABRICKS_RUN_URL,
     MLFLOW_DATABRICKS_SHELL_JOB_RUN_ID,
     MLFLOW_DATABRICKS_WEBAPP_URL,
 )
-from mlflow.tracking.request_header.default_request_header_provider import (
+from mlflowacim.tracking.request_header.default_request_header_provider import (
     DefaultRequestHeaderProvider,
 )
-from mlflow.utils.uri import construct_db_uri_from_profile
+from mlflowacim.utils.uri import construct_db_uri_from_profile
 from tests import helper_functions
 from tests.integration.utils import invoke_cli_runner
 
@@ -90,7 +90,7 @@ def upload_to_dbfs_mock(dbfs_root_mock):
         shutil.copy(src_path, mock_dbfs_dst)
 
     with mock.patch.object(
-        mlflow.projects.databricks.DatabricksJobRunner, "_upload_to_dbfs", new=upload_mock_fn
+        mlflowacim.projects.databricks.DatabricksJobRunner, "_upload_to_dbfs", new=upload_mock_fn
     ) as upload_mock:
         yield upload_mock
 
@@ -138,7 +138,7 @@ def mock_runs_get_result(succeeded):
 
 
 def run_databricks_project(cluster_spec, **kwargs):
-    return mlflow.projects.run(
+    return mlflowacim.projects.run(
         uri=TEST_PROJECT_DIR,
         backend="databricks",
         backend_config=cluster_spec,
@@ -226,19 +226,19 @@ def test_run_databricks_validations(
         "mlflow.projects.databricks.DatabricksJobRunner._databricks_api_request"
     ) as db_api_req_mock:
         # Test bad tracking URI
-        mlflow.set_tracking_uri(tmpdir.strpath)
+        mlflowacim.set_tracking_uri(tmpdir.strpath)
         with pytest.raises(ExecutionException, match="MLflow tracking URI must be of"):
             run_databricks_project(cluster_spec_mock, synchronous=True)
         assert db_api_req_mock.call_count == 0
         db_api_req_mock.reset_mock()
         mlflow_service = MlflowClient()
         assert len(mlflow_service.search_runs([FileStore.DEFAULT_EXPERIMENT_ID])) == 0
-        mlflow.set_tracking_uri("databricks")
+        mlflowacim.set_tracking_uri("databricks")
         # Test misspecified parameters
         with pytest.raises(
             ExecutionException, match="No value given for missing parameters: 'name'"
         ):
-            mlflow.projects.run(
+            mlflowacim.projects.run(
                 TEST_PROJECT_DIR,
                 backend="databricks",
                 entry_point="greeter",
@@ -248,7 +248,7 @@ def test_run_databricks_validations(
         db_api_req_mock.reset_mock()
         # Test bad cluster spec
         with pytest.raises(ExecutionException, match="Backend spec must be provided"):
-            mlflow.projects.run(
+            mlflowacim.projects.run(
                 TEST_PROJECT_DIR, backend="databricks", synchronous=True, backend_config=None
             )
         assert db_api_req_mock.call_count == 0
@@ -408,18 +408,18 @@ def test_run_databricks_cancel(
         assert runs_cancel_mock.call_count == 1
         # Test that we raise an exception when a blocking Databricks run fails
         runs_get_mock.return_value = mock_runs_get_result(succeeded=False)
-        with pytest.raises(mlflow.projects.ExecutionException, match=r"Run \(ID '.+'\) failed"):
+        with pytest.raises(mlflowacim.projects.ExecutionException, match=r"Run \(ID '.+'\) failed"):
             run_databricks_project(cluster_spec_mock, synchronous=True)
 
 
 def test_get_tracking_uri_for_run():
-    mlflow.set_tracking_uri("http://some-uri")
+    mlflowacim.set_tracking_uri("http://some-uri")
     assert databricks._get_tracking_uri_for_run() == "http://some-uri"
-    mlflow.set_tracking_uri("databricks://profile")
+    mlflowacim.set_tracking_uri("databricks://profile")
     assert databricks._get_tracking_uri_for_run() == "databricks"
-    mlflow.set_tracking_uri(None)
-    with mock.patch.dict(os.environ, {mlflow.tracking._TRACKING_URI_ENV_VAR: "http://some-uri"}):
-        assert mlflow.tracking._tracking_service.utils.get_tracking_uri() == "http://some-uri"
+    mlflowacim.set_tracking_uri(None)
+    with mock.patch.dict(os.environ, {mlflowacim.tracking._TRACKING_URI_ENV_VAR: "http://some-uri"}):
+        assert mlflowacim.tracking._tracking_service.utils.get_tracking_uri() == "http://some-uri"
 
 
 class MockProfileConfigProvider:

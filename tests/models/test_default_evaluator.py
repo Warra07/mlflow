@@ -7,10 +7,10 @@ import pandas as pd
 import pytest
 from contextlib import nullcontext as does_not_raise
 
-import mlflow
-from mlflow.exceptions import MlflowException
-from mlflow.models.evaluation.base import evaluate, make_metric
-from mlflow.models.evaluation.artifacts import (
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models.evaluation.base import evaluate, make_metric
+from mlflowacim.models.evaluation.artifacts import (
     CsvEvaluationArtifact,
     ImageEvaluationArtifact,
     JsonEvaluationArtifact,
@@ -19,7 +19,7 @@ from mlflow.models.evaluation.artifacts import (
     TextEvaluationArtifact,
     PickleEvaluationArtifact,
 )
-from mlflow.models.evaluation.default_evaluator import (
+from mlflowacim.models.evaluation.default_evaluator import (
     _infer_model_type_by_labels,
     _extract_raw_model,
     _extract_predict_fn,
@@ -34,7 +34,7 @@ from mlflow.models.evaluation.default_evaluator import (
     _CustomMetric,
     _CustomArtifact,
 )
-from mlflow.models.utils import plot_lines  # pylint: disable=unused-import
+from mlflowacim.models.utils import plot_lines  # pylint: disable=unused-import
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
@@ -153,7 +153,7 @@ def test_regressor_evaluation(
         np.random.rand(len(diabetes_dataset.labels_data)) if use_sample_weights else None
     )
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             linear_regressor_model_uri,
             baseline_model_uri,
@@ -169,7 +169,7 @@ def test_regressor_evaluation(
 
     _, metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(linear_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(linear_regressor_model_uri)
 
     y = diabetes_dataset.labels_data
     y_pred = model.predict(diabetes_dataset.features_data)
@@ -212,7 +212,7 @@ def test_regressor_evaluation_disable_logging_metrics_and_artifacts(
     linear_regressor_model_uri,
     diabetes_dataset,
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             linear_regressor_model_uri,
             linear_regressor_model_uri,
@@ -225,7 +225,7 @@ def test_regressor_evaluation_disable_logging_metrics_and_artifacts(
 
     _, logged_metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(linear_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(linear_regressor_model_uri)
 
     y = diabetes_dataset.labels_data
     y_pred = model.predict(diabetes_dataset.features_data)
@@ -252,7 +252,7 @@ def test_regressor_evaluation_disable_logging_metrics_and_artifacts(
 def test_regressor_evaluation_with_int_targets(
     linear_regressor_model_uri, diabetes_dataset, tmp_path
 ):
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         result = evaluate(
             linear_regressor_model_uri,
             diabetes_dataset._constructor_args["data"],
@@ -280,7 +280,7 @@ def test_multi_classifier_evaluation(
 ):
     sample_weights = np.random.rand(len(iris_dataset.labels_data)) if use_sample_weights else None
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             multiclass_logistic_regressor_model_uri,
             baseline_model_uri,
@@ -296,7 +296,7 @@ def test_multi_classifier_evaluation(
 
     _, metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, predict_proba_fn = _extract_predict_fn(model, raw_model)
@@ -344,7 +344,7 @@ def test_multi_classifier_evaluation_disable_logging_metrics_and_artifacts(
     multiclass_logistic_regressor_model_uri,
     iris_dataset,
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             multiclass_logistic_regressor_model_uri,
             multiclass_logistic_regressor_model_uri,
@@ -357,7 +357,7 @@ def test_multi_classifier_evaluation_disable_logging_metrics_and_artifacts(
 
     _, logged_metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, predict_proba_fn = _extract_predict_fn(model, raw_model)
@@ -405,7 +405,7 @@ def test_bin_classifier_evaluation(
         np.random.rand(len(breast_cancer_dataset.labels_data)) if use_sample_weights else None
     )
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             binary_logistic_regressor_model_uri,
             baseline_model_uri,
@@ -421,7 +421,7 @@ def test_bin_classifier_evaluation(
 
     _, metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(binary_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(binary_logistic_regressor_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, predict_proba_fn = _extract_predict_fn(model, raw_model)
@@ -474,7 +474,7 @@ def test_bin_classifier_evaluation_disable_logging_metrics_and_artifacts(
     binary_logistic_regressor_model_uri,
     breast_cancer_dataset,
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             binary_logistic_regressor_model_uri,
             binary_logistic_regressor_model_uri,
@@ -487,7 +487,7 @@ def test_bin_classifier_evaluation_disable_logging_metrics_and_artifacts(
 
     _, logged_metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(binary_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(binary_logistic_regressor_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, predict_proba_fn = _extract_predict_fn(model, raw_model)
@@ -529,7 +529,7 @@ def test_spark_regressor_model_evaluation(
     diabetes_spark_dataset,
     baseline_model_uri,
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             spark_linear_regressor_model_uri,
             baseline_model_uri,
@@ -542,7 +542,7 @@ def test_spark_regressor_model_evaluation(
 
     _, metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(spark_linear_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(spark_linear_regressor_model_uri)
 
     X = diabetes_spark_dataset.features_data
     y = diabetes_spark_dataset.labels_data
@@ -558,7 +558,7 @@ def test_spark_regressor_model_evaluation(
         )
         assert np.isclose(expected_metric_val, result.metrics[metric_key], rtol=1e-3)
 
-    model = mlflow.pyfunc.load_model(spark_linear_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(spark_linear_regressor_model_uri)
 
     assert json.loads(tags["mlflow.datasets"]) == [
         {**diabetes_spark_dataset._metadata, "model": model.metadata.model_uuid}
@@ -572,7 +572,7 @@ def test_spark_regressor_model_evaluation_disable_logging_metrics_and_artifacts(
     spark_linear_regressor_model_uri,
     diabetes_spark_dataset,
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             spark_linear_regressor_model_uri,
             spark_linear_regressor_model_uri,
@@ -585,7 +585,7 @@ def test_spark_regressor_model_evaluation_disable_logging_metrics_and_artifacts(
 
     _, logged_metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(spark_linear_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(spark_linear_regressor_model_uri)
 
     X = diabetes_spark_dataset.features_data
     y = diabetes_spark_dataset.labels_data
@@ -616,7 +616,7 @@ def test_spark_regressor_model_evaluation_disable_logging_metrics_and_artifacts(
     indirect=["baseline_model_uri"],
 )
 def test_svm_classifier_evaluation(svm_model_uri, breast_cancer_dataset, baseline_model_uri):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             svm_model_uri,
             baseline_model_uri,
@@ -629,7 +629,7 @@ def test_svm_classifier_evaluation(svm_model_uri, breast_cancer_dataset, baselin
 
     _, metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(svm_model_uri)
+    model = mlflowacim.pyfunc.load_model(svm_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, _ = _extract_predict_fn(model, raw_model)
@@ -668,7 +668,7 @@ def test_svm_classifier_evaluation(svm_model_uri, breast_cancer_dataset, baselin
 
 
 def _evaluate_explainer_with_exceptions(model_uri, dataset):
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         evaluate(
             model_uri,
             dataset._constructor_args["data"],
@@ -700,7 +700,7 @@ def test_default_explainer_pandas_df_num_cols(
 def test_svm_classifier_evaluation_disable_logging_metrics_and_artifacts(
     svm_model_uri, breast_cancer_dataset
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate_model_helper(
             svm_model_uri,
             svm_model_uri,
@@ -713,7 +713,7 @@ def test_svm_classifier_evaluation_disable_logging_metrics_and_artifacts(
 
     _, logged_metrics, tags, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(svm_model_uri)
+    model = mlflowacim.pyfunc.load_model(svm_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, _ = _extract_predict_fn(model, raw_model)
@@ -750,10 +750,10 @@ def test_svm_classifier_evaluation_disable_logging_metrics_and_artifacts(
 def test_pipeline_model_kernel_explainer_on_categorical_features(
     pipeline_model_uri, baseline_model_uri
 ):
-    from mlflow.models.evaluation._shap_patch import _PatchedKernelExplainer
+    from mlflowacim.models.evaluation._shap_patch import _PatchedKernelExplainer
 
     data, target_col = get_pipeline_model_dataset()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         evaluate_model_helper(
             pipeline_model_uri,
             baseline_model_uri,
@@ -772,7 +772,7 @@ def test_pipeline_model_kernel_explainer_on_categorical_features(
         "explainer",
     }.issubset(run_data.artifacts)
 
-    explainer = mlflow.shap.load_explainer(f"runs:/{run.info.run_id}/explainer")
+    explainer = mlflowacim.shap.load_explainer(f"runs:/{run.info.run_id}/explainer")
     assert isinstance(explainer, _PatchedKernelExplainer)
 
 
@@ -832,7 +832,7 @@ def test_infer_model_type_by_labels():
 def test_extract_raw_model_and_predict_fn(
     binary_logistic_regressor_model_uri, breast_cancer_dataset
 ):
-    model = mlflow.pyfunc.load_model(binary_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(binary_logistic_regressor_model_uri)
 
     model_loader_module, raw_model = _extract_raw_model(model)
     predict_fn, predict_proba_fn = _extract_predict_fn(model, raw_model)
@@ -1406,7 +1406,7 @@ def test_evaluate_custom_artifacts_success():
 def _get_results_for_custom_metrics_tests(
     model_uri, dataset, *, custom_metrics=None, custom_artifacts=None
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate(
             model_uri,
             dataset._constructor_args["data"],
@@ -1470,7 +1470,7 @@ def test_custom_metric_mixed(binary_logistic_regressor_model_uri, breast_cancer_
         custom_artifacts=[example_custom_artifact],
     )
 
-    model = mlflow.pyfunc.load_model(binary_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(binary_logistic_regressor_model_uri)
 
     _, raw_model = _extract_raw_model(model)
     predict_fn, _ = _extract_predict_fn(model, raw_model)
@@ -1700,7 +1700,7 @@ def test_evaluate_sklearn_model_score_skip_when_not_scorable(
         "sklearn.linear_model.LinearRegression.score",
         side_effect=RuntimeError("LinearRegression.score failed"),
     ) as mock_score:
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             result = evaluate(
                 linear_regressor_model_uri,
                 diabetes_dataset._constructor_args["data"],
@@ -1717,12 +1717,12 @@ def test_evaluate_sklearn_model_score_skip_when_not_scorable(
     [LogisticRegression(), LinearRegression()],
 )
 def test_autologging_is_disabled_during_evaluate(model):
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     try:
         X, y = load_iris(as_frame=True, return_X_y=True)
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             model.fit(X, y)
-            model_info = mlflow.sklearn.log_model(model, "model")
+            model_info = mlflowacim.sklearn.log_model(model, "model")
             result = evaluate(
                 model_info.model_uri,
                 X.assign(target=y),
@@ -1739,7 +1739,7 @@ def test_autologging_is_disabled_during_evaluate(model):
                 duplicate_metrics += matched_keys
         assert duplicate_metrics == []
     finally:
-        mlflow.sklearn.autolog(disable=True)
+        mlflowacim.sklearn.autolog(disable=True)
 
 
 def test_evaluation_works_with_model_pipelines_that_modify_input_data():
@@ -1758,8 +1758,8 @@ def test_evaluation_works_with_model_pipelines_that_modify_input_data():
     )
     model_pipeline.fit(X, y)
 
-    with mlflow.start_run() as run:
-        pipeline_model_uri = mlflow.sklearn.log_model(model_pipeline, "model").model_uri
+    with mlflowacim.start_run() as run:
+        pipeline_model_uri = mlflowacim.sklearn.log_model(model_pipeline, "model").model_uri
 
         evaluation_data = pd.DataFrame(load_iris().data, columns=["0", "1", "2", "3"])
         evaluation_data["labels"] = load_iris().target
@@ -1790,10 +1790,10 @@ def test_evaluation_works_with_model_pipelines_that_modify_input_data():
 @pytest.mark.parametrize("prefix", ["train_", None])
 def test_evaluation_metric_name_configs(prefix):
     X, y = load_iris(as_frame=True, return_X_y=True)
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = LogisticRegression()
         model.fit(X, y)
-        model_info = mlflow.sklearn.log_model(model, "model")
+        model_info = mlflowacim.sklearn.log_model(model, "model")
         result = evaluate(
             model_info.model_uri,
             X.assign(target=y),
@@ -1818,7 +1818,7 @@ def test_evaluation_metric_name_configs(prefix):
 def test_evaluation_with_env_restoration(
     multiclass_logistic_regressor_model_uri, iris_dataset, env_manager
 ):
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         result = evaluate(
             model=multiclass_logistic_regressor_model_uri,
             data=iris_dataset._constructor_args["data"],
@@ -1830,7 +1830,7 @@ def test_evaluation_with_env_restoration(
 
     _, metrics, _, artifacts = get_run_data(run.info.run_id)
 
-    model = mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
     y = iris_dataset.labels_data
     y_pred = model.predict(iris_dataset.features_data)
 
@@ -1862,10 +1862,10 @@ def test_evaluation_binary_classification_with_pos_label(pos_label):
         # that an unspecified `pos_label` doesn't cause problems
         # for binary classification tasks with nonstandard labels
         y = [10 if trg == 1 else trg for trg in y]
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model = LogisticRegression()
         model.fit(X, y)
-        model_info = mlflow.sklearn.log_model(model, "model")
+        model_info = mlflowacim.sklearn.log_model(model, "model")
         result = evaluate(
             model_info.model_uri,
             X.assign(target=y),
@@ -1887,10 +1887,10 @@ def test_evaluation_binary_classification_with_pos_label(pos_label):
 @pytest.mark.parametrize("average", [None, "weighted", "macro", "micro"])
 def test_evaluation_multiclass_classification_with_average(average):
     X, y = load_iris(as_frame=True, return_X_y=True)
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model = LogisticRegression()
         model.fit(X, y)
-        model_info = mlflow.sklearn.log_model(model, "model")
+        model_info = mlflowacim.sklearn.log_model(model, "model")
         result = evaluate(
             model_info.model_uri,
             X.assign(target=y),
@@ -1911,9 +1911,9 @@ def test_evaluation_multiclass_classification_with_average(average):
 
 def test_custom_metrics():
     X, y = load_iris(as_frame=True, return_X_y=True)
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model = LogisticRegression().fit(X, y)
-        model_info = mlflow.sklearn.log_model(model, "model")
+        model_info = mlflowacim.sklearn.log_model(model, "model")
         result = evaluate(
             model_info.model_uri,
             X.assign(target=y),
@@ -1935,9 +1935,9 @@ def test_custom_metrics():
 
 def test_custom_artifacts():
     X, y = load_iris(as_frame=True, return_X_y=True)
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model = LogisticRegression().fit(X, y)
-        model_info = mlflow.sklearn.log_model(model, "model")
+        model_info = mlflowacim.sklearn.log_model(model, "model")
         result = evaluate(
             model_info.model_uri,
             X.assign(target=y),

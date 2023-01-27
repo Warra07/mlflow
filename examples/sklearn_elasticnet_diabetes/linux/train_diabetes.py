@@ -43,8 +43,8 @@ data = pd.DataFrame(d, columns=cols)
 
 
 # Import mlflow
-import mlflow
-import mlflow.sklearn
+import mlflowacim
+import mlflowacim.sklearn
 
 
 # Evaluate metrics
@@ -84,12 +84,12 @@ if __name__ == "__main__":
     print("  R2: %s" % r2)
 
     # Log mlflow attributes for mlflow UI
-    mlflow.log_param("alpha", alpha)
-    mlflow.log_param("l1_ratio", l1_ratio)
-    mlflow.log_metric("rmse", rmse)
-    mlflow.log_metric("r2", r2)
-    mlflow.log_metric("mae", mae)
-    mlflow.sklearn.log_model(lr, "model")
+    mlflowacim.log_param("alpha", alpha)
+    mlflowacim.log_param("l1_ratio", l1_ratio)
+    mlflowacim.log_metric("rmse", rmse)
+    mlflowacim.log_metric("r2", r2)
+    mlflowacim.log_metric("mae", mae)
+    mlflowacim.sklearn.log_model(lr, "model")
 
     # Compute paths
     eps = 5e-3  # the smaller it is the longer is the path
@@ -119,4 +119,4 @@ if __name__ == "__main__":
     plt.close(fig)
 
     # Log artifacts (output files)
-    mlflow.log_artifact("ElasticNet-paths.png")
+    mlflowacim.log_artifact("ElasticNet-paths.png")

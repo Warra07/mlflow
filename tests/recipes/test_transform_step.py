@@ -6,13 +6,13 @@ import pytest
 
 import pandas as pd
 
-import mlflow
-from mlflow.exceptions import MlflowException
-from mlflow import MlflowClient
-from mlflow.utils.file_utils import read_yaml
-from mlflow.recipes.utils.execution import _MLFLOW_RECIPES_EXECUTION_DIRECTORY_ENV_VAR
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
-from mlflow.recipes.steps.transform import TransformStep, _validate_user_code_output
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+from mlflowacim import MlflowClient
+from mlflowacim.utils.file_utils import read_yaml
+from mlflowacim.recipes.utils.execution import _MLFLOW_RECIPES_EXECUTION_DIRECTORY_ENV_VAR
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.recipes.steps.transform import TransformStep, _validate_user_code_output
 from unittest import mock
 
 # pylint: disable=unused-import
@@ -55,7 +55,7 @@ def set_up_transform_step(recipe_root: Path, transform_user_module):
             using: custom
             transformer_method: {transform_user_module}
         """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             experiment_name=experiment_name,
             transform_user_module=transform_user_module,
         )
@@ -102,7 +102,7 @@ def test_transform_steps_work_without_step_config(tmp_recipe_root_path, recipe):
           fakestep:
             something: else
         """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             experiment_name=experiment_name,
             recipe=recipe,
             positive_class='positive_class: "a"' if recipe == "regression/v1" else "",

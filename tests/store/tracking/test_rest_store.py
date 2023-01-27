@@ -4,8 +4,8 @@ import unittest
 from unittest import mock
 import pytest
 
-import mlflow
-from mlflow.entities import (
+import mlflowacim
+from mlflowacim.entities import (
     Param,
     Metric,
     RunTag,
@@ -15,9 +15,9 @@ from mlflow.entities import (
     Experiment,
     LifecycleStage,
 )
-from mlflow.exceptions import MlflowException
-from mlflow.models import Model
-from mlflow.protos.service_pb2 import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models import Model
+from mlflowacim.protos.service_pb2 import (
     CreateRun,
     DeleteExperiment,
     DeleteRun,
@@ -35,11 +35,11 @@ from mlflow.protos.service_pb2 import (
     SearchExperiments,
     LogModel,
 )
-from mlflow.protos.databricks_pb2 import RESOURCE_DOES_NOT_EXIST
-from mlflow.store.tracking.rest_store import RestStore
-from mlflow.utils.proto_json_utils import message_to_json
-from mlflow.utils.rest_utils import MlflowHostCreds
-from mlflow.tracking.request_header.default_request_header_provider import (
+from mlflowacim.protos.databricks_pb2 import RESOURCE_DOES_NOT_EXIST
+from mlflowacim.store.tracking.rest_store import RestStore
+from mlflowacim.utils.proto_json_utils import message_to_json
+from mlflowacim.utils.rest_utils import MlflowHostCreds
+from mlflowacim.tracking.request_header.default_request_header_provider import (
     DefaultRequestHeaderProvider,
 )
 
@@ -164,7 +164,7 @@ class TestRestStore:
         ), mock.patch(
             "time.time", return_value=13579
         ), source_name_patch, source_type_patch:
-            with mlflow.start_run(experiment_id="43", run_name=run_name):
+            with mlflowacim.start_run(experiment_id="43", run_name=run_name):
                 cr_body = message_to_json(
                     CreateRun(
                         experiment_id="43",

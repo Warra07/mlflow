@@ -16,17 +16,17 @@ from packaging.version import Version
 from tensorflow.keras import layers
 import yaml
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.models import Model
-from mlflow.models.utils import _read_example
-from mlflow.tensorflow._autolog import _TensorBoard, __MLflowTfKeras2Callback
-from mlflow.utils.autologging_utils import (
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.models import Model
+from mlflowacim.models.utils import _read_example
+from mlflowacim.tensorflow._autolog import _TensorBoard, __MLflowTfKeras2Callback
+from mlflowacim.utils.autologging_utils import (
     AUTOLOGGING_INTEGRATIONS,
     BatchMetricsLogger,
     autologging_is_disabled,
 )
-from mlflow.utils.process import _exec_cmd
+from mlflowacim.utils.process import _exec_cmd
 
 np.random.seed(1337)
 
@@ -133,8 +133,8 @@ def clear_fluent_autologging_import_hooks():
     to ensure that interactions between fluent autologging and TensorFlow / tf.keras can
     be tested successfully
     """
-    mlflow.utils.import_hooks._post_import_hooks.pop("tensorflow", None)
-    mlflow.utils.import_hooks._post_import_hooks.pop("keras", None)
+    mlflowacim.utils.import_hooks._post_import_hooks.pop("tensorflow", None)
+    mlflowacim.utils.import_hooks._post_import_hooks.pop("keras", None)
 
 
 @pytest.fixture(autouse=True)
@@ -143,7 +143,7 @@ def clear_autologging_config():
     Clears TensorFlow autologging config, simulating a fresh state where autologging has not
     been previously enabled with any particular configuration
     """
-    AUTOLOGGING_INTEGRATIONS.pop(mlflow.tensorflow.FLAVOR_NAME, None)
+    AUTOLOGGING_INTEGRATIONS.pop(mlflowacim.tensorflow.FLAVOR_NAME, None)
 
 
 def create_tf_keras_model():
@@ -158,7 +158,7 @@ def create_tf_keras_model():
 
 
 def test_tf_keras_autolog_ends_auto_created_run(random_train_data, random_one_hot_labels):
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     data = random_train_data
     labels = random_one_hot_labels
@@ -166,7 +166,7 @@ def test_tf_keras_autolog_ends_auto_created_run(random_train_data, random_one_ho
     model = create_tf_keras_model()
     model.fit(data, labels, epochs=10)
 
-    assert mlflow.active_run() is None
+    assert mlflowacim.active_run() is None
 
 
 @pytest.mark.parametrize("log_models", [True, False])
@@ -174,7 +174,7 @@ def test_tf_keras_autolog_log_models_configuration(
     random_train_data, random_one_hot_labels, log_models
 ):
     # pylint: disable=unused-argument
-    mlflow.tensorflow.autolog(log_models=log_models)
+    mlflowacim.tensorflow.autolog(log_models=log_models)
 
     data = random_train_data
     labels = random_one_hot_labels
@@ -191,22 +191,22 @@ def test_tf_keras_autolog_log_models_configuration(
 
 
 def test_tf_keras_autolog_persists_manually_created_run(random_train_data, random_one_hot_labels):
-    mlflow.tensorflow.autolog()
-    with mlflow.start_run() as run:
+    mlflowacim.tensorflow.autolog()
+    with mlflowacim.start_run() as run:
         data = random_train_data
         labels = random_one_hot_labels
 
         model = create_tf_keras_model()
         model.fit(data, labels, epochs=10)
 
-        assert mlflow.active_run()
-        assert mlflow.active_run().info.run_id == run.info.run_id
+        assert mlflowacim.active_run()
+        assert mlflowacim.active_run().info.run_id == run.info.run_id
 
 
 @pytest.fixture
 def tf_keras_random_data_run(random_train_data, random_one_hot_labels, initial_epoch):
     # pylint: disable=unused-argument
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     data = random_train_data
     labels = random_one_hot_labels
@@ -310,18 +310,18 @@ class __GeneratorClass:
 )
 @pytest.mark.parametrize("batch_size", [5, 10])
 def test_tf_keras_autolog_implicit_batch_size_works(generate_data, batch_size):
-    mlflow.autolog()
+    mlflowacim.autolog()
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Dense(1, input_shape=(1,)))
     model.compile(loss="mse")
 
     # 'x' passed as arg
     model.fit(generate_data(batch_size), verbose=0)
-    assert mlflow.last_active_run().data.params["batch_size"] == str(batch_size)
+    assert mlflowacim.last_active_run().data.params["batch_size"] == str(batch_size)
 
     # 'x' passed as kwarg
     model.fit(x=generate_data(batch_size), verbose=0)
-    assert mlflow.last_active_run().data.params["batch_size"] == str(batch_size)
+    assert mlflowacim.last_active_run().data.params["batch_size"] == str(batch_size)
 
 
 @pytest.mark.skipif(
@@ -349,14 +349,14 @@ def test_tf_keras_autolog_implicit_batch_size_for_generator_dataset_without_side
     model.add(Dense(1, kernel_initializer="zeros", bias_initializer="zeros"))
     model.compile(loss="mae", optimizer="adam", metrics=["mse"])
 
-    mlflow.autolog()
+    mlflowacim.autolog()
     actual_mse = model.fit(generator(data, target, batch_size), verbose=0).history["mse"][-1]
 
-    mlflow.autolog(disable=True)
+    mlflowacim.autolog(disable=True)
     expected_mse = model.fit(generator(data, target, batch_size), verbose=0).history["mse"][-1]
 
     np.testing.assert_allclose(actual_mse, expected_mse, atol=1)
-    assert mlflow.last_active_run().data.params["batch_size"] == str(batch_size)
+    assert mlflowacim.last_active_run().data.params["batch_size"] == str(batch_size)
 
 
 def test_tf_keras_autolog_succeeds_for_tf_datasets_lacking_batch_size_info():
@@ -383,19 +383,19 @@ def test_tf_keras_autolog_succeeds_for_tf_datasets_lacking_batch_size_info():
         metrics=["accuracy"],
     )
 
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
     model.fit(train_ds, epochs=100)
 
-    assert mlflow.last_active_run().data.params["batch_size"] == "None"
+    assert mlflowacim.last_active_run().data.params["batch_size"] == "None"
 
 
 def test_tf_keras_autolog_records_metrics_for_last_epoch(random_train_data, random_one_hot_labels):
     every_n_iter = 5
     num_training_epochs = 17
-    mlflow.tensorflow.autolog(every_n_iter=every_n_iter)
+    mlflowacim.tensorflow.autolog(every_n_iter=every_n_iter)
 
     model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(
             random_train_data,
             random_one_hot_labels,
@@ -420,10 +420,10 @@ def test_tf_keras_autolog_logs_metrics_for_single_epoch_training(
     produced in the boundary case where a model is trained for a single epoch, ensuring
     that we don't miss the zero index in the tf.Keras case.
     """
-    mlflow.tensorflow.autolog(every_n_iter=5)
+    mlflowacim.tensorflow.autolog(every_n_iter=5)
 
     model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(random_train_data, random_one_hot_labels, epochs=1)
 
     client = MlflowClient()
@@ -435,17 +435,17 @@ def test_tf_keras_autolog_logs_metrics_for_single_epoch_training(
 def test_tf_keras_autolog_names_positional_parameters_correctly(
     random_train_data, random_one_hot_labels
 ):
-    mlflow.tensorflow.autolog(every_n_iter=5)
+    mlflowacim.tensorflow.autolog(every_n_iter=5)
 
     data = random_train_data
     labels = random_one_hot_labels
 
     model = create_tf_keras_model()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         # Pass `batch_size` as a positional argument for testing purposes
         model.fit(data, labels, 8, epochs=10, steps_per_epoch=1)
-        run_id = mlflow.active_run().info.run_id
+        run_id = mlflowacim.active_run().info.run_id
 
     client = MlflowClient()
     run_info = client.get_run(run_id)
@@ -461,7 +461,7 @@ def test_tf_keras_autolog_model_can_load_from_artifact(tf_keras_random_data_run,
     artifacts = (x.path for x in artifacts)
     assert "model" in artifacts
     assert "tensorboard_logs" in artifacts
-    model = mlflow.tensorflow.load_model("runs:/" + run.info.run_id + "/model")
+    model = mlflowacim.tensorflow.load_model("runs:/" + run.info.run_id + "/model")
     model.predict(random_train_data)
 
 
@@ -475,7 +475,7 @@ def get_tf_keras_random_data_run_with_callback(
     log_models,
 ):
     # pylint: disable=unused-argument
-    mlflow.tensorflow.autolog(every_n_iter=1, log_models=log_models)
+    mlflowacim.tensorflow.autolog(every_n_iter=1, log_models=log_models)
 
     data = random_train_data
     labels = random_one_hot_labels
@@ -696,7 +696,7 @@ def test_tf_keras_autolog_does_not_mutate_original_callbacks_list(
     user-specified ones. This test verifies that the new callbacks are added to the without
     permanently mutating the original list of callbacks.
     """
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=tmpdir)
     callbacks = [tensorboard_callback]
@@ -722,7 +722,7 @@ def test_tf_keras_autolog_does_not_delete_logging_directory_for_tensorboard_call
         tensorboard_callback_logging_dir_path, histogram_freq=0
     )
 
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     data = random_train_data
     labels = random_one_hot_labels
@@ -737,9 +737,9 @@ def test_tf_keras_autolog_logs_to_and_deletes_temporary_directory_when_tensorboa
     tmpdir, random_train_data, random_one_hot_labels
 ):
     from unittest import mock
-    from mlflow.tensorflow import _TensorBoardLogDir
+    from mlflowacim.tensorflow import _TensorBoardLogDir
 
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     mock_log_dir_inst = _TensorBoardLogDir(location=str(tmpdir.mkdir("tb_logging")), is_temp=True)
     with mock.patch("mlflow.tensorflow._TensorBoardLogDir", autospec=True) as mock_log_dir_class:
@@ -762,13 +762,13 @@ def test_flush_queue_is_thread_safe():
     verifies that `_flush_queue` is thread safe.
     """
     from threading import Thread
-    from mlflow.entities import Metric
-    from mlflow.tensorflow import _flush_queue, _metric_queue_lock
+    from mlflowacim.entities import Metric
+    from mlflowacim.tensorflow import _flush_queue, _metric_queue_lock
 
     client = MlflowClient()
     run = client.create_run(experiment_id="0")
     metric_queue_item = (run.info.run_id, Metric("foo", 0.1, 100, 1))
-    mlflow.tensorflow._metric_queue.append(metric_queue_item)
+    mlflowacim.tensorflow._metric_queue.append(metric_queue_item)
 
     # Verify that, if another thread holds a lock on the metric queue leveraged by
     # _flush_queue, _flush_queue terminates and does not modify the queue
@@ -776,8 +776,8 @@ def test_flush_queue_is_thread_safe():
     flush_thread1 = Thread(target=_flush_queue)
     flush_thread1.start()
     flush_thread1.join()
-    assert len(mlflow.tensorflow._metric_queue) == 1
-    assert mlflow.tensorflow._metric_queue[0] == metric_queue_item
+    assert len(mlflowacim.tensorflow._metric_queue) == 1
+    assert mlflowacim.tensorflow._metric_queue[0] == metric_queue_item
     _metric_queue_lock.release()
 
     # Verify that, if no other thread holds a lock on the metric queue leveraged by
@@ -785,7 +785,7 @@ def test_flush_queue_is_thread_safe():
     flush_thread2 = Thread(target=_flush_queue)
     flush_thread2.start()
     flush_thread2.join()
-    assert len(mlflow.tensorflow._metric_queue) == 0
+    assert len(mlflowacim.tensorflow._metric_queue) == 0
 
 
 def get_text_vec_model(train_samples):
@@ -836,7 +836,7 @@ def test_autolog_text_vec_model(tmpdir):
     """
     Verifies autolog successfully saves a model that can't be saved in the H5 format
     """
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     train_samples = np.array(["this is an example", "another example"])
     train_labels = np.array([0.4, 0.2])
@@ -846,17 +846,17 @@ def test_autolog_text_vec_model(tmpdir):
     with pytest.raises(NotImplementedError, match="is not supported in h5"):
         model.save(tmpdir.join("model.h5").strpath, save_format="h5")
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(train_samples, train_labels, epochs=1)
 
-    loaded_model = mlflow.tensorflow.load_model("runs:/" + run.info.run_id + "/model")
+    loaded_model = mlflowacim.tensorflow.load_model("runs:/" + run.info.run_id + "/model")
     np.testing.assert_array_equal(loaded_model.predict(train_samples), model.predict(train_samples))
 
 
 def test_tf_keras_model_autolog_registering_model(random_train_data, random_one_hot_labels):
     registered_model_name = "test_autolog_registered_model"
-    mlflow.tensorflow.autolog(registered_model_name=registered_model_name)
-    with mlflow.start_run():
+    mlflowacim.tensorflow.autolog(registered_model_name=registered_model_name)
+    with mlflowacim.start_run():
         model = create_tf_keras_model()
         model.fit(random_train_data, random_one_hot_labels, epochs=10)
 
@@ -872,11 +872,11 @@ def test_fluent_autolog_with_tf_keras_logs_expected_content(
     `tf.keras` Models did not work due to conflicting patches set by both the
     `mlflow.tensorflow.autolog()` and the `mlflow.keras.autolog()` APIs.
     """
-    mlflow.autolog()
+    mlflowacim.autolog()
 
     model = create_tf_keras_model()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(random_train_data, random_one_hot_labels, epochs=10)
 
     client = MlflowClient()
@@ -904,12 +904,12 @@ def test_callback_is_picklable():
 )
 def test_tf_keras_autolog_distributed_training(random_train_data, random_one_hot_labels):
     # Ref: https://www.tensorflow.org/tutorials/distribute/keras
-    mlflow.tensorflow.autolog()
+    mlflowacim.tensorflow.autolog()
 
     with tf.distribute.MirroredStrategy().scope():
         model = create_tf_keras_model()
     fit_params = {"epochs": 10, "batch_size": 10}
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(random_train_data, random_one_hot_labels, **fit_params)
     client = MlflowClient()
     assert client.get_run(run.info.run_id).data.params.keys() >= fit_params.keys()
@@ -926,7 +926,7 @@ def test_fluent_autolog_with_tf_keras_preserves_v2_model_reference():
     compatibility issues between recent versions of TensorFlow and MLflow's internal utility for
     setting up autologging import hooks.
     """
-    mlflow.autolog()
+    mlflowacim.autolog()
 
     import tensorflow.keras
     from keras.api._v2.keras import Model as ModelV2
@@ -935,11 +935,11 @@ def test_fluent_autolog_with_tf_keras_preserves_v2_model_reference():
 
 
 def test_import_tensorflow_with_fluent_autolog_enables_tensorflow_autologging():
-    mlflow.autolog()
+    mlflowacim.autolog()
 
     import tensorflow  # pylint: disable=unused-import,reimported
 
-    assert not autologging_is_disabled(mlflow.tensorflow.FLAVOR_NAME)
+    assert not autologging_is_disabled(mlflowacim.tensorflow.FLAVOR_NAME)
 
 
 def _assert_autolog_infers_model_signature_correctly(run, input_sig_spec, output_sig_spec):
@@ -966,16 +966,16 @@ def _assert_keras_autolog_input_example_load_and_predict_with_nparray(run, rando
     model_conf = Model.load(os.path.join(model_path, "MLmodel"))
     input_example = _read_example(model_conf, model_path)
     np.testing.assert_array_almost_equal(input_example, random_train_data[:5])
-    pyfunc_model = mlflow.pyfunc.load_model(os.path.join(run.info.artifact_uri, "model"))
+    pyfunc_model = mlflowacim.pyfunc.load_model(os.path.join(run.info.artifact_uri, "model"))
     pyfunc_model.predict(input_example)
 
 
 def test_keras_autolog_input_example_load_and_predict_with_nparray(
     random_train_data, random_one_hot_labels
 ):
-    mlflow.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
     initial_model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         initial_model.fit(random_train_data, random_one_hot_labels)
         _assert_keras_autolog_input_example_load_and_predict_with_nparray(run, random_train_data)
 
@@ -983,9 +983,9 @@ def test_keras_autolog_input_example_load_and_predict_with_nparray(
 def test_keras_autolog_infers_model_signature_correctly_with_nparray(
     random_train_data, random_one_hot_labels
 ):
-    mlflow.tensorflow.autolog(log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_model_signatures=True)
     initial_model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         initial_model.fit(random_train_data, random_one_hot_labels)
         _assert_autolog_infers_model_signature_correctly(
             run,
@@ -999,14 +999,14 @@ def test_keras_autolog_infers_model_signature_correctly_with_nparray(
     reason="tf.data.Dataset inputs are unsupported for input example logging in TensorFlow < 2.1.0",
 )
 def test_keras_autolog_input_example_load_and_predict_with_tf_dataset(fashion_mnist_tf_dataset):
-    mlflow.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
     fashion_mnist_model = _create_fashion_mnist_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         fashion_mnist_model.fit(fashion_mnist_tf_dataset)
         model_path = os.path.join(run.info.artifact_uri, "model")
         model_conf = Model.load(os.path.join(model_path, "MLmodel"))
         input_example = _read_example(model_conf, model_path)
-        pyfunc_model = mlflow.pyfunc.load_model(os.path.join(run.info.artifact_uri, "model"))
+        pyfunc_model = mlflowacim.pyfunc.load_model(os.path.join(run.info.artifact_uri, "model"))
         pyfunc_model.predict(input_example)
 
 
@@ -1015,9 +1015,9 @@ def test_keras_autolog_input_example_load_and_predict_with_tf_dataset(fashion_mn
     reason="tf.data.Dataset inputs are unsupported for signature logging in TensorFlow < 2.1.0",
 )
 def test_keras_autolog_infers_model_signature_correctly_with_tf_dataset(fashion_mnist_tf_dataset):
-    mlflow.tensorflow.autolog(log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_model_signatures=True)
     fashion_mnist_model = _create_fashion_mnist_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         fashion_mnist_model.fit(fashion_mnist_tf_dataset)
         _assert_autolog_infers_model_signature_correctly(
             run,
@@ -1029,25 +1029,25 @@ def test_keras_autolog_infers_model_signature_correctly_with_tf_dataset(fashion_
 def test_keras_autolog_input_example_load_and_predict_with_dict(
     random_train_dict_mapping, random_one_hot_labels
 ):
-    mlflow.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
     model = _create_model_for_dict_mapping()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(random_train_dict_mapping, random_one_hot_labels)
         model_path = os.path.join(run.info.artifact_uri, "model")
         model_conf = Model.load(os.path.join(model_path, "MLmodel"))
         input_example = _read_example(model_conf, model_path)
         for k, v in random_train_dict_mapping.items():
             np.testing.assert_array_almost_equal(input_example[k], np.take(v, range(0, 5)))
-        pyfunc_model = mlflow.pyfunc.load_model(os.path.join(run.info.artifact_uri, "model"))
+        pyfunc_model = mlflowacim.pyfunc.load_model(os.path.join(run.info.artifact_uri, "model"))
         pyfunc_model.predict(input_example)
 
 
 def test_keras_autolog_infers_model_signature_correctly_with_dict(
     random_train_dict_mapping, random_one_hot_labels
 ):
-    mlflow.tensorflow.autolog(log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_model_signatures=True)
     model = _create_model_for_dict_mapping()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(random_train_dict_mapping, random_one_hot_labels)
         _assert_autolog_infers_model_signature_correctly(
             run,
@@ -1062,9 +1062,9 @@ def test_keras_autolog_infers_model_signature_correctly_with_dict(
 
 
 def test_keras_autolog_input_example_load_and_predict_with_keras_sequence(keras_data_gen_sequence):
-    mlflow.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_input_examples=True, log_model_signatures=True)
     model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(keras_data_gen_sequence)
         _assert_keras_autolog_input_example_load_and_predict_with_nparray(
             run, keras_data_gen_sequence[:][0][:5]
@@ -1074,9 +1074,9 @@ def test_keras_autolog_input_example_load_and_predict_with_keras_sequence(keras_
 def test_keras_autolog_infers_model_signature_correctly_with_keras_sequence(
     keras_data_gen_sequence,
 ):
-    mlflow.tensorflow.autolog(log_model_signatures=True)
+    mlflowacim.tensorflow.autolog(log_model_signatures=True)
     initial_model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         initial_model.fit(keras_data_gen_sequence)
         _assert_autolog_infers_model_signature_correctly(
             run,
@@ -1086,21 +1086,21 @@ def test_keras_autolog_infers_model_signature_correctly_with_keras_sequence(
 
 
 def test_keras_autolog_load_saved_hdf5_model(keras_data_gen_sequence):
-    mlflow.tensorflow.autolog(keras_model_kwargs={"save_format": "h5"})
+    mlflowacim.tensorflow.autolog(keras_model_kwargs={"save_format": "h5"})
     model = create_tf_keras_model()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(keras_data_gen_sequence)
-        mlflow.tensorflow.load_model(f"runs:/{run.info.run_id}/model")
+        mlflowacim.tensorflow.load_model(f"runs:/{run.info.run_id}/model")
         assert Path(run.info.artifact_uri, "model", "data", "model.h5").exists()
 
 
 def test_keras_autolog_logs_model_signature_by_default(keras_data_gen_sequence):
-    mlflow.autolog()
+    mlflowacim.autolog()
     initial_model = create_tf_keras_model()
     initial_model.fit(keras_data_gen_sequence)
 
-    mlmodel_path = mlflow.artifacts.download_artifacts(
-        f"runs:/{mlflow.last_active_run().info.run_id}/model/MLmodel"
+    mlmodel_path = mlflowacim.artifacts.download_artifacts(
+        f"runs:/{mlflowacim.last_active_run().info.run_id}/model/MLmodel"
     )
     mlmodel_contents = yaml.safe_load(open(mlmodel_path))
     assert "signature" in mlmodel_contents.keys()
@@ -1117,7 +1117,7 @@ def test_keras_autolog_logs_model_signature_by_default(keras_data_gen_sequence):
 
 
 def test_extract_tf_keras_input_example_unsupported_type_returns_None():
-    from mlflow.tensorflow._autolog import extract_tf_keras_input_example
+    from mlflowacim.tensorflow._autolog import extract_tf_keras_input_example
 
     extracted_data = extract_tf_keras_input_example([1, 2, 4, 5])
     assert extracted_data is None, (
@@ -1127,7 +1127,7 @@ def test_extract_tf_keras_input_example_unsupported_type_returns_None():
 
 
 def test_extract_input_example_from_tf_input_fn_unsupported_type_returns_None():
-    from mlflow.tensorflow._autolog import extract_tf_keras_input_example
+    from mlflowacim.tensorflow._autolog import extract_tf_keras_input_example
 
     extracted_data = extract_tf_keras_input_example(lambda: [1, 2, 4, 5])
     assert extracted_data is None, (

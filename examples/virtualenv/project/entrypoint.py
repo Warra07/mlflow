@@ -8,7 +8,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-import mlflow
+import mlflowacim
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -29,5 +29,5 @@ y = np.array([1, 1, 2, 2])
 clf = make_pipeline(StandardScaler(), SVC(gamma="auto"))
 clf.fit(X, y)
 
-with mlflow.start_run():
-    mlflow.sklearn.log_model(clf, artifact_path="model")
+with mlflowacim.start_run():
+    mlflowacim.sklearn.log_model(clf, artifact_path="model")

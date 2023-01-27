@@ -4,13 +4,13 @@ from unittest import mock
 import pytest
 from sklearn import datasets
 import sklearn.neighbors as knn
-import mlflow
+import mlflowacim
 import random
 
-from mlflow import MlflowClient
-from mlflow.entities.model_registry import ModelVersion
-from mlflow.models import add_libraries_to_model
-from mlflow.models.utils import get_model_version_from_model_uri
+from mlflowacim import MlflowClient
+from mlflowacim.entities.model_registry import ModelVersion
+from mlflowacim.models import add_libraries_to_model
+from mlflowacim.models.utils import get_model_version_from_model_uri
 
 ModelWithData = namedtuple("ModelWithData", ["model", "inference_data"])
 
@@ -36,9 +36,9 @@ def test_adding_libraries_to_model_default(sklearn_knn_model):
     wheeled_model_uri = f"models:/{model_name}/2"
 
     # Log a model
-    with mlflow.start_run():
-        run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
@@ -60,16 +60,16 @@ def test_adding_libraries_to_model_new_run(sklearn_knn_model):
     wheeled_model_uri = f"models:/{model_name}/2"
 
     # Log a model
-    with mlflow.start_run():
-        original_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        original_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
         )
 
-    with mlflow.start_run():
-        wheeled_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
+    with mlflowacim.start_run():
+        wheeled_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
         wheeled_model_info = add_libraries_to_model(model_uri)
     assert original_run_id != wheeled_run_id
     assert wheeled_model_info.run_id == wheeled_run_id
@@ -87,16 +87,16 @@ def test_adding_libraries_to_model_run_id_passed(sklearn_knn_model):
     wheeled_model_uri = f"models:/{model_name}/2"
 
     # Log a model
-    with mlflow.start_run():
-        original_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        original_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
         )
 
-    with mlflow.start_run():
-        wheeled_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
+    with mlflowacim.start_run():
+        wheeled_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
         pass
 
     wheeled_model_info = add_libraries_to_model(model_uri, run_id=wheeled_run_id)
@@ -117,15 +117,15 @@ def test_adding_libraries_to_model_new_model_name(sklearn_knn_model):
     wheeled_model_uri = f"models:/{wheeled_model_name}/1"
 
     # Log a model
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
         )
 
-    with mlflow.start_run():
-        new_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
+    with mlflowacim.start_run():
+        new_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
         wheeled_model_info = add_libraries_to_model(
             model_uri, registered_model_name=wheeled_model_name
         )
@@ -144,9 +144,9 @@ def test_adding_libraries_to_model_when_version_source_None(sklearn_knn_model):
     model_uri = f"models:/{model_name}/1"
 
     # Log a model
-    with mlflow.start_run():
-        original_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        original_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,

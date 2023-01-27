@@ -17,25 +17,25 @@ from unittest import mock
 
 from io import StringIO
 
-import mlflow
-import mlflow.sklearn
-from mlflow.models.flavor_backend_registry import get_flavor_backend
+import mlflowacim
+import mlflowacim.sklearn
+from mlflowacim.models.flavor_backend_registry import get_flavor_backend
 
-from mlflow.utils.conda import _get_conda_env_name
+from mlflowacim.utils.conda import _get_conda_env_name
 
-import mlflow.models.cli as models_cli
+import mlflowacim.models.cli as models_cli
 
-from mlflow.environment_variables import MLFLOW_DISABLE_ENV_MANAGER_CONDA_WARNING
-from mlflow.exceptions import MlflowException
-from mlflow.protos.databricks_pb2 import ErrorCode, BAD_REQUEST
-from mlflow.pyfunc.scoring_server import (
+from mlflowacim.environment_variables import MLFLOW_DISABLE_ENV_MANAGER_CONDA_WARNING
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.protos.databricks_pb2 import ErrorCode, BAD_REQUEST
+from mlflowacim.pyfunc.scoring_server import (
     CONTENT_TYPE_JSON,
     CONTENT_TYPE_CSV,
 )
-from mlflow.utils.file_utils import TempDir
-from mlflow.utils.environment import _mlflow_conda_env
-from mlflow.utils import env_manager as _EnvManager
-from mlflow.utils import PYTHON_VERSION
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.utils.environment import _mlflow_conda_env
+from mlflowacim.utils import env_manager as _EnvManager
+from mlflowacim.utils import PYTHON_VERSION
 from tests.helper_functions import (
     pyfunc_build_image,
     pyfunc_serve_from_docker_image,
@@ -79,7 +79,7 @@ def test_mlflow_is_not_installed_unless_specified():
         pytest.skip("This test requires conda.")
     with TempDir(chdr=True) as tmp:
         fake_model_path = tmp.path("fake_model")
-        mlflow.pyfunc.save_model(fake_model_path, loader_module=__name__)
+        mlflowacim.pyfunc.save_model(fake_model_path, loader_module=__name__)
         # Overwrite the logged `conda.yaml` to remove mlflow.
         _mlflow_conda_env(path=os.path.join(fake_model_path, "conda.yaml"), install_mlflow=False)
         # The following should fail because there should be no mlflow in the env:
@@ -106,7 +106,7 @@ def test_mlflow_is_not_installed_unless_specified():
 
 
 def test_model_with_no_deployable_flavors_fails_pollitely():
-    from mlflow.models import Model
+    from mlflowacim.models import Model
 
     with TempDir(chdr=True) as tmp:
         m = Model(
@@ -132,8 +132,8 @@ def test_model_with_no_deployable_flavors_fails_pollitely():
 def test_serve_gunicorn_opts(iris_data, sk_model):
     if sys.platform == "win32":
         pytest.skip("This test requires gunicorn which is not available on windows.")
-    with mlflow.start_run() as active_run:
-        mlflow.sklearn.log_model(sk_model, "model", registered_model_name="imlegit")
+    with mlflowacim.start_run() as active_run:
+        mlflowacim.sklearn.log_model(sk_model, "model", registered_model_name="imlegit")
         run_id = active_run.info.run_id
 
     model_uris = [
@@ -166,8 +166,8 @@ def test_serve_gunicorn_opts(iris_data, sk_model):
 
 def test_predict(iris_data, sk_model):
     with TempDir(chdr=True) as tmp:
-        with mlflow.start_run() as active_run:
-            mlflow.sklearn.log_model(sk_model, "model", registered_model_name="impredicting")
+        with mlflowacim.start_run() as active_run:
+            mlflowacim.sklearn.log_model(sk_model, "model", registered_model_name="impredicting")
             model_uri = "runs:/{run_id}/model".format(run_id=active_run.info.run_id)
         model_registry_uri = "models:/{name}/{stage}".format(name="impredicting", stage="None")
         input_json_path = tmp.path("input.json")
@@ -181,7 +181,7 @@ def test_predict(iris_data, sk_model):
 
         # Test with no conda & model registry URI
         env_with_tracking_uri = os.environ.copy()
-        env_with_tracking_uri.update(MLFLOW_TRACKING_URI=mlflow.get_tracking_uri())
+        env_with_tracking_uri.update(MLFLOW_TRACKING_URI=mlflowacim.get_tracking_uri())
         p = subprocess.Popen(
             [
                 "mlflow",
@@ -327,8 +327,8 @@ def test_prepare_env_passes(sk_model):
         pytest.skip("This test requires conda.")
 
     with TempDir(chdr=True):
-        with mlflow.start_run() as active_run:
-            mlflow.sklearn.log_model(sk_model, "model")
+        with mlflowacim.start_run() as active_run:
+            mlflowacim.sklearn.log_model(sk_model, "model")
             model_uri = "runs:/{run_id}/model".format(run_id=active_run.info.run_id)
 
         # With conda
@@ -349,8 +349,8 @@ def test_prepare_env_fails(sk_model):
         pytest.skip("This test requires conda.")
 
     with TempDir(chdr=True):
-        with mlflow.start_run() as active_run:
-            mlflow.sklearn.log_model(
+        with mlflowacim.start_run() as active_run:
+            mlflowacim.sklearn.log_model(
                 sk_model, "model", pip_requirements=["does-not-exist-dep==abc"]
             )
             model_uri = "runs:/{run_id}/model".format(run_id=active_run.info.run_id)
@@ -362,13 +362,13 @@ def test_prepare_env_fails(sk_model):
 
 @pytest.mark.parametrize("enable_mlserver", [True, False])
 def test_generate_dockerfile(sk_model, enable_mlserver, tmp_path):
-    with mlflow.start_run() as active_run:
+    with mlflowacim.start_run() as active_run:
         if enable_mlserver:
-            mlflow.sklearn.log_model(
+            mlflowacim.sklearn.log_model(
                 sk_model, "model", extra_pip_requirements=[PROTOBUF_REQUIREMENT]
             )
         else:
-            mlflow.sklearn.log_model(sk_model, "model")
+            mlflowacim.sklearn.log_model(sk_model, "model")
         model_uri = "runs:/{run_id}/model".format(run_id=active_run.info.run_id)
     extra_args = ["--install-mlflow"]
     if enable_mlserver:
@@ -385,13 +385,13 @@ def test_generate_dockerfile(sk_model, enable_mlserver, tmp_path):
 
 @pytest.mark.parametrize("enable_mlserver", [True, False])
 def test_build_docker(iris_data, sk_model, enable_mlserver):
-    with mlflow.start_run() as active_run:
+    with mlflowacim.start_run() as active_run:
         if enable_mlserver:
-            mlflow.sklearn.log_model(
+            mlflowacim.sklearn.log_model(
                 sk_model, "model", extra_pip_requirements=[PROTOBUF_REQUIREMENT]
             )
         else:
-            mlflow.sklearn.log_model(sk_model, "model")
+            mlflowacim.sklearn.log_model(sk_model, "model")
         model_uri = "runs:/{run_id}/model".format(run_id=active_run.info.run_id)
 
     x, _ = iris_data
@@ -408,8 +408,8 @@ def test_build_docker(iris_data, sk_model, enable_mlserver):
 
 
 def test_build_docker_virtualenv(iris_data, sk_model):
-    with mlflow.start_run():
-        model_info = mlflow.sklearn.log_model(sk_model, "model")
+    with mlflowacim.start_run():
+        model_info = mlflowacim.sklearn.log_model(sk_model, "model")
 
     x, _ = iris_data
     df = pd.DataFrame(iris_data[0])
@@ -423,13 +423,13 @@ def test_build_docker_virtualenv(iris_data, sk_model):
 
 @pytest.mark.parametrize("enable_mlserver", [True, False])
 def test_build_docker_with_env_override(iris_data, sk_model, enable_mlserver):
-    with mlflow.start_run() as active_run:
+    with mlflowacim.start_run() as active_run:
         if enable_mlserver:
-            mlflow.sklearn.log_model(
+            mlflowacim.sklearn.log_model(
                 sk_model, "model", extra_pip_requirements=[PROTOBUF_REQUIREMENT]
             )
         else:
-            mlflow.sklearn.log_model(sk_model, "model")
+            mlflowacim.sklearn.log_model(sk_model, "model")
         model_uri = "runs:/{run_id}/model".format(run_id=active_run.info.run_id)
     x, _ = iris_data
     df = pd.DataFrame(x)
@@ -448,7 +448,7 @@ def test_build_docker_with_env_override(iris_data, sk_model, enable_mlserver):
 
 def test_build_docker_without_model_uri(iris_data, sk_model, tmp_path):
     model_path = tmp_path.joinpath("model")
-    mlflow.sklearn.save_model(sk_model, model_path)
+    mlflowacim.sklearn.save_model(sk_model, model_path)
     image_name = pyfunc_build_image(model_uri=None)
     host_port = get_safe_port()
     scoring_proc = pyfunc_serve_from_docker_image_with_env_override(
@@ -532,10 +532,10 @@ def test_change_conda_env_root_location(tmp_path, sk_model):
     env_root2_path.mkdir()
 
     model1_path = tmp_path / "model1"
-    mlflow.sklearn.save_model(sk_model, str(model1_path), pip_requirements=["scikit-learn==1.0.1"])
+    mlflowacim.sklearn.save_model(sk_model, str(model1_path), pip_requirements=["scikit-learn==1.0.1"])
 
     model2_path = tmp_path / "model2"
-    mlflow.sklearn.save_model(sk_model, str(model2_path), pip_requirements=["scikit-learn==1.0.2"])
+    mlflowacim.sklearn.save_model(sk_model, str(model2_path), pip_requirements=["scikit-learn==1.0.2"])
 
     env_path_set = set()
     for env_root_path, model_path, sklearn_ver in [

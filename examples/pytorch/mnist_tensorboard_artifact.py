@@ -10,8 +10,8 @@
 #
 import argparse
 import os
-import mlflow
-import mlflow.pytorch
+import mlflowacim
+import mlflowacim.pytorch
 import pickle
 import tempfile
 import torch
@@ -192,13 +192,13 @@ def test(epoch):
 def log_scalar(name, value, step):
     """Log a scalar value to both MLflow and TensorBoard"""
     writer.add_scalar(name, value, step)
-    mlflow.log_metric(name, value)
+    mlflowacim.log_metric(name, value)
 
 
-with mlflow.start_run():
+with mlflowacim.start_run():
     # Log our parameters into mlflow
     for key, value in vars(args).items():
-        mlflow.log_param(key, value)
+        mlflowacim.log_param(key, value)
 
     # Create a SummaryWriter to write TensorBoard events locally
     output_dir = dirpath = tempfile.mkdtemp()
@@ -212,21 +212,21 @@ with mlflow.start_run():
 
     # Upload the TensorBoard event logs as a run artifact
     print("Uploading TensorBoard events as a run artifact...")
-    mlflow.log_artifacts(output_dir, artifact_path="events")
+    mlflowacim.log_artifacts(output_dir, artifact_path="events")
     print(
         "\nLaunch TensorBoard with:\n\ntensorboard --logdir=%s"
-        % os.path.join(mlflow.get_artifact_uri(), "events")
+        % os.path.join(mlflowacim.get_artifact_uri(), "events")
     )
 
     # Log the model as an artifact of the MLflow run.
     print("\nLogging the trained model as a run artifact...")
-    mlflow.pytorch.log_model(model, artifact_path="pytorch-model", pickle_module=pickle)
+    mlflowacim.pytorch.log_model(model, artifact_path="pytorch-model", pickle_module=pickle)
     print(
-        "\nThe model is logged at:\n%s" % os.path.join(mlflow.get_artifact_uri(), "pytorch-model")
+        "\nThe model is logged at:\n%s" % os.path.join(mlflowacim.get_artifact_uri(), "pytorch-model")
     )
 
     # Since the model was logged as an artifact, it can be loaded to make predictions
-    loaded_model = mlflow.pytorch.load_model(mlflow.get_artifact_uri("pytorch-model"))
+    loaded_model = mlflowacim.pytorch.load_model(mlflowacim.get_artifact_uri("pytorch-model"))
 
     # Extract a few examples from the test dataset to evaluate on
     eval_data, eval_labels = next(iter(test_loader))

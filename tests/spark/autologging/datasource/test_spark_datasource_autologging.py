@@ -5,10 +5,10 @@ from unittest import mock
 from pyspark.sql import Row
 from pyspark.sql.types import StructType, IntegerType, StructField
 
-import mlflow
-import mlflow.spark
-from mlflow.utils.validation import MAX_TAG_VAL_LENGTH
-from mlflow._spark_autologging import _SPARK_TABLE_INFO_TAG_NAME
+import mlflowacim
+import mlflowacim.spark
+from mlflowacim.utils.validation import MAX_TAG_VAL_LENGTH
+from mlflowacim._spark_autologging import _SPARK_TABLE_INFO_TAG_NAME
 
 from tests.spark.autologging.utils import _assert_spark_data_logged
 from tests.spark.autologging.utils import spark_session  # pylint: disable=unused-import
@@ -30,7 +30,7 @@ def _get_expected_table_info_row(path, data_format, version=None):
 
 
 def test_autologging_of_datasources_with_different_formats(spark_session, format_to_file_path):
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()
     for data_format, file_path in format_to_file_path.items():
         base_df = (
             spark_session.read.format(data_format)
@@ -52,22 +52,22 @@ def test_autologging_of_datasources_with_different_formats(spark_session, format
         ]
 
         for df in dfs:
-            with mlflow.start_run():
-                run_id = mlflow.active_run().info.run_id
+            with mlflowacim.start_run():
+                run_id = mlflowacim.active_run().info.run_id
                 df.collect()
                 time.sleep(1)
-            run = mlflow.get_run(run_id)
+            run = mlflowacim.get_run(run_id)
             _assert_spark_data_logged(run=run, path=file_path, data_format=data_format)
 
 
 def test_autologging_does_not_throw_on_api_failures(spark_session, format_to_file_path, tmp_path):
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()
     url, process = _init_server(
         f"sqlite:///{tmp_path}/test.db", root_artifact_uri=tmp_path.as_uri()
     )
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
     try:
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             with mock.patch(
                 "mlflow.utils.rest_utils.http_request", side_effect=Exception("API request failed!")
             ):
@@ -89,7 +89,7 @@ def test_autologging_does_not_throw_on_api_failures(spark_session, format_to_fil
 
 
 def test_autologging_dedups_multiple_reads_of_same_datasource(spark_session, format_to_file_path):
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()
     data_format = list(format_to_file_path.keys())[0]
     file_path = format_to_file_path[data_format]
     df = (
@@ -98,35 +98,35 @@ def test_autologging_dedups_multiple_reads_of_same_datasource(spark_session, for
         .option("inferSchema", "true")
         .load(file_path)
     )
-    with mlflow.start_run():
-        run_id = mlflow.active_run().info.run_id
+    with mlflowacim.start_run():
+        run_id = mlflowacim.active_run().info.run_id
         df.collect()
         df.filter("number1 > 0").collect()
         df.limit(2).collect()
         df.collect()
         time.sleep(1)
-    run = mlflow.get_run(run_id)
+    run = mlflowacim.get_run(run_id)
     _assert_spark_data_logged(run=run, path=file_path, data_format=data_format)
     # Test context provider flow
     df.filter("number1 > 0").collect()
     df.limit(2).collect()
     df.collect()
-    with mlflow.start_run():
-        run_id2 = mlflow.active_run().info.run_id
+    with mlflowacim.start_run():
+        run_id2 = mlflowacim.active_run().info.run_id
     time.sleep(1)
-    run2 = mlflow.get_run(run_id2)
+    run2 = mlflowacim.get_run(run_id2)
     _assert_spark_data_logged(run=run2, path=file_path, data_format=data_format)
 
 
 def test_autologging_multiple_reads_same_run(spark_session, format_to_file_path):
-    mlflow.spark.autolog()
-    with mlflow.start_run():
+    mlflowacim.spark.autolog()
+    with mlflowacim.start_run():
         for data_format, file_path in format_to_file_path.items():
-            run_id = mlflow.active_run().info.run_id
+            run_id = mlflowacim.active_run().info.run_id
             df = spark_session.read.format(data_format).load(file_path)
             df.collect()
             time.sleep(1)
-        run = mlflow.get_run(run_id)
+        run = mlflowacim.get_run(run_id)
         assert _SPARK_TABLE_INFO_TAG_NAME in run.data.tags
         table_info_tag = run.data.tags[_SPARK_TABLE_INFO_TAG_NAME]
         assert table_info_tag == "\n".join(
@@ -138,7 +138,7 @@ def test_autologging_multiple_reads_same_run(spark_session, format_to_file_path)
 
 
 def test_autologging_multiple_runs_same_data(spark_session, format_to_file_path):
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()
     data_format = list(format_to_file_path.keys())[0]
     file_path = format_to_file_path[data_format]
     df = (
@@ -150,16 +150,16 @@ def test_autologging_multiple_runs_same_data(spark_session, format_to_file_path)
     df.collect()
 
     for _ in range(2):
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             time.sleep(1)
-            run_id = mlflow.active_run().info.run_id
-            run = mlflow.get_run(run_id)
+            run_id = mlflowacim.active_run().info.run_id
+            run = mlflowacim.get_run(run_id)
             _assert_spark_data_logged(run=run, path=file_path, data_format=data_format)
 
 
 def test_autologging_does_not_start_run(spark_session, format_to_file_path):
     try:
-        mlflow.spark.autolog()
+        mlflowacim.spark.autolog()
         data_format = list(format_to_file_path.keys())[0]
         file_path = format_to_file_path[data_format]
         df = (
@@ -170,29 +170,29 @@ def test_autologging_does_not_start_run(spark_session, format_to_file_path):
         )
         df.collect()
         time.sleep(1)
-        active_run = mlflow.active_run()
+        active_run = mlflowacim.active_run()
         assert active_run is None
-        assert len(mlflow.search_runs()) == 0
+        assert len(mlflowacim.search_runs()) == 0
     finally:
-        mlflow.end_run()
+        mlflowacim.end_run()
 
 
 def test_autologging_slow_api_requests(spark_session, format_to_file_path):
-    import mlflow.utils.rest_utils
+    import mlflowacim.utils.rest_utils
 
-    orig = mlflow.utils.rest_utils.http_request
+    orig = mlflowacim.utils.rest_utils.http_request
 
     def _slow_api_req_mock(*args, **kwargs):
         if kwargs.get("method") == "POST":
             time.sleep(1)
         return orig(*args, **kwargs)
 
-    mlflow.spark.autolog()
-    with mlflow.start_run():
+    mlflowacim.spark.autolog()
+    with mlflowacim.start_run():
         # Mock slow API requests to log Spark datasource information
         with mock.patch("mlflow.utils.rest_utils.http_request") as http_request_mock:
             http_request_mock.side_effect = _slow_api_req_mock
-            run_id = mlflow.active_run().info.run_id
+            run_id = mlflowacim.active_run().info.run_id
             for data_format, file_path in format_to_file_path.items():
                 df = (
                     spark_session.read.format(data_format)
@@ -209,7 +209,7 @@ def test_autologging_slow_api_requests(spark_session, format_to_file_path):
     # Python subscriber threads should pick up the active run at the time they're notified
     # & make API requests against that run, even if those requests are slow.
     time.sleep(5)
-    run = mlflow.get_run(run_id)
+    run = mlflowacim.get_run(run_id)
     assert _SPARK_TABLE_INFO_TAG_NAME in run.data.tags
     table_info_tag = run.data.tags[_SPARK_TABLE_INFO_TAG_NAME]
     assert table_info_tag == "\n".join(
@@ -257,14 +257,14 @@ def test_autologging_truncates_datasource_tag_to_maximum_supported_value(tmpdir,
         Verify that the Spark Datasource tag set on the run has been truncated to the maximum
         tag value length allowed by MLflow
         """
-        run = mlflow.get_run(run_id)
+        run = mlflowacim.get_run(run_id)
         assert _SPARK_TABLE_INFO_TAG_NAME in run.data.tags
         table_info_tag = run.data.tags[_SPARK_TABLE_INFO_TAG_NAME]
         assert len(table_info_tag) == MAX_TAG_VAL_LENGTH
         assert table_info_tag.endswith("...")
 
-    mlflow.spark.autolog()
-    with mlflow.start_run() as run:
+    mlflowacim.spark.autolog()
+    with mlflowacim.start_run() as run:
         # Verify that the Spark Datasource info tag contains truncated content from datasource
         # reads that occurred prior to run creation
         assert_tag_value_meets_requirements(run.info.run_id)
@@ -286,4 +286,4 @@ def test_autologging_truncates_datasource_tag_to_maximum_supported_value(tmpdir,
 
 def test_enabling_autologging_does_not_throw_when_spark_hasnt_been_started(spark_session):
     spark_session.stop()
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()

@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import json
 
-import mlflow
+import mlflowacim
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model
@@ -14,10 +14,10 @@ from tensorflow.keras.layers import Dense, Input, Concatenate, Lambda
 from tensorflow.keras.optimizers import SGD
 
 
-from mlflow.types.schema import Schema, TensorSpec
-from mlflow.models.signature import ModelSignature
-from mlflow.pyfunc import spark_udf
-import mlflow.pyfunc.scoring_server as pyfunc_scoring_server
+from mlflowacim.types.schema import Schema, TensorSpec
+from mlflowacim.models.signature import ModelSignature
+from mlflowacim.pyfunc import spark_udf
+import mlflowacim.pyfunc.scoring_server as pyfunc_scoring_server
 from tests.helper_functions import (
     pyfunc_serve_and_score_model,
     expect_status_code,
@@ -170,10 +170,10 @@ def test_model_single_tensor_input(use_signature, single_tensor_input_model, mod
     expected = model.predict(x)
 
     signature = signature if use_signature else None
-    mlflow.tensorflow.save_model(model, path=model_path, signature=signature)
+    mlflowacim.tensorflow.save_model(model, path=model_path, signature=signature)
 
     # Loading Keras model via PyFunc
-    model_loaded = mlflow.pyfunc.load_model(model_path)
+    model_loaded = mlflowacim.pyfunc.load_model(model_path)
 
     actual = model_loaded.predict(x)
     if signature is None:
@@ -201,10 +201,10 @@ def test_model_multi_tensor_input(use_signature, multi_tensor_input_model, model
     signature = signature if use_signature else None
     expected = model.predict(test_input)
 
-    mlflow.tensorflow.save_model(model, path=model_path, signature=signature)
+    mlflowacim.tensorflow.save_model(model, path=model_path, signature=signature)
 
     # Loading Keras model via PyFunc
-    model_loaded = mlflow.pyfunc.load_model(model_path)
+    model_loaded = mlflowacim.pyfunc.load_model(model_path)
 
     # Calling predict with a list should return a np.ndarray output
     actual = model_loaded.predict(test_input)
@@ -233,10 +233,10 @@ def test_model_single_multidim_tensor_input(
     signature = signature if use_signature else None
     expected = model.predict(test_input)
 
-    mlflow.tensorflow.save_model(model, path=model_path, signature=signature)
+    mlflowacim.tensorflow.save_model(model, path=model_path, signature=signature)
 
     # Loading Keras model via PyFunc
-    model_loaded = mlflow.pyfunc.load_model(model_path)
+    model_loaded = mlflowacim.pyfunc.load_model(model_path)
 
     actual = model_loaded.predict(test_input)
     assert type(actual) == np.ndarray
@@ -265,10 +265,10 @@ def test_model_multi_multidim_tensor_input(
 
     expected = model.predict(test_input)
 
-    mlflow.tensorflow.save_model(model, path=model_path, signature=signature)
+    mlflowacim.tensorflow.save_model(model, path=model_path, signature=signature)
 
     # Loading Keras model via PyFunc
-    model_loaded = mlflow.pyfunc.load_model(model_path)
+    model_loaded = mlflowacim.pyfunc.load_model(model_path)
 
     actual = model_loaded.predict(test_input)
     assert type(actual) == np.ndarray
@@ -301,8 +301,8 @@ def test_single_multidim_input_model_spark_udf(
     test_input_spark_df = spark_session.createDataFrame(
         pd.DataFrame({"x": test_input.reshape((-1, 4 * 3)).tolist()})
     )
-    with mlflow.start_run():
-        model_uri = mlflow.tensorflow.log_model(model, "model", signature=signature).model_uri
+    with mlflowacim.start_run():
+        model_uri = mlflowacim.tensorflow.log_model(model, "model", signature=signature).model_uri
 
     infer_udf = spark_udf(spark_session, model_uri, env_manager=env_manager)
     actual = (
@@ -340,8 +340,8 @@ def test_multi_multidim_input_model_spark_udf(
             }
         )
     )
-    with mlflow.start_run():
-        model_uri = mlflow.tensorflow.log_model(model, "model", signature=signature).model_uri
+    with mlflowacim.start_run():
+        model_uri = mlflowacim.tensorflow.log_model(model, "model", signature=signature).model_uri
 
     infer_udf = spark_udf(spark_session, model_uri, env_manager=env_manager)
     actual = (
@@ -363,7 +363,7 @@ def test_scoring_server_successfully_on_single_multidim_input_model(
     single_multidim_tensor_input_model, model_path, data
 ):
     model, signature = single_multidim_tensor_input_model
-    mlflow.tensorflow.save_model(model, path=model_path, signature=signature)
+    mlflowacim.tensorflow.save_model(model, path=model_path, signature=signature)
 
     x, _ = data
 
@@ -386,7 +386,7 @@ def test_scoring_server_successfully_on_multi_multidim_input_model(
     multi_multidim_tensor_input_model, model_path, data
 ):
     model, signature = multi_multidim_tensor_input_model
-    mlflow.tensorflow.save_model(model, path=model_path, signature=signature)
+    mlflowacim.tensorflow.save_model(model, path=model_path, signature=signature)
 
     x, _ = data
 

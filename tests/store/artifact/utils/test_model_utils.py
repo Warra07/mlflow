@@ -1,10 +1,10 @@
 import pytest
 from unittest import mock
 
-from mlflow.exceptions import MlflowException
-from mlflow.store.artifact.utils.models import _parse_model_uri, get_model_name_and_version
-from mlflow import MlflowClient
-from mlflow.entities.model_registry import ModelVersion
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.artifact.utils.models import _parse_model_uri, get_model_name_and_version
+from mlflowacim import MlflowClient
+from mlflowacim.entities.model_registry import ModelVersion
 
 
 @pytest.mark.parametrize(

@@ -20,10 +20,10 @@ import platform
 
 import pytest
 
-import mlflow
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
-from mlflow.utils.file_utils import read_yaml, write_yaml
-from mlflow.utils.environment import (
+import mlflowacim
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.utils.file_utils import read_yaml, write_yaml
+from mlflowacim.utils.environment import (
     _get_pip_deps,
     _CONDA_ENV_FILE_NAME,
     _REQUIREMENTS_FILE_NAME,
@@ -213,7 +213,7 @@ def pyfunc_serve_and_score_model(
     """
     env = dict(os.environ)
     env.update(LC_ALL="en_US.UTF-8", LANG="en_US.UTF-8")
-    env.update(MLFLOW_TRACKING_URI=mlflow.get_tracking_uri())
+    env.update(MLFLOW_TRACKING_URI=mlflowacim.get_tracking_uri())
     env.update(MLFLOW_HOME=_get_mlflow_home())
     port = get_safe_port()
     scoring_cmd = [
@@ -240,7 +240,7 @@ def _get_mlflow_home():
     """
     :return: The path to the MLflow installation root directory
     """
-    mlflow_module_path = os.path.dirname(os.path.abspath(mlflow.__file__))
+    mlflow_module_path = os.path.dirname(os.path.abspath(mlflowacim.__file__))
     # The MLflow root directory is one level about the mlflow module location
     return os.path.join(mlflow_module_path, os.pardir)
 
@@ -298,7 +298,7 @@ class RestEndpoint:
             resp_status = requests.get(url="http://localhost:%d/version" % self._port)
             version = resp_status.text
             _logger.info(f"mlflow server version {version}")
-            if version != mlflow.__version__:
+            if version != mlflowacim.__version__:
                 raise Exception("version path is not returning correct mlflow version")
         return self
 
@@ -316,7 +316,7 @@ class RestEndpoint:
 
     def invoke(self, data, content_type):
         import pandas as pd
-        from mlflow.pyfunc import scoring_server as pyfunc_scoring_server
+        from mlflowacim.pyfunc import scoring_server as pyfunc_scoring_server
 
         if isinstance(data, pd.DataFrame):
             if content_type == pyfunc_scoring_server.CONTENT_TYPE_CSV:
@@ -395,15 +395,15 @@ def _read_lines(path):
 
 
 def _compare_logged_code_paths(code_path, model_path, flavor_name):
-    import mlflow.pyfunc
-    from mlflow.utils.model_utils import _get_flavor_configuration, FLAVOR_CONFIG_CODE
+    import mlflowacim.pyfunc
+    from mlflowacim.utils.model_utils import _get_flavor_configuration, FLAVOR_CONFIG_CODE
 
     pyfunc_conf = _get_flavor_configuration(
-        model_path=model_path, flavor_name=mlflow.pyfunc.FLAVOR_NAME
+        model_path=model_path, flavor_name=mlflowacim.pyfunc.FLAVOR_NAME
     )
     flavor_conf = _get_flavor_configuration(model_path, flavor_name=flavor_name)
-    assert pyfunc_conf[mlflow.pyfunc.CODE] == flavor_conf[FLAVOR_CONFIG_CODE]
-    saved_code_path = os.path.join(model_path, pyfunc_conf[mlflow.pyfunc.CODE])
+    assert pyfunc_conf[mlflowacim.pyfunc.CODE] == flavor_conf[FLAVOR_CONFIG_CODE]
+    saved_code_path = os.path.join(model_path, pyfunc_conf[mlflowacim.pyfunc.CODE])
     assert os.path.exists(saved_code_path)
 
     with open(os.path.join(saved_code_path, os.path.basename(code_path))) as f1:
@@ -451,7 +451,7 @@ def _is_available_on_pypi(package, version=None, module=None):
                    if `package` is 'scikit-learn', `module` should be 'sklearn'. If None, defaults
                    to `package`.
     """
-    from mlflow.utils.requirements_utils import _get_installed_version
+    from mlflowacim.utils.requirements_utils import _get_installed_version
 
     resp = requests.get(f"https://pypi.python.org/pypi/{package}/json")
     if not resp.ok:
@@ -543,7 +543,7 @@ def assert_array_almost_equal(actual_array, desired_array, rtol=1e-6):
 
 
 def _mlflow_major_version_string():
-    ver = Version(mlflow.version.VERSION)
+    ver = Version(mlflowacim.version.VERSION)
     major = ver.major
     minor = ver.minor
     return f"mlflow<{major + 1},>={major}.{minor}"

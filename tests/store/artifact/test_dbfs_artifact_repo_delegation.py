@@ -2,12 +2,12 @@ import os
 import pytest
 from unittest import mock
 
-from mlflow.store.artifact.artifact_repository_registry import get_artifact_repository
-from mlflow.store.artifact.local_artifact_repo import LocalArtifactRepository
-from mlflow.store.artifact.dbfs_artifact_repo import DbfsRestArtifactRepository
-from mlflow.store.artifact.dbfs_artifact_repo import DatabricksArtifactRepository
+from mlflowacim.store.artifact.artifact_repository_registry import get_artifact_repository
+from mlflowacim.store.artifact.local_artifact_repo import LocalArtifactRepository
+from mlflowacim.store.artifact.dbfs_artifact_repo import DbfsRestArtifactRepository
+from mlflowacim.store.artifact.dbfs_artifact_repo import DatabricksArtifactRepository
 
-from mlflow.utils.rest_utils import MlflowHostCreds
+from mlflowacim.utils.rest_utils import MlflowHostCreds
 
 
 @pytest.fixture()

@@ -1,10 +1,10 @@
-import mlflow.recipes.utils.step as step_utils
+import mlflowacim.recipes.utils.step as step_utils
 import numpy as np
 import pytest
 
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.cards import pandas_renderer
-from mlflow.recipes.utils.step import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.cards import pandas_renderer
+from mlflowacim.recipes.utils.step import (
     display_html,
     get_merged_eval_metrics,
     truncate_pandas_data_profile,

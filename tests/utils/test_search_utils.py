@@ -3,9 +3,9 @@ import json
 import pytest
 import re
 
-from mlflow.entities import RunInfo, RunData, Run, LifecycleStage, RunStatus, Metric, Param, RunTag
-from mlflow.exceptions import MlflowException
-from mlflow.utils.search_utils import SearchUtils
+from mlflowacim.entities import RunInfo, RunData, Run, LifecycleStage, RunStatus, Metric, Param, RunTag
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.utils.search_utils import SearchUtils
 
 
 @pytest.mark.parametrize(

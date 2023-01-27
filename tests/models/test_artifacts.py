@@ -1,5 +1,5 @@
-from mlflow.exceptions import MlflowException
-from mlflow.models.evaluation.artifacts import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models.evaluation.artifacts import (
     ImageEvaluationArtifact,
     JsonEvaluationArtifact,
     NumpyEvaluationArtifact,
@@ -9,7 +9,7 @@ from mlflow.models.evaluation.artifacts import (
     PickleEvaluationArtifact,
     _infer_artifact_type_and_ext,
 )
-from mlflow.models.evaluation.default_evaluator import _CustomArtifact
+from mlflowacim.models.evaluation.default_evaluator import _CustomArtifact
 
 import matplotlib.pyplot as plt
 import pandas as pd

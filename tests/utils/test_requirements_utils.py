@@ -5,9 +5,9 @@ from unittest import mock
 import importlib_metadata
 import pytest
 
-import mlflow
-import mlflow.utils.requirements_utils
-from mlflow.utils.requirements_utils import (
+import mlflowacim
+import mlflowacim.utils.requirements_utils
+from mlflowacim.utils.requirements_utils import (
     _is_comment,
     _is_empty,
     _is_requirements_file,
@@ -203,7 +203,7 @@ def test_prune_packages():
 
 
 def test_capture_imported_modules():
-    from mlflow.utils._capture_modules import _CaptureImportedModules
+    from mlflowacim.utils._capture_modules import _CaptureImportedModules
 
     with _CaptureImportedModules() as cap:
         # pylint: disable=unused-import
@@ -231,7 +231,7 @@ def test_get_installed_version(tmpdir, monkeypatch):
     import pandas as pd
     import sklearn
 
-    assert _get_installed_version("mlflow") == mlflow.__version__
+    assert _get_installed_version("mlflow") == mlflowacim.__version__
     assert _get_installed_version("numpy") == np.__version__
     assert _get_installed_version("pandas") == pd.__version__
     assert _get_installed_version("scikit-learn", module="sklearn") == sklearn.__version__
@@ -245,7 +245,7 @@ def test_get_installed_version(tmpdir, monkeypatch):
 
 
 def test_get_pinned_requirement(tmpdir, monkeypatch):
-    assert _get_pinned_requirement("mlflow") == f"mlflow=={mlflow.__version__}"
+    assert _get_pinned_requirement("mlflow") == f"mlflow=={mlflowacim.__version__}"
     assert _get_pinned_requirement("mlflow", version="1.2.3") == "mlflow==1.2.3"
 
     not_found_package = tmpdir.join("not_found.py")
@@ -317,7 +317,7 @@ def test_infer_requirements_does_not_print_warning_for_recognized_packages():
 
 
 def test_capture_imported_modules_scopes_databricks_imports(monkeypatch, tmpdir):
-    from mlflow.utils._capture_modules import _CaptureImportedModules
+    from mlflowacim.utils._capture_modules import _CaptureImportedModules
 
     monkeypatch.chdir(tmpdir)
     monkeypatch.syspath_prepend(str(tmpdir))
@@ -363,8 +363,8 @@ def test_capture_imported_modules_scopes_databricks_imports(monkeypatch, tmpdir)
 
 
 def test_infer_pip_requirements_scopes_databricks_imports():
-    mlflow.utils.requirements_utils._MODULES_TO_PACKAGES = None
-    mlflow.utils.requirements_utils._PACKAGES_TO_MODULES = None
+    mlflowacim.utils.requirements_utils._MODULES_TO_PACKAGES = None
+    mlflowacim.utils.requirements_utils._PACKAGES_TO_MODULES = None
 
     with mock.patch(
         "mlflow.utils.requirements_utils._capture_imported_modules",
@@ -386,4 +386,4 @@ def test_infer_pip_requirements_scopes_databricks_imports():
             "databricks-automl-runtime==1.0",
             "databricks-model-monitoring==1.0",
         ]
-        assert mlflow.utils.requirements_utils._MODULES_TO_PACKAGES["databricks"] == ["koalas"]
+        assert mlflowacim.utils.requirements_utils._MODULES_TO_PACKAGES["databricks"] == ["koalas"]

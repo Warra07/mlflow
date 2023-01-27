@@ -6,8 +6,8 @@ from unittest import mock
 
 import pytest
 
-import mlflow
-from mlflow.utils.file_utils import path_to_local_sqlite_uri
+import mlflowacim
+from mlflowacim.utils.file_utils import path_to_local_sqlite_uri
 
 from tests.autologging.fixtures import enable_test_mode
 
@@ -32,11 +32,11 @@ def tracking_uri_mock(tmpdir, request):
     try:
         if "notrackingurimock" not in request.keywords:
             tracking_uri = path_to_local_sqlite_uri(os.path.join(tmpdir.strpath, "mlruns.sqlite"))
-            mlflow.set_tracking_uri(tracking_uri)
+            mlflowacim.set_tracking_uri(tracking_uri)
             os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
         yield tmpdir
     finally:
-        mlflow.set_tracking_uri(None)
+        mlflowacim.set_tracking_uri(None)
         if "notrackingurimock" not in request.keywords:
             del os.environ["MLFLOW_TRACKING_URI"]
 
@@ -44,7 +44,7 @@ def tracking_uri_mock(tmpdir, request):
 @pytest.fixture(autouse=True)
 def reset_active_experiment_id():
     yield
-    mlflow.tracking.fluent._active_experiment_id = None
+    mlflowacim.tracking.fluent._active_experiment_id = None
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -68,13 +68,13 @@ def clean_up_leaked_runs():
     try:
         yield
         assert (
-            not mlflow.active_run()
+            not mlflowacim.active_run()
         ), "test case unexpectedly leaked a run. Run info: {}. Run data: {}".format(
-            mlflow.active_run().info, mlflow.active_run().data
+            mlflowacim.active_run().info, mlflowacim.active_run().data
         )
     finally:
-        while mlflow.active_run():
-            mlflow.end_run()
+        while mlflowacim.active_run():
+            mlflowacim.end_run()
 
 
 def _called_in_save_model():
@@ -90,7 +90,7 @@ def prevent_infer_pip_requirements_fallback(request):
     Prevents `mlflow.models.infer_pip_requirements` from falling back in `mlflow.*.save_model`
     unless explicitly disabled via `pytest.mark.allow_infer_pip_requirements_fallback`.
     """
-    from mlflow.utils.environment import _INFER_PIP_REQUIREMENTS_FALLBACK_MESSAGE
+    from mlflowacim.utils.environment import _INFER_PIP_REQUIREMENTS_FALLBACK_MESSAGE
 
     def new_exception(msg, *_, **__):
         if msg == _INFER_PIP_REQUIREMENTS_FALLBACK_MESSAGE and _called_in_save_model():

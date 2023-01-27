@@ -29,7 +29,7 @@ from torchtext.data.functional import to_map_style_dataset
 from torchtext.datasets import AG_NEWS
 from transformers import BertModel, BertTokenizer, AdamW
 
-import mlflow.pytorch
+import mlflowacim.pytorch
 
 
 def get_20newsgroups(num_samples):
@@ -464,13 +464,13 @@ if __name__ == "__main__":
 
     # For CPU Training
     if dict_args["devices"] is None or int(dict_args["devices"]) == 0:
-        mlflow.pytorch.autolog()
+        mlflowacim.pytorch.autolog()
     elif int(dict_args["devices"]) >= 1 and trainer.global_rank == 0:
         # In case of multi gpu training, the training script is invoked multiple times,
         # The following condition is needed to avoid multiple copies of mlflow runs.
         # When one or more gpus are used for training, it is enough to save
         # the model and its parameters using rank 0 gpu.
-        mlflow.pytorch.autolog()
+        mlflowacim.pytorch.autolog()
     else:
         # This condition is met only for multi-gpu training when the global rank is non zero.
         # Since the parameters are already logged using global rank 0 gpu, it is safe to ignore

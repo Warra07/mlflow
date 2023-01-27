@@ -7,10 +7,10 @@ from collections import namedtuple
 from unittest.mock import Mock, call
 from unittest import mock
 
-import mlflow
-from mlflow.utils import gorilla
-from mlflow import MlflowClient
-from mlflow.utils.autologging_utils import (
+import mlflowacim
+from mlflowacim.utils import gorilla
+from mlflowacim import MlflowClient
+from mlflowacim.utils.autologging_utils import (
     AUTOLOGGING_INTEGRATIONS,
     log_fn_args_as_params,
     resolve_input_example_and_signature,
@@ -23,8 +23,8 @@ from mlflow.utils.autologging_utils import (
     get_instance_method_first_arg_value,
     get_method_call_arg_value,
 )
-from mlflow.utils.autologging_utils.safety import _wrap_patch, AutologgingSession
-from mlflow.utils.autologging_utils.versioning import (
+from mlflowacim.utils.autologging_utils.safety import _wrap_patch, AutologgingSession
+from mlflowacim.utils.autologging_utils.versioning import (
     FLAVOR_TO_MODULE_NAME_AND_VERSION_INFO_KEY,
     _check_version_in_range,
     _is_pre_or_dev_release,
@@ -86,9 +86,9 @@ three_default_test_args = [
 
 @pytest.fixture
 def start_run():
-    mlflow.start_run()
+    mlflowacim.start_run()
     yield
-    mlflow.end_run()
+    mlflowacim.end_run()
 
 
 def dummy_fn(arg1, arg2="value2", arg3="value3"):  # pylint: disable=W0613
@@ -113,7 +113,7 @@ log_test_args = [
 def test_log_fn_args_as_params(args, kwargs, expected, start_run):  # pylint: disable=W0613
     log_fn_args_as_params(dummy_fn, args, kwargs)
     client = MlflowClient()
-    params = client.get_run(mlflow.active_run().info.run_id).data.params
+    params = client.get_run(mlflowacim.active_run().info.run_id).data.params
     for arg, value in zip(["arg1", "arg2", "arg3"], expected):
         assert arg in params
         assert params[arg] == value
@@ -123,7 +123,7 @@ def test_log_fn_args_as_params_ignores_unwanted_parameters(start_run):  # pylint
     args, kwargs, unlogged = ("arg1", {"arg2": "value"}, ["arg1", "arg2", "arg3"])
     log_fn_args_as_params(dummy_fn, args, kwargs, unlogged)
     client = MlflowClient()
-    params = client.get_run(mlflow.active_run().info.run_id).data.params
+    params = client.get_run(mlflowacim.active_run().info.run_id).data.params
     assert len(params.keys()) == 0
 
 
@@ -259,7 +259,7 @@ def test_avoids_inferring_signature_if_not_needed(logger):
 
 
 def test_batch_metrics_logger_logs_all_metrics(start_run):
-    run_id = mlflow.active_run().info.run_id
+    run_id = mlflowacim.active_run().info.run_id
     with batch_metrics_logger(run_id) as metrics_logger:
         for i in range(100):
             metrics_logger.record_metrics({hex(i): i}, i)
@@ -272,7 +272,7 @@ def test_batch_metrics_logger_logs_all_metrics(start_run):
 
 
 def test_batch_metrics_logger_flush_logs_to_mlflow(start_run):
-    run_id = mlflow.active_run().info.run_id
+    run_id = mlflowacim.active_run().info.run_id
 
     # Need to patch _should_flush() to return False, so that we can manually flush the logger
     with mock.patch(
@@ -295,7 +295,7 @@ def test_batch_metrics_logger_flush_logs_to_mlflow(start_run):
 
 def test_batch_metrics_logger_runs_training_and_logging_in_correct_ratio(start_run):
     with mock.patch.object(MlflowClient, "log_batch") as log_batch_mock:
-        run_id = mlflow.active_run().info.run_id
+        run_id = mlflowacim.active_run().info.run_id
         with batch_metrics_logger(run_id) as metrics_logger:
             metrics_logger.record_metrics({"x": 1}, step=0)  # data doesn't matter
 
@@ -337,10 +337,10 @@ def test_batch_metrics_logger_runs_training_and_logging_in_correct_ratio(start_r
 
 def test_batch_metrics_logger_chunks_metrics_when_batch_logging(start_run):
     with mock.patch.object(MlflowClient, "log_batch") as log_batch_mock:
-        run_id = mlflow.active_run().info.run_id
+        run_id = mlflowacim.active_run().info.run_id
         with batch_metrics_logger(run_id) as metrics_logger:
             metrics_logger.record_metrics({hex(x): x for x in range(5000)}, step=0)
-            run_id = mlflow.active_run().info.run_id
+            run_id = mlflowacim.active_run().info.run_id
 
             for call_idx, call in enumerate(log_batch_mock.call_args_list):
                 _, kwargs = call
@@ -355,7 +355,7 @@ def test_batch_metrics_logger_chunks_metrics_when_batch_logging(start_run):
 
 def test_batch_metrics_logger_records_time_correctly(start_run):
     with mock.patch.object(MlflowClient, "log_batch", wraps=lambda *args, **kwargs: time.sleep(1)):
-        run_id = mlflow.active_run().info.run_id
+        run_id = mlflowacim.active_run().info.run_id
         with batch_metrics_logger(run_id) as metrics_logger:
             metrics_logger.record_metrics({"x": 1}, step=0)
 
@@ -372,7 +372,7 @@ def test_batch_metrics_logger_logs_timestamps_as_int_milliseconds(start_run):
     with mock.patch.object(MlflowClient, "log_batch") as log_batch_mock, mock.patch(
         "time.time", return_value=123.45678901234567890
     ):
-        run_id = mlflow.active_run().info.run_id
+        run_id = mlflowacim.active_run().info.run_id
         with batch_metrics_logger(run_id) as metrics_logger:
             metrics_logger.record_metrics({"x": 1}, step=0)
 
@@ -575,7 +575,7 @@ def test_autologging_disable_restores_behavior():
     from sklearn.datasets import load_diabetes
     from sklearn.linear_model import LinearRegression
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     X, y = load_diabetes(return_X_y=True, as_frame=True)
     X = X.iloc[:50, :4]
@@ -584,24 +584,24 @@ def test_autologging_disable_restores_behavior():
     # train a model
     model = LinearRegression()
 
-    run = mlflow.start_run()
+    run = mlflowacim.start_run()
     model.fit(X, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run = MlflowClient().get_run(run.info.run_id)
     assert run.data.metrics
     assert run.data.params
 
-    run = mlflow.start_run()
-    with mlflow.utils.autologging_utils.disable_autologging():
+    run = mlflowacim.start_run()
+    with mlflowacim.utils.autologging_utils.disable_autologging():
         model.fit(X, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run = MlflowClient().get_run(run.info.run_id)
     assert not run.data.metrics
     assert not run.data.params
 
-    run = mlflow.start_run()
+    run = mlflowacim.start_run()
     model.fit(X, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run = MlflowClient().get_run(run.info.run_id)
     assert run.data.metrics
     assert run.data.params
@@ -843,7 +843,7 @@ def test_disable_for_unsupported_versions_warning_sklearn_integration():
         with mock.patch(log_warn_fn_name) as log_warn_fn, mock.patch(
             log_info_fn_name
         ) as log_info_fn:
-            mlflow.autolog(disable_for_unsupported_versions=True)
+            mlflowacim.autolog(disable_for_unsupported_versions=True)
             assert all(not is_sklearn_warning_fired(args) for args in log_warn_fn.call_args_list)
             assert any(
                 is_sklearn_autolog_enabled_info_fired(args) for args in log_info_fn.call_args_list
@@ -851,17 +851,17 @@ def test_disable_for_unsupported_versions_warning_sklearn_integration():
         with mock.patch(log_warn_fn_name) as log_warn_fn, mock.patch(
             log_info_fn_name
         ) as log_info_fn:
-            mlflow.autolog(disable_for_unsupported_versions=False)
+            mlflowacim.autolog(disable_for_unsupported_versions=False)
             assert all(not is_sklearn_warning_fired(args) for args in log_warn_fn.call_args_list)
             assert any(
                 is_sklearn_autolog_enabled_info_fired(args) for args in log_info_fn.call_args_list
             )
 
         with mock.patch(log_warn_fn_name) as log_warn_fn:
-            mlflow.sklearn.autolog(disable_for_unsupported_versions=True)
+            mlflowacim.sklearn.autolog(disable_for_unsupported_versions=True)
             log_warn_fn.assert_not_called()
         with mock.patch(log_warn_fn_name) as log_warn_fn:
-            mlflow.sklearn.autolog(disable_for_unsupported_versions=False)
+            mlflowacim.sklearn.autolog(disable_for_unsupported_versions=False)
             log_warn_fn.assert_not_called()
 
     with mock.patch("sklearn.__version__", "0.20.2"):
@@ -869,7 +869,7 @@ def test_disable_for_unsupported_versions_warning_sklearn_integration():
         with mock.patch(log_warn_fn_name) as log_warn_fn, mock.patch(
             log_info_fn_name
         ) as log_info_fn:
-            mlflow.autolog(disable_for_unsupported_versions=True)
+            mlflowacim.autolog(disable_for_unsupported_versions=True)
             assert all(not is_sklearn_warning_fired(args) for args in log_warn_fn.call_args_list)
             assert all(
                 not is_sklearn_autolog_enabled_info_fired(args)
@@ -878,16 +878,16 @@ def test_disable_for_unsupported_versions_warning_sklearn_integration():
         with mock.patch(log_warn_fn_name) as log_warn_fn, mock.patch(
             log_info_fn_name
         ) as log_info_fn:
-            mlflow.autolog(disable_for_unsupported_versions=False)
+            mlflowacim.autolog(disable_for_unsupported_versions=False)
             assert any(is_sklearn_warning_fired(args) for args in log_warn_fn.call_args_list)
             assert any(
                 is_sklearn_autolog_enabled_info_fired(args) for args in log_info_fn.call_args_list
             )
         with mock.patch(log_warn_fn_name) as log_warn_fn:
-            mlflow.sklearn.autolog(disable_for_unsupported_versions=True)
+            mlflowacim.sklearn.autolog(disable_for_unsupported_versions=True)
             log_warn_fn.assert_not_called()
         with mock.patch(log_warn_fn_name) as log_warn_fn:
-            mlflow.sklearn.autolog(disable_for_unsupported_versions=False)
+            mlflowacim.sklearn.autolog(disable_for_unsupported_versions=False)
             assert log_warn_fn.call_count == 1 and is_sklearn_warning_fired(log_warn_fn.call_args)
 
 

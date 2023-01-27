@@ -3,8 +3,8 @@ import os
 import pytest
 
 from click.testing import CliRunner
-from mlflow.deployments import cli
-from mlflow.exceptions import MlflowException
+from mlflowacim.deployments import cli
+from mlflowacim.exceptions import MlflowException
 
 f_model_uri = "fake_model_uri"
 f_name = "fake_deployment_name"

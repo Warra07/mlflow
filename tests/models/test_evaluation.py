@@ -30,28 +30,28 @@ from pyspark.sql import SparkSession
 from pyspark.ml.linalg import Vectors
 from pyspark.ml.regression import LinearRegression as SparkLinearRegression
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.exceptions import MlflowException
-from mlflow.models.evaluation import (
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models.evaluation import (
     evaluate,
     EvaluationResult,
     ModelEvaluator,
     EvaluationArtifact,
 )
-from mlflow.models.evaluation.artifacts import ImageEvaluationArtifact
-from mlflow.models.evaluation.base import (
+from mlflowacim.models.evaluation.artifacts import ImageEvaluationArtifact
+from mlflowacim.models.evaluation.base import (
     _logger as _base_logger,
     _gen_md5_for_arraylike_obj,
     _start_run_or_reuse_active_run,
     EvaluationDataset,
     _normalize_evaluators_and_evaluator_config_args as _normalize_config,
 )
-from mlflow.models.evaluation.evaluator_registry import _model_evaluation_registry
-from mlflow.pyfunc import _ServedPyFuncModel
-from mlflow.pyfunc.scoring_server.client import ScoringServerClient
-from mlflow.tracking.artifact_utils import get_artifact_uri
-from mlflow.utils.file_utils import TempDir
+from mlflowacim.models.evaluation.evaluator_registry import _model_evaluation_registry
+from mlflowacim.pyfunc import _ServedPyFuncModel
+from mlflowacim.pyfunc.scoring_server.client import ScoringServerClient
+from mlflowacim.tracking.artifact_utils import get_artifact_uri
+from mlflowacim.utils.file_utils import TempDir
 
 from mlflow_test_plugin.dummy_evaluator import Array2DEvaluationArtifact
 
@@ -219,8 +219,8 @@ def get_pipeline_model_uri():
     )
     pipeline.fit(X, y)
 
-    with mlflow.start_run():
-        model_info = mlflow.sklearn.log_model(pipeline, "pipeline_model")
+    with mlflowacim.start_run():
+        model_info = mlflowacim.sklearn.log_model(pipeline, "pipeline_model")
         return model_info.model_uri
 
 
@@ -234,8 +234,8 @@ def get_linear_regressor_model_uri():
     reg = sklearn.linear_model.LinearRegression()
     reg.fit(X, y)
 
-    with mlflow.start_run() as run:
-        mlflow.sklearn.log_model(reg, "reg_model")
+    with mlflowacim.start_run() as run:
+        mlflowacim.sklearn.log_model(reg, "reg_model")
         linear_regressor_model_uri = get_artifact_uri(run.info.run_id, "reg_model")
 
     return linear_regressor_model_uri
@@ -251,8 +251,8 @@ def get_spark_linear_regressor_model_uri():
     reg = SparkLinearRegression()
     spark_reg_model = reg.fit(spark_df)
 
-    with mlflow.start_run() as run:
-        mlflow.spark.log_model(spark_reg_model, "spark_reg_model")
+    with mlflowacim.start_run() as run:
+        mlflowacim.spark.log_model(spark_reg_model, "spark_reg_model")
         spark_linear_regressor_model_uri = get_artifact_uri(run.info.run_id, "spark_reg_model")
 
     return spark_linear_regressor_model_uri
@@ -273,8 +273,8 @@ def multiclass_logistic_regressor_model_uri_by_max_iter(max_iter):
     clf = sklearn.linear_model.LogisticRegression(max_iter=max_iter)
     clf.fit(X, y)
 
-    with mlflow.start_run() as run:
-        mlflow.sklearn.log_model(clf, f"clf_model_{max_iter}_iters")
+    with mlflowacim.start_run() as run:
+        mlflowacim.sklearn.log_model(clf, f"clf_model_{max_iter}_iters")
         multiclass_logistic_regressor_model_uri = get_artifact_uri(
             run.info.run_id, f"clf_model_{max_iter}_iters"
         )
@@ -292,8 +292,8 @@ def get_binary_logistic_regressor_model_uri():
     clf = sklearn.linear_model.LogisticRegression()
     clf.fit(X, y)
 
-    with mlflow.start_run() as run:
-        mlflow.sklearn.log_model(clf, "bin_clf_model")
+    with mlflowacim.start_run() as run:
+        mlflowacim.sklearn.log_model(clf, "bin_clf_model")
         binary_logistic_regressor_model_uri = get_artifact_uri(run.info.run_id, "bin_clf_model")
 
     return binary_logistic_regressor_model_uri
@@ -309,8 +309,8 @@ def get_svm_model_url():
     clf = sklearn.svm.LinearSVC()
     clf.fit(X, y)
 
-    with mlflow.start_run() as run:
-        mlflow.sklearn.log_model(clf, "svm_model")
+    with mlflowacim.start_run() as run:
+        mlflowacim.sklearn.log_model(clf, "svm_model")
         svm_model_uri = get_artifact_uri(run.info.run_id, "svm_model")
 
     return svm_model_uri
@@ -363,7 +363,7 @@ def baseline_model_uri(request):
         return multiclass_logistic_regressor_model_uri_by_max_iter(max_iter=4)
     if request.param == "pyfunc":
         model_uri = multiclass_logistic_regressor_model_uri_by_max_iter(max_iter=4)
-        return mlflow.pyfunc.load_model(model_uri)
+        return mlflowacim.pyfunc.load_model(model_uri)
     if request.param == "invalid_model_uri":
         return "invalid_uri"
     return None
@@ -380,7 +380,7 @@ def test_classifier_evaluate(
     multiclass_logistic_regressor_model_uri, iris_dataset, baseline_model_uri
 ):
     y_true = iris_dataset.labels_data
-    classifier_model = mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
+    classifier_model = mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
     y_pred = classifier_model.predict(iris_dataset.features_data)
     expected_accuracy_score = accuracy_score(y_true, y_pred)
     expected_metrics = {
@@ -397,7 +397,7 @@ def test_classifier_evaluate(
     img_buf.seek(0)
     expected_image_artifact = Image.open(img_buf)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         eval_result = evaluate(
             multiclass_logistic_regressor_model_uri,
             iris_dataset._constructor_args["data"],
@@ -516,7 +516,7 @@ def test_classifier_evaluate(
 )
 def test_regressor_evaluate(linear_regressor_model_uri, diabetes_dataset, baseline_model_uri):
     y_true = diabetes_dataset.labels_data
-    regressor_model = mlflow.pyfunc.load_model(linear_regressor_model_uri)
+    regressor_model = mlflowacim.pyfunc.load_model(linear_regressor_model_uri)
     y_pred = regressor_model.predict(diabetes_dataset.features_data)
     expected_mae = mean_absolute_error(y_true, y_pred)
     expected_mse = mean_squared_error(y_true, y_pred)
@@ -529,7 +529,7 @@ def test_regressor_evaluate(linear_regressor_model_uri, diabetes_dataset, baseli
         "mean_squared_error": expected_mse,
     }
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         eval_result = evaluate(
             linear_regressor_model_uri,
             diabetes_dataset._constructor_args["data"],
@@ -549,7 +549,7 @@ def test_pandas_df_regressor_evaluation(linear_regressor_model_uri):
     df = pd.DataFrame(data.data, columns=data.feature_names)
     df["y"] = data.target
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         eval_result = evaluate(
             linear_regressor_model_uri,
             data=df,
@@ -673,7 +673,7 @@ def test_dataset_from_spark_df(spark_session):
 
 def test_log_dataset_tag(iris_dataset, iris_pandas_df_dataset):
     model_uuid = uuid.uuid4().hex
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         client = MlflowClient()
         iris_dataset._log_dataset_tag(client, run.info.run_id, model_uuid=model_uuid)
         _, _, tags, _ = get_run_data(run.info.run_id)
@@ -737,7 +737,7 @@ class FakeArtifact2(EvaluationArtifact):
 
 class PyFuncModelMatcher:
     def __eq__(self, other):
-        return isinstance(other, mlflow.pyfunc.PyFuncModel)
+        return isinstance(other, mlflowacim.pyfunc.PyFuncModel)
 
 
 def test_evaluator_evaluation_interface(multiclass_logistic_regressor_model_uri, iris_dataset):
@@ -754,7 +754,7 @@ def test_evaluator_evaluation_interface(multiclass_logistic_regressor_model_uri,
         ) as mock_can_evaluate, mock.patch.object(
             FakeEvauator1, "evaluate", return_value=evaluator1_return_value
         ) as mock_evaluate:
-            with mlflow.start_run():
+            with mlflowacim.start_run():
                 with pytest.raises(
                     MlflowException,
                     match="The model could not be evaluated by any of the registered evaluators",
@@ -776,7 +776,7 @@ def test_evaluator_evaluation_interface(multiclass_logistic_regressor_model_uri,
         ) as mock_can_evaluate, mock.patch.object(
             FakeEvauator1, "evaluate", return_value=evaluator1_return_value
         ) as mock_evaluate:
-            with mlflow.start_run() as run:
+            with mlflowacim.start_run() as run:
                 eval1_result = evaluate(
                     multiclass_logistic_regressor_model_uri,
                     iris_dataset._constructor_args["data"],
@@ -869,7 +869,7 @@ def test_evaluate_with_multi_evaluators(
         )
 
         baseline_model = (
-            mlflow.pyfunc.load_model(baseline_model_uri) if baseline_model_uri else None
+            mlflowacim.pyfunc.load_model(baseline_model_uri) if baseline_model_uri else None
         )
 
         def get_evaluate_call_arg(model, evaluator_config):
@@ -897,7 +897,7 @@ def test_evaluate_with_multi_evaluators(
             ) as mock_can_evaluate2, mock.patch.object(
                 FakeEvauator2, "evaluate", return_value=evaluator2_return_value
             ) as mock_evaluate2:
-                with mlflow.start_run() as run:
+                with mlflowacim.start_run() as run:
                     eval_result = evaluate(
                         multiclass_logistic_regressor_model_uri,
                         iris_dataset._constructor_args["data"],
@@ -923,7 +923,7 @@ def test_evaluate_with_multi_evaluators(
                     )
                     mock_evaluate1.assert_called_once_with(
                         **get_evaluate_call_arg(
-                            mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri),
+                            mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri),
                             evaluator1_config,
                         )
                     )
@@ -933,7 +933,7 @@ def test_evaluate_with_multi_evaluators(
                     )
                     mock_evaluate2.assert_called_once_with(
                         **get_evaluate_call_arg(
-                            mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri),
+                            mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri),
                             evaluator2_config,
                         )
                     )
@@ -941,9 +941,9 @@ def test_evaluate_with_multi_evaluators(
 
 def test_start_run_or_reuse_active_run():
     with _start_run_or_reuse_active_run() as run_id:
-        assert mlflow.active_run().info.run_id == run_id
+        assert mlflowacim.active_run().info.run_id == run_id
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         active_run_id = run.info.run_id
 
         with _start_run_or_reuse_active_run() as run_id:
@@ -954,7 +954,7 @@ def test_start_run_or_reuse_active_run():
 
 
 def test_normalize_evaluators_and_evaluator_config_args():
-    from mlflow.models.evaluation.default_evaluator import DefaultEvaluator
+    from mlflowacim.models.evaluation.default_evaluator import DefaultEvaluator
 
     with mock.patch.object(
         _model_evaluation_registry,
@@ -1003,7 +1003,7 @@ def test_normalize_evaluators_and_evaluator_config_args():
 
 
 def test_evaluate_env_manager_params(multiclass_logistic_regressor_model_uri, iris_dataset):
-    model = mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
 
     with mock.patch.object(
         _model_evaluation_registry, "_registry", {"test_evaluator1": FakeEvauator1}
@@ -1033,7 +1033,7 @@ def test_evaluate_env_manager_params(multiclass_logistic_regressor_model_uri, ir
 
 @pytest.mark.parametrize("env_manager", ["virtualenv", "conda"])
 def test_evaluate_restores_env(tmpdir, env_manager, iris_dataset):
-    class EnvRestoringTestModel(mlflow.pyfunc.PythonModel):
+    class EnvRestoringTestModel(mlflowacim.pyfunc.PythonModel):
         def __init__(self):
             pass
 
@@ -1056,7 +1056,7 @@ def test_evaluate_restores_env(tmpdir, env_manager, iris_dataset):
 
     model_path = os.path.join(str(tmpdir), "model")
 
-    mlflow.pyfunc.save_model(
+    mlflowacim.pyfunc.save_model(
         path=model_path,
         python_model=EnvRestoringTestModel(),
         pip_requirements=[
@@ -1082,7 +1082,7 @@ def test_evaluate_restores_env(tmpdir, env_manager, iris_dataset):
 
 def test_evaluate_terminates_model_servers(multiclass_logistic_regressor_model_uri, iris_dataset):
     # Mock the _load_model_or_server() results to avoid starting model servers
-    model = mlflow.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
+    model = mlflowacim.pyfunc.load_model(multiclass_logistic_regressor_model_uri)
     client = ScoringServerClient("127.0.0.1", "8080")
     served_model_1 = _ServedPyFuncModel(model_meta=model.metadata, client=client, server_pid=1)
     served_model_2 = _ServedPyFuncModel(model_meta=model.metadata, client=client, server_pid=2)

@@ -2,8 +2,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 import numpy as np
-import mlflow
-from mlflow.models import make_metric
+import mlflowacim
+from mlflowacim.models import make_metric
 import os
 import matplotlib.pyplot as plt
 
@@ -54,10 +54,10 @@ def prediction_target_scatter(eval_df, _builtin_metrics, artifacts_dir):
     return {"example_scatter_plot_artifact": plot_path}
 
 
-with mlflow.start_run() as run:
-    mlflow.sklearn.log_model(lin_reg, "model")
-    model_uri = mlflow.get_artifact_uri("model")
-    result = mlflow.evaluate(
+with mlflowacim.start_run() as run:
+    mlflowacim.sklearn.log_model(lin_reg, "model")
+    model_uri = mlflowacim.get_artifact_uri("model")
+    result = mlflowacim.evaluate(
         model=model_uri,
         data=eval_data,
         targets="target",

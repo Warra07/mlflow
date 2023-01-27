@@ -1,5 +1,5 @@
-from mlflow.entities import Experiment, LifecycleStage
-from mlflow.utils.time_utils import get_current_time_millis
+from mlflowacim.entities import Experiment, LifecycleStage
+from mlflowacim.utils.time_utils import get_current_time_millis
 from tests.helper_functions import random_int, random_file
 
 

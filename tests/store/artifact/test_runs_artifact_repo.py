@@ -2,10 +2,10 @@ import pytest
 from unittest import mock
 from unittest.mock import Mock
 
-import mlflow
-from mlflow.exceptions import MlflowException
-from mlflow.store.artifact.runs_artifact_repo import RunsArtifactRepository
-from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.artifact.runs_artifact_repo import RunsArtifactRepository
+from mlflowacim.store.artifact.s3_artifact_repo import S3ArtifactRepository
 
 
 @pytest.mark.parametrize(
@@ -78,9 +78,9 @@ def test_get_artifact_uri(uri, expected_tracking_uri, mock_uri, expected_result_
 
 def test_runs_artifact_repo_init_with_real_run():
     artifact_location = "s3://blah_bucket/"
-    experiment_id = mlflow.create_experiment("expr_abc", artifact_location)
-    with mlflow.start_run(experiment_id=experiment_id):
-        run_id = mlflow.active_run().info.run_id
+    experiment_id = mlflowacim.create_experiment("expr_abc", artifact_location)
+    with mlflowacim.start_run(experiment_id=experiment_id):
+        run_id = mlflowacim.active_run().info.run_id
     runs_uri = "runs:/%s/path/to/model" % run_id
     runs_repo = RunsArtifactRepository(runs_uri)
 
@@ -96,9 +96,9 @@ def test_runs_artifact_repo_uses_repo_download_artifacts():
     function
     """
     artifact_location = "s3://blah_bucket/"
-    experiment_id = mlflow.create_experiment("expr_abcd", artifact_location)
-    with mlflow.start_run(experiment_id=experiment_id):
-        run_id = mlflow.active_run().info.run_id
+    experiment_id = mlflowacim.create_experiment("expr_abcd", artifact_location)
+    with mlflowacim.start_run(experiment_id=experiment_id):
+        run_id = mlflowacim.active_run().info.run_id
     runs_repo = RunsArtifactRepository(f"runs:/{run_id}")
     runs_repo.repo = Mock()
     runs_repo.download_artifacts("artifact_path", "dst_path")

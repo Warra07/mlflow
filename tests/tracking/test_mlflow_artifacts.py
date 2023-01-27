@@ -7,9 +7,9 @@ import pathlib
 
 import pytest
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.artifacts import download_artifacts
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.artifacts import download_artifacts
 
 from tests.helper_functions import LOCALHOST, get_safe_port
 from tests.tracking.integration_test_utils import _await_server_up_or_die
@@ -128,13 +128,13 @@ def test_mlflow_artifacts_rest_apis(artifacts_server, tmpdir):
 def test_log_artifact(artifacts_server, tmpdir):
     url = artifacts_server.url
     artifacts_destination = artifacts_server.artifacts_destination
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
 
     tmp_path = tmpdir.join("a.txt")
     tmp_path.write("0")
 
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(tmp_path)
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(tmp_path)
 
     experiment_id = "0"
     run_artifact_root = os.path.join(
@@ -144,8 +144,8 @@ def test_log_artifact(artifacts_server, tmpdir):
     assert os.path.exists(dest_path)
     assert read_file(dest_path) == "0"
 
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(tmp_path, artifact_path="artifact_path")
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(tmp_path, artifact_path="artifact_path")
 
     run_artifact_root = os.path.join(
         artifacts_destination, experiment_id, run.info.run_id, "artifacts"
@@ -157,13 +157,13 @@ def test_log_artifact(artifacts_server, tmpdir):
 
 def test_log_artifacts(artifacts_server, tmpdir):
     url = artifacts_server.url
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
 
     tmpdir.join("a.txt").write("0")
     tmpdir.mkdir("dir").join("b.txt").write("1")
 
-    with mlflow.start_run() as run:
-        mlflow.log_artifacts(tmpdir)
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifacts(tmpdir)
 
     client = MlflowClient()
     artifacts = [a.path for a in client.list_artifacts(run.info.run_id)]
@@ -172,8 +172,8 @@ def test_log_artifacts(artifacts_server, tmpdir):
     assert artifacts == ["dir/b.txt"]
 
     # With `artifact_path`
-    with mlflow.start_run() as run:
-        mlflow.log_artifacts(tmpdir, artifact_path="artifact_path")
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifacts(tmpdir, artifact_path="artifact_path")
 
     artifacts = [a.path for a in client.list_artifacts(run.info.run_id)]
     assert artifacts == ["artifact_path"]
@@ -185,17 +185,17 @@ def test_log_artifacts(artifacts_server, tmpdir):
 
 def test_list_artifacts(artifacts_server, tmpdir):
     url = artifacts_server.url
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
 
     tmp_path_a = tmpdir.join("a.txt")
     tmp_path_a.write("0")
     tmp_path_b = tmpdir.join("b.txt")
     tmp_path_b.write("1")
     client = MlflowClient()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         assert client.list_artifacts(run.info.run_id) == []
-        mlflow.log_artifact(tmp_path_a)
-        mlflow.log_artifact(tmp_path_b, "dir")
+        mlflowacim.log_artifact(tmp_path_a)
+        mlflowacim.log_artifact(tmp_path_b, "dir")
 
     artifacts = [a.path for a in client.list_artifacts(run.info.run_id)]
     assert sorted(artifacts) == ["a.txt", "dir"]
@@ -205,15 +205,15 @@ def test_list_artifacts(artifacts_server, tmpdir):
 
 def test_download_artifacts(artifacts_server, tmpdir):
     url = artifacts_server.url
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
 
     tmp_path_a = tmpdir.join("a.txt")
     tmp_path_a.write("0")
     tmp_path_b = tmpdir.join("b.txt")
     tmp_path_b.write("1")
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(tmp_path_a)
-        mlflow.log_artifact(tmp_path_b, "dir")
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(tmp_path_a)
+        mlflowacim.log_artifact(tmp_path_b, "dir")
 
     dest_path = download_artifacts(run_id=run.info.run_id, artifact_path="")
     assert sorted(os.listdir(dest_path)) == ["a.txt", "dir"]
@@ -229,7 +229,7 @@ def is_github_actions():
 
 @pytest.mark.skipif(is_windows(), reason="This example doesn't work on Windows")
 def test_mlflow_artifacts_example(tmpdir):
-    root = pathlib.Path(mlflow.__file__).parents[1]
+    root = pathlib.Path(mlflowacim.__file__).parents[1]
     # On GitHub Actions, remove generated images to save disk space
     rmi_option = "--rmi all" if is_github_actions() else ""
     cmd = f"""
@@ -258,17 +258,17 @@ def test_rest_tracking_api_list_artifacts_with_proxied_artifacts(artifacts_serve
         return resp.json()
 
     url = artifacts_server.url
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
     api = f"{url}/api/2.0/mlflow/artifacts/list"
 
     tmp_path_a = tmpdir.join("a.txt")
     tmp_path_a.write("0")
     tmp_path_b = tmpdir.join("b.txt")
     tmp_path_b.write("1")
-    mlflow.set_experiment("rest_list_api_test")
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(tmp_path_a)
-        mlflow.log_artifact(tmp_path_b, "dir")
+    mlflowacim.set_experiment("rest_list_api_test")
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(tmp_path_a)
+        mlflowacim.log_artifact(tmp_path_b, "dir")
 
     list_artifacts_response = list_artifacts_via_rest_api(url=api, run_id=run.info.run_id)
     assert list_artifacts_response.get("files") == [
@@ -288,13 +288,13 @@ def test_rest_tracking_api_list_artifacts_with_proxied_artifacts(artifacts_serve
 
 def test_rest_get_artifact_api_proxied_with_artifacts(artifacts_server, tmpdir):
     url = artifacts_server.url
-    mlflow.set_tracking_uri(url)
+    mlflowacim.set_tracking_uri(url)
     tmp_path_a = tmpdir.join("a.txt")
     tmp_path_a.write("abcdefg")
 
-    mlflow.set_experiment("rest_get_artifact_api_test")
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(tmp_path_a)
+    mlflowacim.set_experiment("rest_get_artifact_api_test")
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(tmp_path_a)
 
     get_artifact_response = requests.get(
         url=f"{url}/get-artifact", params={"run_id": run.info.run_id, "path": "a.txt"}

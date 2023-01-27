@@ -2,19 +2,19 @@ import os
 import pytest
 from datetime import date
 
-import mlflow
+import mlflowacim
 import pandas as pd
 import numpy as np
 
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
-from mlflow.models import Model, infer_signature, validate_schema
-from mlflow.models.signature import ModelSignature
-from mlflow.models.utils import _save_example
-from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-from mlflow.types.schema import Schema, ColSpec, TensorSpec
-from mlflow.utils.file_utils import TempDir
-from mlflow.utils.model_utils import _validate_and_prepare_target_save_path
-from mlflow.utils.proto_json_utils import dataframe_from_raw_json
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.models import Model, infer_signature, validate_schema
+from mlflowacim.models.signature import ModelSignature
+from mlflowacim.models.utils import _save_example
+from mlflowacim.store.artifact.s3_artifact_repo import S3ArtifactRepository
+from mlflowacim.types.schema import Schema, ColSpec, TensorSpec
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.utils.model_utils import _validate_and_prepare_target_save_path
+from mlflowacim.utils.proto_json_utils import dataframe_from_raw_json
 
 from unittest import mock
 from scipy.sparse import csc_matrix
@@ -118,9 +118,9 @@ class TestFlavor:
 
 
 def _log_model_with_signature_and_example(tmp_path, sig, input_example, metadata=None):
-    experiment_id = mlflow.create_experiment("test")
+    experiment_id = mlflowacim.create_experiment("test")
 
-    with mlflow.start_run(experiment_id=experiment_id) as run:
+    with mlflowacim.start_run(experiment_id=experiment_id) as run:
         Model.log(
             "some/path", TestFlavor, signature=sig, input_example=input_example, metadata=metadata
         )
@@ -158,7 +158,7 @@ def test_model_log():
         assert isinstance(loaded_example, pd.DataFrame)
         assert loaded_example.to_dict(orient="records")[0] == input_example
 
-        assert Version(loaded_model.mlflow_version) == Version(mlflow.version.VERSION)
+        assert Version(loaded_model.mlflow_version) == Version(mlflowacim.version.VERSION)
 
 
 def test_model_info():
@@ -169,14 +169,14 @@ def test_model_info():
         )
         input_example = {"x": 1, "y": 2}
 
-        experiment_id = mlflow.create_experiment("test")
-        with mlflow.start_run(experiment_id=experiment_id) as run:
+        experiment_id = mlflowacim.create_experiment("test")
+        with mlflowacim.start_run(experiment_id=experiment_id) as run:
             model_info = Model.log(
                 "some/path", TestFlavor, signature=sig, input_example=input_example
             )
         model_uri = "runs:/{}/some/path".format(run.info.run_id)
 
-        model_info_fetched = mlflow.models.get_model_info(model_uri)
+        model_info_fetched = mlflowacim.models.get_model_info(model_uri)
         with pytest.warns(
             FutureWarning,
             match="Field signature_dict is deprecated since v1.28.1. Use signature instead",
@@ -400,7 +400,7 @@ def test_validate_schema(sklearn_knn_model, iris_data, tmpdir):
     sk_model_path = os.path.join(str(tmpdir), "sk_model")
     X, y = iris_data
     signature = infer_signature(X, y)
-    mlflow.sklearn.save_model(
+    mlflowacim.sklearn.save_model(
         sklearn_knn_model,
         sk_model_path,
         signature=signature,
@@ -408,6 +408,6 @@ def test_validate_schema(sklearn_knn_model, iris_data, tmpdir):
 
     validate_schema(X, signature.inputs)
     prediction = sklearn_knn_model.predict(X)
-    reloaded_model = mlflow.sklearn.load_model(sk_model_path)
+    reloaded_model = mlflowacim.sklearn.load_model(sk_model_path)
     np.testing.assert_array_equal(prediction, reloaded_model.predict(X))
     validate_schema(prediction, signature.outputs)

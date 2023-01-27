@@ -1,7 +1,7 @@
 from unittest import mock
 
-from mlflow.utils.mlflow_tags import MLFLOW_DATABRICKS_NOTEBOOK_COMMAND_ID
-from mlflow.tracking.context.databricks_command_context import DatabricksCommandRunContext
+from mlflowacim.utils.mlflow_tags import MLFLOW_DATABRICKS_NOTEBOOK_COMMAND_ID
+from mlflowacim.tracking.context.databricks_command_context import DatabricksCommandRunContext
 
 
 def test_databricks_command_run_context_in_context():

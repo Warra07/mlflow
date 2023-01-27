@@ -11,14 +11,14 @@ from unittest import mock
 
 from databricks_cli.configure.provider import DatabricksConfig
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.entities import RunStatus, ViewType, SourceType
-from mlflow.exceptions import ExecutionException, MlflowException
-from mlflow.projects import _parse_kubernetes_config
-from mlflow.projects import _resolve_experiment_id
-from mlflow.store.tracking.file_store import FileStore
-from mlflow.utils.mlflow_tags import (
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.entities import RunStatus, ViewType, SourceType
+from mlflowacim.exceptions import ExecutionException, MlflowException
+from mlflowacim.projects import _parse_kubernetes_config
+from mlflowacim.projects import _resolve_experiment_id
+from mlflowacim.store.tracking.file_store import FileStore
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_PARENT_RUN_ID,
     MLFLOW_USER,
     MLFLOW_SOURCE_NAME,
@@ -31,9 +31,9 @@ from mlflow.utils.mlflow_tags import (
     MLFLOW_PROJECT_BACKEND,
     MLFLOW_PROJECT_ENV,
 )
-from mlflow.utils.process import ShellCommandException
-from mlflow.utils.conda import get_or_create_conda_env
-from mlflow.utils import PYTHON_VERSION
+from mlflowacim.utils.process import ShellCommandException
+from mlflowacim.utils.conda import get_or_create_conda_env
+from mlflowacim.utils import PYTHON_VERSION
 
 from tests.projects.utils import TEST_PROJECT_DIR, TEST_PROJECT_NAME, validate_exit_status
 
@@ -88,13 +88,13 @@ def test_invalid_run_mode():
     with pytest.raises(
         ExecutionException, match="Got unsupported execution mode some unsupported mode"
     ):
-        mlflow.projects.run(uri=TEST_PROJECT_DIR, backend="some unsupported mode")
+        mlflowacim.projects.run(uri=TEST_PROJECT_DIR, backend="some unsupported mode")
 
 
 def test_expected_tags_logged_when_using_conda():
     with mock.patch.object(MlflowClient, "set_tag") as tag_mock:
         try:
-            mlflow.projects.run(TEST_PROJECT_DIR, env_manager="conda")
+            mlflowacim.projects.run(TEST_PROJECT_DIR, env_manager="conda")
         finally:
             tag_mock.assert_has_calls(
                 [
@@ -115,7 +115,7 @@ def test_run_local_git_repo(local_git_repo, local_git_repo_uri, use_start_run, v
         uri = os.path.join("%s/" % local_git_repo, TEST_PROJECT_NAME)
     if version == "git-commit":
         version = _get_version_local_git_repo(local_git_repo)
-    submitted_run = mlflow.projects.run(
+    submitted_run = mlflowacim.projects.run(
         uri,
         entry_point="test_tracking",
         version=version,
@@ -165,7 +165,7 @@ def test_run_local_git_repo(local_git_repo, local_git_repo_uri, use_start_run, v
 def test_invalid_version_local_git_repo(local_git_repo_uri):
     # Run project with invalid commit hash
     with pytest.raises(ExecutionException, match=r"Unable to checkout version \'badc0de\'"):
-        mlflow.projects.run(
+        mlflowacim.projects.run(
             local_git_repo_uri + "#" + TEST_PROJECT_NAME,
             entry_point="test_tracking",
             version="badc0de",
@@ -177,7 +177,7 @@ def test_invalid_version_local_git_repo(local_git_repo_uri):
 @pytest.mark.parametrize("use_start_run", map(str, [0, 1]))
 @pytest.mark.usefixtures("tmpdir", "patch_user")
 def test_run(use_start_run):
-    submitted_run = mlflow.projects.run(
+    submitted_run = mlflowacim.projects.run(
         TEST_PROJECT_DIR,
         entry_point="test_tracking",
         parameters={"use_start_run": use_start_run},
@@ -219,9 +219,9 @@ def test_run(use_start_run):
 
 def test_run_with_parent(tmpdir):  # pylint: disable=unused-argument
     """Verify that if we are in a nested run, mlflow.projects.run() will have a parent_run_id."""
-    with mlflow.start_run():
-        parent_run_id = mlflow.active_run().info.run_id
-        submitted_run = mlflow.projects.run(
+    with mlflowacim.start_run():
+        parent_run_id = mlflowacim.active_run().info.run_id
+        submitted_run = mlflowacim.projects.run(
             TEST_PROJECT_DIR,
             entry_point="test_tracking",
             parameters={"use_start_run": "1"},
@@ -238,9 +238,9 @@ def test_run_with_parent(tmpdir):  # pylint: disable=unused-argument
 def test_run_with_artifact_path(tmpdir):
     artifact_file = tmpdir.join("model.pkl")
     artifact_file.write("Hello world")
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(artifact_file)
-        submitted_run = mlflow.projects.run(
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(artifact_file)
+        submitted_run = mlflowacim.projects.run(
             TEST_PROJECT_DIR,
             entry_point="test_artifact_path",
             parameters={"model": "runs:/%s/model.pkl" % run.info.run_id},
@@ -251,7 +251,7 @@ def test_run_with_artifact_path(tmpdir):
 
 
 def test_run_async():
-    submitted_run0 = mlflow.projects.run(
+    submitted_run0 = mlflowacim.projects.run(
         TEST_PROJECT_DIR,
         entry_point="sleep",
         parameters={"duration": 2},
@@ -262,7 +262,7 @@ def test_run_async():
     validate_exit_status(submitted_run0.get_status(), RunStatus.RUNNING)
     submitted_run0.wait()
     validate_exit_status(submitted_run0.get_status(), RunStatus.FINISHED)
-    submitted_run1 = mlflow.projects.run(
+    submitted_run1 = mlflowacim.projects.run(
         TEST_PROJECT_DIR,
         entry_point="sleep",
         parameters={"duration": -1, "invalid-param": 30},
@@ -279,7 +279,7 @@ def test_run_async():
     [
         ({"CONDA_EXE": "/abc/conda"}, "/abc/conda", "/abc/activate"),
         (
-            {mlflow.utils.conda.MLFLOW_CONDA_HOME: "/some/dir/"},
+            {mlflowacim.utils.conda.MLFLOW_CONDA_HOME: "/some/dir/"},
             "/some/dir/bin/conda",
             "/some/dir/bin/activate",
         ),
@@ -288,8 +288,8 @@ def test_run_async():
 def test_conda_path(mock_env, expected_conda, expected_activate):
     """Verify that we correctly determine the path to conda executables"""
     with mock.patch.dict("os.environ", mock_env, clear=True):
-        assert mlflow.utils.conda.get_conda_bin_executable("conda") == expected_conda
-        assert mlflow.utils.conda.get_conda_bin_executable("activate") == expected_activate
+        assert mlflowacim.utils.conda.get_conda_bin_executable("conda") == expected_conda
+        assert mlflowacim.utils.conda.get_conda_bin_executable("activate") == expected_activate
 
 
 @pytest.mark.parametrize(
@@ -297,14 +297,14 @@ def test_conda_path(mock_env, expected_conda, expected_activate):
     [
         ({"CONDA_EXE": "/abc/conda"}, "/abc/conda"),
         (
-            {"CONDA_EXE": "/abc/conda", mlflow.utils.conda.MLFLOW_CONDA_CREATE_ENV_CMD: "mamba"},
+            {"CONDA_EXE": "/abc/conda", mlflowacim.utils.conda.MLFLOW_CONDA_CREATE_ENV_CMD: "mamba"},
             "/abc/mamba",
         ),
-        ({mlflow.utils.conda.MLFLOW_CONDA_HOME: "/some/dir/"}, "/some/dir/bin/conda"),
+        ({mlflowacim.utils.conda.MLFLOW_CONDA_HOME: "/some/dir/"}, "/some/dir/bin/conda"),
         (
             {
-                mlflow.utils.conda.MLFLOW_CONDA_HOME: "/some/dir/",
-                mlflow.utils.conda.MLFLOW_CONDA_CREATE_ENV_CMD: "mamba",
+                mlflowacim.utils.conda.MLFLOW_CONDA_HOME: "/some/dir/",
+                mlflowacim.utils.conda.MLFLOW_CONDA_CREATE_ENV_CMD: "mamba",
             },
             "/some/dir/bin/mamba",
         ),
@@ -316,7 +316,7 @@ def test_find_conda_executables(mock_env, expected_conda_env_create_path):
     create environments (for example, it could be mamba instead of conda)
     """
     with mock.patch.dict("os.environ", mock_env, clear=True):
-        conda_env_create_path = mlflow.utils.conda._get_conda_executable_for_create_env()
+        conda_env_create_path = mlflowacim.utils.conda._get_conda_executable_for_create_env()
         assert conda_env_create_path == expected_conda_env_create_path
 
 
@@ -346,11 +346,11 @@ def test_create_env_with_mamba():
 
     conda_env_path = os.path.join(TEST_PROJECT_DIR, "conda.yaml")
 
-    with mock.patch.dict("os.environ", {mlflow.utils.conda.MLFLOW_CONDA_CREATE_ENV_CMD: "mamba"}):
+    with mock.patch.dict("os.environ", {mlflowacim.utils.conda.MLFLOW_CONDA_CREATE_ENV_CMD: "mamba"}):
 
         # Simulate success
         with mock.patch("mlflow.utils.process._exec_cmd", side_effect=exec_cmd_mock):
-            mlflow.utils.conda.get_or_create_conda_env(conda_env_path)
+            mlflowacim.utils.conda.get_or_create_conda_env(conda_env_path)
 
         # Simulate a non-working or non-existent mamba
         with mock.patch("mlflow.utils.process._exec_cmd", side_effect=exec_cmd_mock_raise):
@@ -358,7 +358,7 @@ def test_create_env_with_mamba():
                 ExecutionException,
                 match="You have set the env variable MLFLOW_CONDA_CREATE_ENV_CMD",
             ):
-                mlflow.utils.conda.get_or_create_conda_env(conda_env_path)
+                mlflowacim.utils.conda.get_or_create_conda_env(conda_env_path)
 
 
 def test_conda_environment_cleaned_up_when_pip_fails(tmp_path):
@@ -378,20 +378,20 @@ dependencies:
         python_version=PYTHON_VERSION,
     )
     conda_yaml.write_text(content)
-    envs_before = mlflow.utils.conda._list_conda_environments()
+    envs_before = mlflowacim.utils.conda._list_conda_environments()
 
     # `conda create` should fail because mlflow 999.999.999 doesn't exist
     with pytest.raises(ShellCommandException, match=r"No matching distribution found"):
-        mlflow.utils.conda.get_or_create_conda_env(conda_yaml, capture_output=True)
+        mlflowacim.utils.conda.get_or_create_conda_env(conda_yaml, capture_output=True)
 
     # Ensure the environment is cleaned up
-    envs_after = mlflow.utils.conda._list_conda_environments()
+    envs_after = mlflowacim.utils.conda._list_conda_environments()
     assert envs_before == envs_after
 
 
 def test_cancel_run():
     submitted_run0, submitted_run1 = (
-        mlflow.projects.run(
+        mlflowacim.projects.run(
             TEST_PROJECT_DIR,
             entry_point="sleep",
             parameters={"duration": 2},
@@ -516,7 +516,7 @@ def test_credential_propagation(get_config, synchronous):
     ) as is_databricks_tracking_uri_mock:
         is_databricks_tracking_uri_mock.return_value = True
         popen_mock.return_value = DummyProcess()
-        mlflow.projects.run(
+        mlflowacim.projects.run(
             TEST_PROJECT_DIR,
             entry_point="sleep",
             experiment_id=FileStore.DEFAULT_EXPERIMENT_ID,

@@ -1,8 +1,8 @@
 import pytest
 from unittest import mock
 
-from mlflow.entities import Run, RunInfo
-from mlflow.tracking._tracking_service.client import TrackingServiceClient
+from mlflowacim.entities import Run, RunInfo
+from mlflowacim.tracking._tracking_service.client import TrackingServiceClient
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
-import mlflow
+import mlflowacim
 
-from mlflow.utils.class_utils import _get_class_from_string
+from mlflowacim.utils.class_utils import _get_class_from_string
 
 
 def test_get_class_from_string():
-    assert _get_class_from_string("mlflow.MlflowClient") == mlflow.MlflowClient
+    assert _get_class_from_string("mlflow.MlflowClient") == mlflowacim.MlflowClient

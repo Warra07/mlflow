@@ -4,13 +4,13 @@ import pytest
 from sklearn import datasets
 import sklearn.neighbors as knn
 
-import mlflow.sklearn
-import mlflow.utils.model_utils as mlflow_model_utils
-from mlflow.exceptions import MlflowException
-from mlflow.models import Model
-from mlflow.protos.databricks_pb2 import ErrorCode, RESOURCE_DOES_NOT_EXIST
-from mlflow.mleap import FLAVOR_NAME as MLEAP_FLAVOR_NAME
-from mlflow.utils.file_utils import TempDir
+import mlflowacim.sklearn
+import mlflowacim.utils.model_utils as mlflow_model_utils
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models import Model
+from mlflowacim.protos.databricks_pb2 import ErrorCode, RESOURCE_DOES_NOT_EXIST
+from mlflowacim.mleap import FLAVOR_NAME as MLEAP_FLAVOR_NAME
+from mlflowacim.utils.file_utils import TempDir
 
 
 @pytest.fixture(scope="module")
@@ -35,7 +35,7 @@ def test_get_flavor_configuration_throws_exception_when_model_configuration_does
         MlflowException, match='Could not find an "MLmodel" configuration file'
     ) as exc:
         mlflow_model_utils._get_flavor_configuration(
-            model_path=model_path, flavor_name=mlflow.mleap.FLAVOR_NAME
+            model_path=model_path, flavor_name=mlflowacim.mleap.FLAVOR_NAME
         )
     assert exc.value.error_code == ErrorCode.Name(RESOURCE_DOES_NOT_EXIST)
 
@@ -43,11 +43,11 @@ def test_get_flavor_configuration_throws_exception_when_model_configuration_does
 def test_get_flavor_configuration_throws_exception_when_requested_flavor_is_missing(
     model_path, sklearn_knn_model
 ):
-    mlflow.sklearn.save_model(sk_model=sklearn_knn_model, path=model_path)
+    mlflowacim.sklearn.save_model(sk_model=sklearn_knn_model, path=model_path)
 
     # The saved model contains the "sklearn" flavor, so this call should succeed
     sklearn_flavor_config = mlflow_model_utils._get_flavor_configuration(
-        model_path=model_path, flavor_name=mlflow.sklearn.FLAVOR_NAME
+        model_path=model_path, flavor_name=mlflowacim.sklearn.FLAVOR_NAME
     )
     assert sklearn_flavor_config is not None
 
@@ -62,17 +62,17 @@ def test_get_flavor_configuration_throws_exception_when_requested_flavor_is_miss
 def test_get_flavor_configuration_with_present_flavor_returns_expected_configuration(
     sklearn_knn_model, model_path
 ):
-    mlflow.sklearn.save_model(sk_model=sklearn_knn_model, path=model_path)
+    mlflowacim.sklearn.save_model(sk_model=sklearn_knn_model, path=model_path)
 
     sklearn_flavor_config = mlflow_model_utils._get_flavor_configuration(
-        model_path=model_path, flavor_name=mlflow.sklearn.FLAVOR_NAME
+        model_path=model_path, flavor_name=mlflowacim.sklearn.FLAVOR_NAME
     )
     model_config = Model.load(os.path.join(model_path, "MLmodel"))
-    assert sklearn_flavor_config == model_config.flavors[mlflow.sklearn.FLAVOR_NAME]
+    assert sklearn_flavor_config == model_config.flavors[mlflowacim.sklearn.FLAVOR_NAME]
 
 
 def test_add_code_to_system_path(sklearn_knn_model, model_path):
-    mlflow.sklearn.save_model(
+    mlflowacim.sklearn.save_model(
         sk_model=sklearn_knn_model,
         path=model_path,
         code_paths=[
@@ -82,7 +82,7 @@ def test_add_code_to_system_path(sklearn_knn_model, model_path):
     )
 
     sklearn_flavor_config = mlflow_model_utils._get_flavor_configuration(
-        model_path=model_path, flavor_name=mlflow.sklearn.FLAVOR_NAME
+        model_path=model_path, flavor_name=mlflowacim.sklearn.FLAVOR_NAME
     )
     with TempDir(chdr=True):
         # Load the model from a new directory that is not a parent of the source code path to

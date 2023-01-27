@@ -1,7 +1,7 @@
 import os
 from unittest import mock
 
-from mlflow.projects.backend.local import _get_docker_artifact_storage_cmd_and_envs
+from mlflowacim.projects.backend.local import _get_docker_artifact_storage_cmd_and_envs
 
 
 def test_docker_s3_artifact_cmd_and_envs_from_env():

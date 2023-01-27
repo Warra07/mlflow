@@ -2,9 +2,9 @@ import xgboost
 import shap
 from sklearn.model_selection import train_test_split
 from sklearn.dummy import DummyClassifier
-import mlflow
-from mlflow.models import MetricThreshold, make_metric
-from mlflow.models.evaluation.validation import ModelValidationFailedException
+import mlflowacim
+from mlflowacim.models import MetricThreshold, make_metric
+from mlflowacim.models.evaluation.validation import ModelValidationFailedException
 
 # load UCI Adult Data Set; segment it into training and test sets
 X, y = shap.datasets.adult()
@@ -50,14 +50,14 @@ thresholds = {
     ),
 }
 
-with mlflow.start_run() as run:
-    candidate_model_uri = mlflow.sklearn.log_model(candidate_model, "candidate_model").model_uri
+with mlflowacim.start_run() as run:
+    candidate_model_uri = mlflowacim.sklearn.log_model(candidate_model, "candidate_model").model_uri
     # Note: in most model validation use-cases the baseline model should instead be a previously
     # trained model (such as the current production model), specified directly in the
     # mlflow.evaluate() call via model URI.
-    baseline_model_uri = mlflow.sklearn.log_model(baseline_model, "baseline_model").model_uri
+    baseline_model_uri = mlflowacim.sklearn.log_model(baseline_model, "baseline_model").model_uri
 
-    mlflow.evaluate(
+    mlflowacim.evaluate(
         candidate_model_uri,
         eval_data,
         targets="label",

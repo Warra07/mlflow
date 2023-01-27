@@ -11,12 +11,12 @@ from ax.service.ax_client import AxClient
 from prettytable import PrettyTable
 from torch.nn.utils import prune
 
-import mlflow.pytorch
+import mlflowacim.pytorch
 from mnist import (
     MNISTDataModule,
     LightningMNISTClassifier,
 )
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
 
 
 class IterativePrune:
@@ -29,8 +29,8 @@ class IterativePrune:
     def run_mnist_model(self, base=False):
         parser_dict = vars(self.parser_args)
         if base:
-            mlflow.start_run(run_name="BaseModel")
-        mlflow.pytorch.autolog()
+            mlflowacim.start_run(run_name="BaseModel")
+        mlflowacim.pytorch.autolog()
         dm = MNISTDataModule(**parser_dict)
         dm.setup(stage="fit")
 
@@ -40,7 +40,7 @@ class IterativePrune:
         trainer.test(datamodule=dm)
         if os.path.exists(self.base_model_path):
             shutil.rmtree(self.base_model_path)
-        mlflow.pytorch.save_model(trainer.lightning_module, self.base_model_path)
+        mlflowacim.pytorch.save_model(trainer.lightning_module, self.base_model_path)
         return trainer
 
     def load_base_model(self):
@@ -65,7 +65,7 @@ class IterativePrune:
                 prune.l1_unstructured(module, name="weight", amount=amount)
                 prune.remove(module, "weight")
 
-        mlflow.pytorch.save_state_dict(model.state_dict(), ".")
+        mlflowacim.pytorch.save_state_dict(model.state_dict(), ".")
         model = torch.load("state_dict.pth")
         os.remove("state_dict.pth")
         return model
@@ -96,7 +96,7 @@ class IterativePrune:
                 f.write("\n")
                 f.write(str(params))
 
-            mlflow.log_artifact(local_path=summary_file)
+            mlflowacim.log_artifact(local_path=summary_file)
         finally:
             shutil.rmtree(tempdir)
 
@@ -106,7 +106,7 @@ class IterativePrune:
         else:
             self.pruning_amount += 0.15
 
-        mlflow.log_metric("PRUNING PERCENTAGE", self.pruning_amount)
+        mlflowacim.log_metric("PRUNING PERCENTAGE", self.pruning_amount)
         pruned_model = self.prune_and_save_model(model, self.pruning_amount)
         model.load_state_dict(copy.deepcopy(pruned_model))
         summary, params = self.count_model_parameters(model)
@@ -125,8 +125,8 @@ class IterativePrune:
             print("***************************************************************************")
             print("Running Trial {}".format(i + 1))
             print("***************************************************************************")
-            with mlflow.start_run(nested=True, run_name="Iteration" + str(i)):
-                mlflow.set_tags({"AX_TRIAL": i})
+            with mlflowacim.start_run(nested=True, run_name="Iteration" + str(i)):
+                mlflowacim.set_tags({"AX_TRIAL": i})
 
                 # calling the model
                 test_accuracy = self.iterative_prune(model, parameters)
@@ -135,7 +135,7 @@ class IterativePrune:
         self.ax_client.complete_trial(trial_index=trial_index, raw_data=test_accuracy.item())
 
         # Ending the Base run
-        mlflow.end_run()
+        mlflowacim.end_run()
 
     def get_parser_args(self):
         parser = argparse.ArgumentParser()

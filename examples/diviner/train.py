@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from diviner import GroupedProphet
-import mlflow.diviner
+import mlflowacim.diviner
 
 
 def generate_data(location_data, start_dt) -> pd.DataFrame:
@@ -70,7 +70,7 @@ def grouped_prophet_example(locations, start_dt, artifact_path):
     )
     print(f"Cross Validation Metrics: \n{metrics.to_string()}")
 
-    mlflow.diviner.log_model(diviner_model=model, artifact_path=artifact_path)
+    mlflowacim.diviner.log_model(diviner_model=model, artifact_path=artifact_path)
 
     # As an Alternative to saving metrics and params directly with a `log_dict()` function call,
     # Serializing the DataFrames to local as a .csv can be done as well, without requiring
@@ -81,7 +81,7 @@ def grouped_prophet_example(locations, start_dt, artifact_path):
     with tempfile.TemporaryDirectory() as tmpdir:
         params.to_csv(f"{tmpdir}/params.csv", index=False, header=True)
         metrics.to_csv(f"{tmpdir}/metrics.csv", index=False, header=True)
-        mlflow.log_artifacts(tmpdir, artifact_path="run_data")
+        mlflowacim.log_artifacts(tmpdir, artifact_path="run_data")
 
     # Saving the parameters and metrics as json without having to serialize to local
     # NOTE: this requires casting of fields that cannot be serialized to JSON
@@ -92,11 +92,11 @@ def grouped_prophet_example(locations, start_dt, artifact_path):
     # using a JSON serialization approach with ``mlflow.log_dict()``.
     params = params.astype(dtype=str, errors="ignore")
 
-    mlflow.log_dict(params.to_dict(), "params.json")
+    mlflowacim.log_dict(params.to_dict(), "params.json")
 
-    mlflow.log_dict(metrics.to_dict(), "metrics.json")
+    mlflowacim.log_dict(metrics.to_dict(), "metrics.json")
 
-    return mlflow.get_artifact_uri(artifact_path=artifact_path)
+    return mlflowacim.get_artifact_uri(artifact_path=artifact_path)
 
 
 if __name__ == "__main__":
@@ -112,10 +112,10 @@ if __name__ == "__main__":
     start_dt = "2022-02-01 04:11:35"
     artifact_path = "diviner_model"
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         uri = grouped_prophet_example(locations, start_dt, artifact_path)
 
-    loaded_model = mlflow.diviner.load_model(model_uri=uri)
+    loaded_model = mlflowacim.diviner.load_model(model_uri=uri)
 
     forecast = loaded_model.forecast(horizon=12, frequency="H")
 

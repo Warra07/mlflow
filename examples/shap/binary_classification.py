@@ -5,9 +5,9 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.ensemble import RandomForestClassifier
 import shap
 
-import mlflow
-from mlflow.tracking import MlflowClient
-from mlflow.artifacts import download_artifacts
+import mlflowacim
+from mlflowacim.tracking import MlflowClient
+from mlflowacim.artifacts import download_artifacts
 
 
 # prepare training data
@@ -20,8 +20,8 @@ model = RandomForestClassifier()
 model.fit(X, y)
 
 # log an explanation
-with mlflow.start_run() as run:
-    mlflow.shap.log_explanation(lambda X: model.predict_proba(X)[:, 1], X)
+with mlflowacim.start_run() as run:
+    mlflowacim.shap.log_explanation(lambda X: model.predict_proba(X)[:, 1], X)
 
 # list artifacts
 client = MlflowClient()

@@ -5,9 +5,9 @@ from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LinearRegression
 import shap
 
-import mlflow
-from mlflow.tracking import MlflowClient
-from mlflow.artifacts import download_artifacts
+import mlflowacim
+from mlflowacim.tracking import MlflowClient
+from mlflowacim.artifacts import download_artifacts
 
 
 # prepare training data
@@ -20,8 +20,8 @@ model = LinearRegression()
 model.fit(X, y)
 
 # log an explanation
-with mlflow.start_run() as run:
-    mlflow.shap.log_explanation(model.predict, X)
+with mlflowacim.start_run() as run:
+    mlflowacim.shap.log_explanation(model.predict, X)
 
 # list artifacts
 client = MlflowClient()

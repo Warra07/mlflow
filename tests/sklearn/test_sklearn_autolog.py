@@ -19,13 +19,13 @@ import sklearn.model_selection
 from scipy.stats import uniform
 from scipy.sparse import csr_matrix, csc_matrix
 
-from mlflow.exceptions import MlflowException
-from mlflow.models import Model
-from mlflow.models.signature import infer_signature
-from mlflow.models.utils import _read_example
-import mlflow.sklearn
-from mlflow.entities import RunStatus
-from mlflow.sklearn.utils import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models import Model
+from mlflowacim.models.signature import infer_signature
+from mlflowacim.models.utils import _read_example
+import mlflowacim.sklearn
+from mlflowacim.entities import RunStatus
+from mlflowacim.sklearn.utils import (
     _is_metric_supported,
     _is_plotting_supported,
     _get_arg_names,
@@ -33,16 +33,16 @@ from mlflow.sklearn.utils import (
     _log_estimator_content,
     _is_estimator_html_repr_supported,
 )
-from mlflow.utils import _truncate_dict
-from mlflow.utils.autologging_utils import MlflowAutologgingQueueingClient
-from mlflow.utils.mlflow_tags import MLFLOW_AUTOLOGGING
-from mlflow.utils.validation import (
+from mlflowacim.utils import _truncate_dict
+from mlflowacim.utils.autologging_utils import MlflowAutologgingQueueingClient
+from mlflowacim.utils.mlflow_tags import MLFLOW_AUTOLOGGING
+from mlflowacim.utils.validation import (
     MAX_PARAMS_TAGS_PER_BATCH,
     MAX_METRICS_PER_BATCH,
     MAX_PARAM_VAL_LENGTH,
     MAX_ENTITY_KEY_LENGTH,
 )
-from mlflow import MlflowClient
+from mlflowacim import MlflowClient
 
 FIT_FUNC_NAMES = ["fit", "fit_transform", "fit_predict"]
 TRAINING_SCORE = "training_score"
@@ -88,7 +88,7 @@ def get_run_data(run_id):
 
 
 def load_model_by_run_id(run_id):
-    return mlflow.sklearn.load_model(f"runs:/{run_id}/{MODEL_DIR}")
+    return mlflowacim.sklearn.load_model(f"runs:/{run_id}/{MODEL_DIR}")
 
 
 def get_model_conf(artifact_uri, model_subpath=MODEL_DIR):
@@ -141,9 +141,9 @@ def test_autolog_preserves_original_function_attributes():
                 attrs[method_name] = get_func_attrs(attr)
         return attrs
 
-    before = [get_cls_attrs(cls) for _, cls in mlflow.sklearn.utils._all_estimators()]
-    mlflow.sklearn.autolog()
-    after = [get_cls_attrs(cls) for _, cls in mlflow.sklearn.utils._all_estimators()]
+    before = [get_cls_attrs(cls) for _, cls in mlflowacim.sklearn.utils._all_estimators()]
+    mlflowacim.sklearn.autolog()
+    after = [get_cls_attrs(cls) for _, cls in mlflowacim.sklearn.utils._all_estimators()]
 
     for b, a in zip(before, after):
         assert b == a
@@ -153,7 +153,7 @@ def test_autolog_throws_error_with_negative_max_tuning_runs():
     with pytest.raises(
         MlflowException, match="`max_tuning_runs` must be non-negative, instead got -1."
     ):
-        mlflow.sklearn.autolog(max_tuning_runs=-1)
+        mlflowacim.sklearn.autolog(max_tuning_runs=-1)
 
 
 @pytest.mark.parametrize(
@@ -175,21 +175,21 @@ def test_autolog_max_tuning_runs_logs_info_correctly(max_tuning_runs, total_runs
 
 
 def test_autolog_does_not_terminate_active_run():
-    mlflow.sklearn.autolog()
-    mlflow.start_run()
+    mlflowacim.sklearn.autolog()
+    mlflowacim.start_run()
     sklearn.cluster.KMeans().fit(*get_iris())
-    assert mlflow.active_run() is not None
-    mlflow.end_run()
+    assert mlflowacim.active_run() is not None
+    mlflowacim.end_run()
 
 
 def test_estimator(fit_func_name):
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     # use `KMeans` because it implements `fit`, `fit_transform`, and `fit_predict`.
     model = sklearn.cluster.KMeans()
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = fit_model(model, X, y, fit_func_name)
 
     run_id = run.info.run_id
@@ -204,7 +204,7 @@ def test_estimator(fit_func_name):
 
 
 def test_classifier_binary():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     # use RandomForestClassifier that has method [predict_proba], so that we can test
     # logging of (1) log_loss and (2) roc_auc_score.
     model = sklearn.ensemble.RandomForestClassifier(max_depth=2, random_state=0, n_estimators=10)
@@ -212,7 +212,7 @@ def test_classifier_binary():
     # use binary datasets to cover the test for roc curve & precision recall curve
     X, y_true = sklearn.datasets.load_breast_cancer(return_X_y=True)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = fit_model(model, X, y_true, "fit")
 
     y_pred = model.predict(X)
@@ -269,7 +269,7 @@ def test_classifier_binary():
 
 
 def test_classifier_multi_class():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     # use RandomForestClassifier that has method [predict_proba], so that we can test
     # logging of (1) log_loss and (2) roc_auc_score.
     model = sklearn.ensemble.RandomForestClassifier(max_depth=2, random_state=0, n_estimators=10)
@@ -277,7 +277,7 @@ def test_classifier_multi_class():
     # use multi-class datasets to verify that roc curve & precision recall curve care not recorded
     X, y_true = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = fit_model(model, X, y_true, "fit")
 
     y_pred = model.predict(X)
@@ -324,12 +324,12 @@ def test_classifier_multi_class():
 
 
 def test_regressor():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     # use simple `LinearRegression`, which only implements `fit`.
     model = sklearn.linear_model.LinearRegression()
     X, y_true = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = fit_model(model, X, y_true, "fit")
 
     y_pred = model.predict(X)
@@ -354,7 +354,7 @@ def test_regressor():
 
 
 def test_meta_estimator():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     estimators = [
         ("std_scaler", sklearn.preprocessing.StandardScaler()),
@@ -363,7 +363,7 @@ def test_meta_estimator():
     model = sklearn.pipeline.Pipeline(estimators)
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y)
 
     run_id = run.info.run_id
@@ -384,7 +384,7 @@ def disable_validate_params(cls):
 
 
 def test_get_params_returns_dict_that_has_more_keys_than_max_params_tags_per_batch():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     large_params = {str(i): str(i) for i in range(MAX_PARAMS_TAGS_PER_BATCH + 1)}
     X, y = get_iris()
@@ -392,7 +392,7 @@ def test_get_params_returns_dict_that_has_more_keys_than_max_params_tags_per_bat
     with disable_validate_params("sklearn.cluster.KMeans"), mock.patch(
         "sklearn.cluster.KMeans.get_params", return_value=large_params
     ):
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             model = sklearn.cluster.KMeans()
             model.fit(X, y)
 
@@ -421,13 +421,13 @@ def test_get_params_returns_dict_that_has_more_keys_than_max_params_tags_per_bat
     ],
 )
 def test_get_params_returns_dict_whose_key_or_value_exceeds_length_limit(long_params, messages):
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     X, y = get_iris()
 
     with disable_validate_params("sklearn.cluster.KMeans"), mock.patch(
         "sklearn.cluster.KMeans.get_params", return_value=long_params
-    ), mock.patch("mlflow.utils._logger.warning") as mock_warning, mlflow.start_run() as run:
+    ), mock.patch("mlflow.utils._logger.warning") as mock_warning, mlflowacim.start_run() as run:
         model = sklearn.cluster.KMeans()
         model.fit(X, y)
 
@@ -446,12 +446,12 @@ def test_get_params_returns_dict_whose_key_or_value_exceeds_length_limit(long_pa
 
 @pytest.mark.parametrize("Xy_passed_as", ["only_y_kwarg", "both_kwarg", "both_kwargs_swapped"])
 def test_fit_takes_Xy_as_keyword_arguments(Xy_passed_as):
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     model = sklearn.cluster.KMeans()
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         if Xy_passed_as == "only_y_kwarg":
             model.fit(X, y=y)
         elif Xy_passed_as == "both_kwarg":
@@ -469,7 +469,7 @@ def test_fit_takes_Xy_as_keyword_arguments(Xy_passed_as):
 
 
 def test_call_fit_with_arguments_score_does_not_accept():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     from sklearn.linear_model import SGDRegressor
 
@@ -488,7 +488,7 @@ def test_call_fit_with_arguments_score_does_not_accept():
     model = SGDRegressor()
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y, intercept_init=0)
 
     assert len(mock_obj.call_args_list) == 1
@@ -509,7 +509,7 @@ def test_call_fit_with_arguments_score_does_not_accept():
 
 @pytest.mark.parametrize("sample_weight_passed_as", ["positional", "keyword"])
 def test_both_fit_and_score_contain_sample_weight(sample_weight_passed_as):
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     from sklearn.linear_model import SGDRegressor
 
@@ -530,7 +530,7 @@ def test_both_fit_and_score_contain_sample_weight(sample_weight_passed_as):
     X, y = get_iris()
     sample_weight = abs(np.random.randn(len(X)))
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         if sample_weight_passed_as == "positional":
             model.fit(X, y, None, None, sample_weight)
         elif sample_weight_passed_as == "keyword":
@@ -553,7 +553,7 @@ def test_both_fit_and_score_contain_sample_weight(sample_weight_passed_as):
 
 
 def test_only_fit_contains_sample_weight():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     from sklearn.linear_model import RANSACRegressor
 
@@ -572,7 +572,7 @@ def test_only_fit_contains_sample_weight():
     model = RANSACRegressor()
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y)
 
     assert len(mock_obj.call_args_list) == 1
@@ -591,7 +591,7 @@ def test_only_fit_contains_sample_weight():
 
 
 def test_only_score_contains_sample_weight():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     from sklearn.gaussian_process import GaussianProcessRegressor
 
@@ -610,7 +610,7 @@ def test_only_score_contains_sample_weight():
     model = GaussianProcessRegressor()
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y)
 
     assert len(mock_obj.call_args_list) == 1
@@ -630,7 +630,7 @@ def test_only_score_contains_sample_weight():
 
 
 def test_autolog_terminates_run_when_active_run_does_not_exist_and_fit_fails():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     with pytest.raises(
         ValueError,
@@ -638,14 +638,14 @@ def test_autolog_terminates_run_when_active_run_does_not_exist_and_fit_fails():
     ):
         sklearn.svm.LinearSVC(C=-1).fit(*get_iris())
 
-    latest_run = mlflow.search_runs().iloc[0]
-    assert mlflow.active_run() is None
+    latest_run = mlflowacim.search_runs().iloc[0]
+    assert mlflowacim.active_run() is None
     assert latest_run.status == "FAILED"
 
 
 def test_autolog_does_not_terminate_run_when_active_run_exists_and_fit_fails():
-    mlflow.sklearn.autolog()
-    run = mlflow.start_run()
+    mlflowacim.sklearn.autolog()
+    run = mlflowacim.start_run()
 
     with pytest.raises(
         ValueError,
@@ -653,13 +653,13 @@ def test_autolog_does_not_terminate_run_when_active_run_exists_and_fit_fails():
     ):
         sklearn.svm.LinearSVC(C=-1).fit(*get_iris())
 
-    assert mlflow.active_run() is not None
-    assert mlflow.active_run() is run
-    mlflow.end_run()
+    assert mlflowacim.active_run() is not None
+    assert mlflowacim.active_run() is run
+    mlflowacim.end_run()
 
 
 def test_autolog_emits_warning_message_when_score_fails():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     model = sklearn.cluster.KMeans()
 
@@ -669,7 +669,7 @@ def test_autolog_emits_warning_message_when_score_fails():
 
     model.score = throwing_score
 
-    with mlflow.start_run(), mock.patch("mlflow.sklearn.utils._logger.warning") as mock_warning:
+    with mlflowacim.start_run(), mock.patch("mlflow.sklearn.utils._logger.warning") as mock_warning:
         model.fit(*get_iris())
         mock_warning.assert_called_once()
         mock_warning.called_once_with(
@@ -682,7 +682,7 @@ def test_autolog_emits_warning_message_when_metric_fails():
     """
     Take precision_score metric from SVC as an example to test metric logging failure
     """
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     model = sklearn.svm.SVC()
 
@@ -690,7 +690,7 @@ def test_autolog_emits_warning_message_when_metric_fails():
     def throwing_metrics(y_true, y_pred):  # pylint: disable=unused-argument
         raise Exception("EXCEPTION")
 
-    with mlflow.start_run(), mock.patch(
+    with mlflowacim.start_run(), mock.patch(
         "mlflow.sklearn.utils._logger.warning"
     ) as mock_warning, mock.patch("sklearn.metrics.precision_score", side_effect=throwing_metrics):
         model.fit(*get_iris())
@@ -711,7 +711,7 @@ def test_autolog_emits_warning_message_when_model_prediction_fails():
     """
     from sklearn.exceptions import NotFittedError
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     metrics_size = 2
     metrics_to_log = {
@@ -719,7 +719,7 @@ def test_autolog_emits_warning_message_when_model_prediction_fails():
         for i in range(metrics_size)
     }
 
-    with mlflow.start_run(), mock.patch("mlflow.sklearn.utils._logger.warning") as mock_warning:
+    with mlflowacim.start_run(), mock.patch("mlflow.sklearn.utils._logger.warning") as mock_warning:
         svc = sklearn.svm.SVC()
         cv_model = sklearn.model_selection.GridSearchCV(
             svc, {"C": [1]}, n_jobs=1, scoring=metrics_to_log, refit=False
@@ -741,7 +741,7 @@ def test_autolog_emits_warning_message_when_model_prediction_fails():
         # If `_is_plotting_supported` returns True (meaning sklearn version is >= 0.22.0),
         # `mock_warning` should have been called twice, once for metrics, once for artifacts.
         # Otherwise, only once for metrics.
-        call_count_expected = 2 if mlflow.sklearn.utils._is_plotting_supported() else 1
+        call_count_expected = 2 if mlflowacim.sklearn.utils._is_plotting_supported() else 1
         assert call_count == call_count_expected
 
 
@@ -757,7 +757,7 @@ def test_autolog_emits_warning_message_when_model_prediction_fails():
 def test_parameter_search_estimators_produce_expected_outputs(
     cv_class, search_space, backend, max_tuning_runs
 ):
-    mlflow.sklearn.autolog(
+    mlflowacim.sklearn.autolog(
         log_input_examples=True,
         log_model_signatures=True,
         max_tuning_runs=max_tuning_runs,
@@ -774,7 +774,7 @@ def test_parameter_search_estimators_produce_expected_outputs(
             with sklearn.utils.parallel_backend(backend=backend):
                 cv_model.fit(X, y)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         train_cv_model()
         run_id = run.info.run_id
 
@@ -796,9 +796,9 @@ def test_parameter_search_estimators_produce_expected_outputs(
     assert "best_estimator" in artifacts
     assert "cv_results.csv" in artifacts
 
-    best_estimator = mlflow.sklearn.load_model(f"runs:/{run_id}/best_estimator")
+    best_estimator = mlflowacim.sklearn.load_model(f"runs:/{run_id}/best_estimator")
     assert isinstance(best_estimator, sklearn.svm.SVC)
-    cv_model = mlflow.sklearn.load_model(f"runs:/{run_id}/{MODEL_DIR}")
+    cv_model = mlflowacim.sklearn.load_model(f"runs:/{run_id}/{MODEL_DIR}")
     assert isinstance(cv_model, cv_class)
 
     # Ensure that a signature and input example are produced for the best estimator
@@ -841,7 +841,7 @@ def test_parameter_search_estimators_produce_expected_outputs(
         assert child_run.info.status == RunStatus.to_string(RunStatus.FINISHED)
         _, child_metrics, child_tags, _ = get_run_data(child_run.info.run_id)
         assert child_tags == get_expected_class_tags(svc)
-        assert child_run.data.tags.get(MLFLOW_AUTOLOGGING) == mlflow.sklearn.FLAVOR_NAME
+        assert child_run.data.tags.get(MLFLOW_AUTOLOGGING) == mlflowacim.sklearn.FLAVOR_NAME
         assert "mean_test_score" in child_metrics.keys()
         assert "std_test_score" in child_metrics.keys()
         # Ensure that we do not capture separate metrics for each cross validation split, which
@@ -861,7 +861,7 @@ def test_parameter_search_estimators_produce_expected_outputs(
 
 
 def test_parameter_search_handles_large_volume_of_metric_outputs():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     metrics_size = MAX_METRICS_PER_BATCH + 10
     metrics_to_log = {
@@ -869,7 +869,7 @@ def test_parameter_search_handles_large_volume_of_metric_outputs():
         for i in range(metrics_size)
     }
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         svc = sklearn.svm.SVC()
         cv_model = sklearn.model_selection.GridSearchCV(
             svc, {"C": [1]}, n_jobs=1, scoring=metrics_to_log, refit=False
@@ -889,7 +889,7 @@ def test_parameter_search_handles_large_volume_of_metric_outputs():
 
 @pytest.mark.parametrize("data_type", [pd.DataFrame, np.array, csr_matrix, csc_matrix])
 def test_autolog_logs_signature_and_input_example(data_type):
-    mlflow.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflowacim.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
 
     X, y = get_iris()
     X = data_type(X)
@@ -899,13 +899,13 @@ def test_autolog_logs_signature_and_input_example(data_type):
         y = data_type(y)
     model = sklearn.linear_model.LinearRegression()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y)
         model_path = os.path.join(run.info.artifact_uri, MODEL_DIR)
 
     model_conf = get_model_conf(run.info.artifact_uri)
     input_example = _read_example(model_conf, model_path)
-    pyfunc_model = mlflow.pyfunc.load_model(model_path)
+    pyfunc_model = mlflowacim.pyfunc.load_model(model_path)
 
     assert model_conf.signature == infer_signature(X, model.predict(X[:5]))
 
@@ -955,14 +955,14 @@ def test_autolog_metrics_input_example_and_signature_do_not_reflect_training_mut
             X["XXLarge Bags"] = X["XLarge Bags"] + 1
             return X
 
-    mlflow.sklearn.autolog(log_models=True, log_model_signatures=True, log_input_examples=True)
+    mlflowacim.sklearn.autolog(log_models=True, log_model_signatures=True, log_input_examples=True)
 
     sk_pipeline = sklearn.pipeline.make_pipeline(
         CustomTransformer(), sklearn.linear_model.LinearRegression()
     )
     sk_pipeline.fit(X_train, y_train)
 
-    run_artifact_uri = mlflow.last_active_run().info.artifact_uri
+    run_artifact_uri = mlflowacim.last_active_run().info.artifact_uri
     model_conf = get_model_conf(run_artifact_uri)
     input_example = pd.read_json(
         os.path.join(run_artifact_uri, "model", "input_example.json"), orient="split"
@@ -973,7 +973,7 @@ def test_autolog_metrics_input_example_and_signature_do_not_reflect_training_mut
     assert "XXLarge Bags" not in model_signature_input_names
     assert "XXLarge Bags" not in input_example.columns
 
-    metrics = get_run_data(mlflow.last_active_run().info.run_id)[1]
+    metrics = get_run_data(mlflowacim.last_active_run().info.run_id)[1]
     assert "training_r2_score" in metrics
     assert "training_root_mean_squared_error" in metrics
 
@@ -995,10 +995,10 @@ def test_autolog_does_not_throw_when_failing_to_sample_X():
     with pytest.raises(IndexError, match="DO NOT SLICE ME"):
         _ = throwing_X[:5]
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     model = sklearn.linear_model.LinearRegression()
 
-    with mlflow.start_run() as run, mock.patch("mlflow.sklearn._logger.warning") as mock_warning:
+    with mlflowacim.start_run() as run, mock.patch("mlflow.sklearn._logger.warning") as mock_warning:
         model.fit(throwing_X, y)
 
     model_conf = get_model_conf(run.info.artifact_uri)
@@ -1012,13 +1012,13 @@ def test_autolog_does_not_throw_when_failing_to_sample_X():
 def test_autolog_logs_signature_only_when_estimator_defines_predict():
     from sklearn.cluster import AgglomerativeClustering
 
-    mlflow.sklearn.autolog(log_model_signatures=True)
+    mlflowacim.sklearn.autolog(log_model_signatures=True)
 
     X, y = get_iris()
     model = AgglomerativeClustering()
     assert not hasattr(model, "predict")
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y)
 
     model_conf = get_model_conf(run.info.artifact_uri)
@@ -1028,10 +1028,10 @@ def test_autolog_logs_signature_only_when_estimator_defines_predict():
 def test_autolog_does_not_throw_when_predict_fails():
     X, y = get_iris()
 
-    mlflow.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
+    mlflowacim.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
 
     # Note that `mock_warning` will be called twice because if `predict` throws, `score` also throws
-    with mlflow.start_run() as run, mock.patch(
+    with mlflowacim.start_run() as run, mock.patch(
         "sklearn.linear_model.LinearRegression.predict", side_effect=Exception("Failed")
     ), mock.patch("mlflow.sklearn._logger.warning") as mock_warning:
         model = sklearn.linear_model.LinearRegression()
@@ -1045,10 +1045,10 @@ def test_autolog_does_not_throw_when_predict_fails():
 def test_autolog_does_not_throw_when_infer_signature_fails():
     X, y = get_iris()
 
-    with mlflow.start_run() as run, mock.patch(
+    with mlflowacim.start_run() as run, mock.patch(
         "mlflow.models.infer_signature", side_effect=Exception("Failed")
     ), mock.patch("mlflow.sklearn._logger.warning") as mock_warning:
-        mlflow.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
+        mlflowacim.sklearn.autolog(log_input_examples=True, log_model_signatures=True)
         model = sklearn.linear_model.LinearRegression()
         model.fit(X, y)
 
@@ -1062,8 +1062,8 @@ def test_autolog_does_not_throw_when_infer_signature_fails():
 def test_autolog_configuration_options(log_input_examples, log_model_signatures):
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
-        mlflow.sklearn.autolog(
+    with mlflowacim.start_run() as run:
+        mlflowacim.sklearn.autolog(
             log_input_examples=log_input_examples, log_model_signatures=log_model_signatures
         )
         model = sklearn.linear_model.LinearRegression()
@@ -1077,8 +1077,8 @@ def test_autolog_configuration_options(log_input_examples, log_model_signatures)
 def test_sklearn_autolog_log_models_configuration(log_models):
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
-        mlflow.sklearn.autolog(log_models=log_models)
+    with mlflowacim.start_run() as run:
+        mlflowacim.sklearn.autolog(log_models=log_models)
         model = sklearn.linear_model.LinearRegression()
         model.fit(X, y)
 
@@ -1093,7 +1093,7 @@ def test_autolog_does_not_capture_runs_for_preprocessing_or_feature_manipulation
     manipulation steps (e.g., normalization, label encoding) rather than ML models, do not
     produce runs when their fit_* operations are invoked independently of an ML pipeline
     """
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     # Create a run using the MLflow client, which will be resumed via the fluent API,
     # in order to avoid setting fluent-level tags (e.g., source and user). Suppressing these
@@ -1107,7 +1107,7 @@ def test_autolog_does_not_capture_runs_for_preprocessing_or_feature_manipulation
     from sklearn.feature_selection import VarianceThreshold
     from sklearn.compose import ColumnTransformer
 
-    with mlflow.start_run(run_id=run_id):
+    with mlflowacim.start_run(run_id=run_id):
         Normalizer().fit_transform(np.random.random((5, 5)))
         LabelEncoder().fit([1, 2, 2, 6])
         MinMaxScaler().fit_transform(50 * np.random.random((10, 10)))
@@ -1132,7 +1132,7 @@ def test_autolog_produces_expected_results_for_estimator_when_parent_also_define
     """
     Test to prevent recurrences of https://github.com/mlflow/mlflow/issues/3574
     """
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     # Construct two mock models - `ParentMod` and `ChildMod`, where ChildMod's fit() function
     # calls ParentMod().fit() and mutates a predefined, constant prediction value set by
@@ -1159,14 +1159,14 @@ def test_autolog_produces_expected_results_for_estimator_when_parent_also_define
             super().fit(X, y)
             self.prediction = self.prediction + 1
 
-    og_all_estimators = mlflow.sklearn.utils._all_estimators()
+    og_all_estimators = mlflowacim.sklearn.utils._all_estimators()
     new_all_estimators = og_all_estimators + [("ParentMod", ParentMod), ("ChildMod", ChildMod)]
 
     with mock.patch("mlflow.sklearn.utils._all_estimators", return_value=new_all_estimators):
-        mlflow.sklearn.autolog()
+        mlflowacim.sklearn.autolog()
 
     model = ChildMod()
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(*get_iris())
 
     _, _, tags, _ = get_run_data(run.info.run_id)
@@ -1179,11 +1179,11 @@ def test_metric_computation_handles_absent_labels():
     Verifies that autologging metric computation does not fail For models that do not require
     labels as inputs to training, such as clustering models and other unsupervised techniques.
     """
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     model = sklearn.cluster.KMeans()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         # Train a clustering model solely on samples, without specifying labels
         model.fit(X=get_iris()[0])
 
@@ -1196,9 +1196,9 @@ def test_metric_computation_handles_absent_labels():
     assert MODEL_DIR in artifacts
 
 
-@pytest.mark.parametrize("cross_val_func_name", mlflow.sklearn._apis_autologging_disabled)
+@pytest.mark.parametrize("cross_val_func_name", mlflowacim.sklearn._apis_autologging_disabled)
 def test_autolog_disabled_on_sklearn_cross_val_api(cross_val_func_name):
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     from sklearn import linear_model
 
     def assert_autolog_disabled_during_exec_cross_val_fun(run_):
@@ -1216,22 +1216,22 @@ def test_autolog_disabled_on_sklearn_cross_val_api(cross_val_func_name):
         extra_params = {}
 
     cross_val_func = getattr(sklearn.model_selection, cross_val_func_name)
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         cross_val_func(lasso, X, y, cv=3, **extra_params)
         assert_autolog_disabled_during_exec_cross_val_fun(run)
 
     # Ensure cross_val_func doesn't start a new run
-    exp_id = mlflow.tracking.fluent._get_experiment_id()
-    runs_before = mlflow.search_runs([exp_id])
+    exp_id = mlflowacim.tracking.fluent._get_experiment_id()
+    runs_before = mlflowacim.search_runs([exp_id])
     cross_val_func(lasso, X, y, cv=3, **extra_params)
-    runs_after = mlflow.search_runs([exp_id])
+    runs_after = mlflowacim.search_runs([exp_id])
     assert len(runs_before) == len(runs_after)
 
 
 def load_json_artifact(artifact_path):
     import json
 
-    fpath = mlflow.get_artifact_uri(artifact_path).replace("file://", "")
+    fpath = mlflowacim.get_artifact_uri(artifact_path).replace("file://", "")
     with open(fpath) as f:
         return json.load(f)
 
@@ -1239,12 +1239,12 @@ def load_json_artifact(artifact_path):
 def test_basic_post_training_metric_autologging():
     from sklearn import metrics as sklmetrics
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     model = sklearn.linear_model.LogisticRegression(solver="saga", max_iter=100, random_state=0)
     X, y = get_iris()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model.fit(X, y)
 
         eval1_X, eval1_y = X[0::3], y[0::3]
@@ -1305,7 +1305,7 @@ def test_basic_post_training_metric_autologging():
         "recall_score_eval1_X": "recall_score(y_true=eval1_y, y_pred=pred1_y, average='macro')",
     }
 
-    mlflow.sklearn.autolog(disable=True)
+    mlflowacim.sklearn.autolog(disable=True)
 
     # Test patched methods generate the same results with unpatched methods.
     recall_score_data1_original = sklmetrics.recall_score(eval1_y, pred1_y, average="macro")
@@ -1318,12 +1318,12 @@ def test_basic_post_training_metric_autologging():
     np.testing.assert_allclose(pred1_y_original, pred1_y)
 
 
-@pytest.mark.parametrize("metric_name", mlflow.sklearn._get_metric_name_list())
+@pytest.mark.parametrize("metric_name", mlflowacim.sklearn._get_metric_name_list())
 def test_run_metric_api_doc_example(metric_name):
     import doctest
     from sklearn import metrics
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     metric_api = getattr(metrics, metric_name)
     doctest.run_docstring_examples(metric_api.__doc__, {}, verbose=True)
 
@@ -1331,12 +1331,12 @@ def test_run_metric_api_doc_example(metric_name):
 def test_post_training_metric_autologging_for_predict_prob():
     import sklearn.linear_model
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     from sklearn.metrics import roc_auc_score
 
     X, y = get_iris()
     lor_model = sklearn.linear_model.LogisticRegression(solver="saga", max_iter=100, random_state=0)
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         lor_model.fit(X, y)
         y_prob = lor_model.predict_proba(X)
         y_true_onehot = np.eye(3)[y]
@@ -1347,7 +1347,7 @@ def test_post_training_metric_autologging_for_predict_prob():
 
 
 def test_post_training_metric_autologging_patch_transform():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     X, y = get_iris()
     kmeans_model = sklearn.cluster.KMeans().fit(X, y)
     with mock.patch(
@@ -1358,13 +1358,13 @@ def test_post_training_metric_autologging_patch_transform():
 
 
 def test_nested_metric_call_is_disabled():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     X, y = get_iris()
     eval1_X, eval1_y = X[0::3], y[0::3]
     lr_model = sklearn.linear_model.LinearRegression()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         with mock.patch(
             "mlflow.sklearn._AutologgingMetricsManager.log_post_training_metric"
         ) as patched_log_post_training_metric:
@@ -1382,7 +1382,7 @@ def test_nested_metric_call_is_disabled():
 
 
 def test_multi_model_interleaved_fit_and_post_train_metric_call():
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
     from sklearn.metrics import mean_squared_error
 
     X, y = get_iris()
@@ -1392,10 +1392,10 @@ def test_multi_model_interleaved_fit_and_post_train_metric_call():
     lr_model1 = sklearn.linear_model.LinearRegression(fit_intercept=True)
     lr_model2 = sklearn.linear_model.LinearRegression(fit_intercept=False)
 
-    with mlflow.start_run() as run1:
+    with mlflowacim.start_run() as run1:
         lr_model1.fit(X, y)
 
-    with mlflow.start_run() as run2:
+    with mlflowacim.start_run() as run2:
         lr_model2.fit(X, y)
 
     model1_r2_score = lr_model1.score(eval1_X, eval1_y)
@@ -1423,7 +1423,7 @@ def test_meta_estimator_disable_nested_post_training_autologging(scoring):
     import sklearn.svm
     import sklearn.metrics
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     X, y = get_iris()
     with mock.patch(
@@ -1436,7 +1436,7 @@ def test_meta_estimator_disable_nested_post_training_autologging(scoring):
         "mlflow.sklearn._AutologgingMetricsManager.register_prediction_input_dataset"
     ) as mock_register_prediction_input_dataset:
 
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             svc = sklearn.svm.SVC()
             cv_model = sklearn.model_selection.GridSearchCV(
                 svc, {"C": [1, 0.5]}, n_jobs=1, scoring=scoring
@@ -1457,9 +1457,9 @@ def test_meta_estimator_post_training_autologging(scoring):
     X, y = get_iris()
     eval1_X, eval1_y = X[0::3], y[0::3]
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         lor = sklearn.linear_model.LogisticRegression(solver="saga", random_state=0)
         cv_model = sklearn.model_selection.GridSearchCV(
             lor, {"max_iter": [5, 10, 15]}, n_jobs=1, scoring=scoring
@@ -1480,7 +1480,7 @@ def test_gen_metric_call_commands():
     def metric_fn1(a1, b1, *, c2=3, d1=None, d2=True, d3="abc", **kwargs):
         pass
 
-    cmd1 = mlflow.sklearn._AutologgingMetricsManager.gen_metric_call_command(
+    cmd1 = mlflowacim.sklearn._AutologgingMetricsManager.gen_metric_call_command(
         None,
         metric_fn1,
         *[np.array([1.0]), pd.DataFrame(data={"c1": [1]})],
@@ -1495,13 +1495,13 @@ def test_gen_metric_call_commands():
     data1 = np.array([1.0])
     data2 = pd.DataFrame(data={"c1": [1]})
 
-    cmd2 = mlflow.sklearn._AutologgingMetricsManager.gen_metric_call_command(
+    cmd2 = mlflowacim.sklearn._AutologgingMetricsManager.gen_metric_call_command(
         None, metric_fn1, *[data1, data2], **{"randarg1": "'xyz\"abc"}
     )
     assert cmd2 == "metric_fn1(a1=data1, b1=data2, randarg1='\\'xyz\"abc')"
 
     lr_model = sklearn.linear_model.LinearRegression()
-    cmd3 = mlflow.sklearn._AutologgingMetricsManager.gen_metric_call_command(
+    cmd3 = mlflowacim.sklearn._AutologgingMetricsManager.gen_metric_call_command(
         lr_model, sklearn.linear_model.LinearRegression.score, data1, data2
     )
 
@@ -1512,7 +1512,7 @@ def test_patch_for_delegated_method():
     from tests.autologging.test_autologging_utils import get_func_attrs
 
     original_predict = sklearn.pipeline.Pipeline.predict
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     assert get_func_attrs(sklearn.pipeline.Pipeline.predict) == get_func_attrs(original_predict)
 
@@ -1522,7 +1522,7 @@ def test_patch_for_delegated_method():
     model = sklearn.pipeline.Pipeline(estimators)
     X, y = get_iris()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model.fit(X, y)
 
     eval1_X = X[0::3]
@@ -1537,7 +1537,7 @@ def test_patch_for_delegated_method():
         # at `pipeline.predict` level.
         assert mock_register_prediction_input_dataset.call_count <= 1
 
-    mlflow.sklearn.autolog(disable=True)
+    mlflowacim.sklearn.autolog(disable=True)
     pred1_y_original = model.predict(eval1_X)
 
     np.testing.assert_allclose(pred1_y, pred1_y_original)
@@ -1548,7 +1548,7 @@ def test_patch_for_available_if_decorated_method():
     from tests.autologging.test_autologging_utils import get_func_attrs
 
     original_transform = sklearn.pipeline.Pipeline.transform
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
     assert get_func_attrs(sklearn.pipeline.Pipeline.transform) == get_func_attrs(original_transform)
 
@@ -1558,13 +1558,13 @@ def test_patch_for_available_if_decorated_method():
     model = sklearn.pipeline.Pipeline(estimators)
     X, y = get_iris()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model.fit(X, y)
 
     eval1_X = X[0::3]
     transform1_y = model.transform(eval1_X)
 
-    mlflow.sklearn.autolog(disable=True)
+    mlflowacim.sklearn.autolog(disable=True)
 
     transform1_y_original = model.transform(eval1_X)
 
@@ -1572,7 +1572,7 @@ def test_patch_for_available_if_decorated_method():
 
 
 def test_is_metrics_value_loggable():
-    is_metric_value_loggable = mlflow.sklearn._AutologgingMetricsManager.is_metric_value_loggable
+    is_metric_value_loggable = mlflowacim.sklearn._AutologgingMetricsManager.is_metric_value_loggable
     assert is_metric_value_loggable(3)
     assert is_metric_value_loggable(3.5)
     assert is_metric_value_loggable(np.float32(3.5))
@@ -1590,9 +1590,9 @@ def test_log_post_training_metrics_configuration():
 
     # Ensure post-traning metrics autologging can be toggled on / off
     for log_post_training_metrics in [True, False, True]:
-        mlflow.sklearn.autolog(log_post_training_metrics=log_post_training_metrics)
+        mlflowacim.sklearn.autolog(log_post_training_metrics=log_post_training_metrics)
 
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             model.fit(X, y)
             y_pred = model.predict(X)
             sklearn.metrics.r2_score(y, y_pred)
@@ -1614,9 +1614,9 @@ class UnpicklableKmeans(sklearn.cluster.KMeans):
 def test_autolog_print_warning_if_custom_estimator_pickling_raise_error():
     import pickle
 
-    mlflow.sklearn.autolog()
+    mlflowacim.sklearn.autolog()
 
-    with mlflow.start_run() as run, mock.patch("mlflow.sklearn._logger.warning") as mock_warning:
+    with mlflowacim.start_run() as run, mock.patch("mlflow.sklearn._logger.warning") as mock_warning:
         unpicklable_kmeans = UnpicklableKmeans()
         with pytest.raises(TypeError, match=r"(can't|cannot) pickle.+generator"):
             pickle.dumps(unpicklable_kmeans)
@@ -1638,8 +1638,8 @@ def test_autolog_print_warning_if_custom_estimator_pickling_raise_error():
 def test_autolog_registering_model():
     registered_model_name = "test_autolog_registered_model"
 
-    mlflow.sklearn.autolog(registered_model_name=registered_model_name)
-    with mlflow.start_run():
+    mlflowacim.sklearn.autolog(registered_model_name=registered_model_name)
+    with mlflowacim.start_run():
         sklearn.cluster.KMeans().fit(*get_iris())
 
         registered_model = MlflowClient().get_registered_model(registered_model_name)
@@ -1647,14 +1647,14 @@ def test_autolog_registering_model():
 
 
 def test_autolog_pos_label_used_for_training_metric():
-    mlflow.sklearn.autolog(pos_label=1)
+    mlflowacim.sklearn.autolog(pos_label=1)
 
     import sklearn.ensemble
 
     model = sklearn.ensemble.RandomForestClassifier(max_depth=2, random_state=0, n_estimators=10)
     X, y = sklearn.datasets.load_breast_cancer(return_X_y=True)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = fit_model(model, X, y, "fit")
         _, training_metrics, _, _ = get_run_data(run.info.run_id)
         with MlflowAutologgingQueueingClient() as autologging_client:
@@ -1672,12 +1672,12 @@ def test_autolog_pos_label_used_for_training_metric():
 
 
 def test_autolog_emits_warning_message_when_pos_label_used_for_multilabel():
-    mlflow.sklearn.autolog(pos_label=1)
+    mlflowacim.sklearn.autolog(pos_label=1)
 
     model = sklearn.svm.SVC()
     X, y = get_iris()
 
-    with mlflow.start_run(), mock.patch("mlflow.sklearn.utils._logger.warning") as mock_warning:
+    with mlflowacim.start_run(), mock.patch("mlflow.sklearn.utils._logger.warning") as mock_warning:
         model.fit(X, y)
         assert mock_warning.call_count == 3  # for precision, recall and f1_score
         mock_warning.assert_any_call(

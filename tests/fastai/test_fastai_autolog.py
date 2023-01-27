@@ -13,11 +13,11 @@ from fastai.optimizer import OptimWrapper
 from fastai.tabular.all import TabularDataLoaders
 from fastai.callback.all import EarlyStoppingCallback, SaveModelCallback
 
-import mlflow
-import mlflow.fastai
-from mlflow import MlflowClient
-from mlflow.fastai.callback import __MlflowFastaiCallback
-from mlflow.utils.autologging_utils import BatchMetricsLogger
+import mlflowacim
+import mlflowacim.fastai
+from mlflowacim import MlflowClient
+from mlflowacim.fastai.callback import __MlflowFastaiCallback
+from mlflowacim.utils.autologging_utils import BatchMetricsLogger
 from tests.conftest import tracking_uri_mock  # pylint: disable=unused-import
 
 mpl.use("Agg")
@@ -74,7 +74,7 @@ def fastai_tabular_model(data, **kwargs):
 
 @pytest.mark.parametrize("fit_variant", ["fit", "fit_one_cycle"])
 def test_fastai_autolog_ends_auto_created_run(iris_data, fit_variant):
-    mlflow.fastai.autolog()
+    mlflowacim.fastai.autolog()
     model = fastai_tabular_model(iris_data)
     if fit_variant == "fit_one_cycle":
         model.fit_one_cycle(1)
@@ -82,14 +82,14 @@ def test_fastai_autolog_ends_auto_created_run(iris_data, fit_variant):
         model.fine_tune(1, freeze_epochs=1)
     else:
         model.fit(1)
-    assert mlflow.active_run() is None
+    assert mlflowacim.active_run() is None
 
 
 @pytest.mark.parametrize("fit_variant", ["fit", "fit_one_cycle"])
 def test_fastai_autolog_persists_manually_created_run(iris_data, fit_variant):
-    mlflow.fastai.autolog()
+    mlflowacim.fastai.autolog()
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = fastai_tabular_model(iris_data)
 
         if fit_variant == "fit_one_cycle":
@@ -99,14 +99,14 @@ def test_fastai_autolog_persists_manually_created_run(iris_data, fit_variant):
         else:
             model.fit(NUM_EPOCHS)
 
-        assert mlflow.active_run()
-        assert mlflow.active_run().info.run_id == run.info.run_id
+        assert mlflowacim.active_run()
+        assert mlflowacim.active_run().info.run_id == run.info.run_id
 
 
 @pytest.fixture
 def fastai_random_tabular_data_run(iris_data, fit_variant):
     # pylint: disable=unused-argument
-    mlflow.fastai.autolog()
+    mlflowacim.fastai.autolog()
 
     model = fastai_tabular_model(iris_data)
 
@@ -180,7 +180,7 @@ def test_fastai_autolog_logs_expected_data(fastai_random_tabular_data_run, fit_v
 @pytest.mark.parametrize("fit_variant", ["fit", "fit_one_cycle", "fine_tune"])
 def test_fastai_autolog_opt_func_expected_data(iris_data, fit_variant):
     # pylint: disable=unused-argument
-    mlflow.fastai.autolog()
+    mlflowacim.fastai.autolog()
     model = fastai_tabular_model(iris_data, opt_func=partial(OptimWrapper, opt=optim.Adam))
 
     if fit_variant == "fit_one_cycle":
@@ -204,7 +204,7 @@ def test_fastai_autolog_opt_func_expected_data(iris_data, fit_variant):
 
 @pytest.mark.parametrize("log_models", [True, False])
 def test_fastai_autolog_log_models_configuration(log_models, iris_data):
-    mlflow.fastai.autolog(log_models=log_models)
+    mlflowacim.fastai.autolog(log_models=log_models)
     model = fastai_tabular_model(iris_data)
     model.fit(NUM_EPOCHS)
 
@@ -239,14 +239,14 @@ def test_fastai_autolog_model_can_load_from_artifact(fastai_random_tabular_data_
     artifacts = client.list_artifacts(run_id)
     artifacts = (x.path for x in artifacts)
     assert "model" in artifacts
-    model = mlflow.fastai.load_model("runs:/" + run_id + "/model")
-    model_wrapper = mlflow.fastai._FastaiModelWrapper(model)
+    model = mlflowacim.fastai.load_model("runs:/" + run_id + "/model")
+    model_wrapper = mlflowacim.fastai._FastaiModelWrapper(model)
     model_wrapper.predict(iris_dataframe())
 
 
 def get_fastai_random_data_run_with_callback(iris_data, fit_variant, callback, patience, tmpdir):
     # pylint: disable=unused-argument
-    mlflow.fastai.autolog()
+    mlflowacim.fastai.autolog()
 
     model = fastai_tabular_model(iris_data, model_dir=tmpdir)
 
@@ -292,9 +292,9 @@ def test_fastai_autolog_save_and_early_stop_logs(fastai_random_data_run_with_cal
         run_id=run.info.run_id, artifact_path="model"
     )
 
-    model_wrapper = mlflow.fastai._FastaiModelWrapper(model)
-    reloaded_model = mlflow.fastai.load_model(model_uri=model_uri)
-    reloaded_model_wrapper = mlflow.fastai._FastaiModelWrapper(reloaded_model)
+    model_wrapper = mlflowacim.fastai._FastaiModelWrapper(model)
+    reloaded_model = mlflowacim.fastai.load_model(model_uri=model_uri)
+    reloaded_model_wrapper = mlflowacim.fastai._FastaiModelWrapper(reloaded_model)
 
     model_result = model_wrapper.predict(iris_dataframe())
     reloaded_result = reloaded_model_wrapper.predict(iris_dataframe())
@@ -413,8 +413,8 @@ def test_callback_is_picklable():
 
 def test_autolog_registering_model(iris_data):
     registered_model_name = "test_autolog_registered_model"
-    mlflow.fastai.autolog(registered_model_name=registered_model_name)
-    with mlflow.start_run():
+    mlflowacim.fastai.autolog(registered_model_name=registered_model_name)
+    with mlflowacim.start_run():
         model = fastai_tabular_model(iris_data)
         model.fit(NUM_EPOCHS)
 

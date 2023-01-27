@@ -9,13 +9,13 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from mlflow.store.model_registry.file_store import FileStore
-from mlflow.store.model_registry.sqlalchemy_store import SqlAlchemyStore
-from mlflow.entities.model_registry import RegisteredModel
-from mlflow.exceptions import MlflowException
-from mlflow import MlflowClient
-from mlflow.utils.file_utils import path_to_local_file_uri
-from mlflow.utils.time_utils import get_current_time_millis
+from mlflowacim.store.model_registry.file_store import FileStore
+from mlflowacim.store.model_registry.sqlalchemy_store import SqlAlchemyStore
+from mlflowacim.entities.model_registry import RegisteredModel
+from mlflowacim.exceptions import MlflowException
+from mlflowacim import MlflowClient
+from mlflowacim.utils.file_utils import path_to_local_file_uri
+from mlflowacim.utils.time_utils import get_current_time_millis
 from tests.tracking.integration_test_utils import _await_server_down_or_die, _init_server
 
 

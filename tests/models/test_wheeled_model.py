@@ -5,20 +5,20 @@ import pytest
 from sklearn import datasets
 import sklearn.neighbors as knn
 import yaml
-import mlflow
+import mlflowacim
 import random
 import os
 import re
 import pandas as pd
 import numpy as np
-from mlflow.models.wheeled_model import WheeledModel, _WHEELS_FOLDER_NAME
-from mlflow.pyfunc.model import Model, MLMODEL_FILE_NAME
-from mlflow.exceptions import MlflowException
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
-from mlflow.utils.environment import _is_pip_deps, _mlflow_conda_env
-import mlflow.pyfunc.scoring_server as pyfunc_scoring_server
-from mlflow.store.artifact.utils.models import _improper_model_uri_msg
-from mlflow.utils.environment import (
+from mlflowacim.models.wheeled_model import WheeledModel, _WHEELS_FOLDER_NAME
+from mlflowacim.pyfunc.model import Model, MLMODEL_FILE_NAME
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.utils.environment import _is_pip_deps, _mlflow_conda_env
+import mlflowacim.pyfunc.scoring_server as pyfunc_scoring_server
+from mlflowacim.store.artifact.utils.models import _improper_model_uri_msg
+from mlflowacim.utils.environment import (
     _CONDA_ENV_FILE_NAME,
     _REQUIREMENTS_FILE_NAME,
 )
@@ -147,8 +147,8 @@ def test_model_log_load(tmp_path, sklearn_knn_model):
     artifact_path = "model"
 
     # Log a model
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
@@ -157,10 +157,10 @@ def test_model_log_load(tmp_path, sklearn_knn_model):
         original_model_config = Model.load(os.path.join(model_path, MLMODEL_FILE_NAME)).__dict__
 
     # Re-log with wheels
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         WheeledModel.log_model(model_uri=model_uri)
         wheeled_model_path = _download_artifact_from_uri(wheeled_model_uri)
-        wheeled_model_run_id = mlflow.tracking.fluent._get_or_start_run().info.run_id
+        wheeled_model_run_id = mlflowacim.tracking.fluent._get_or_start_run().info.run_id
         wheeled_model_config = Model.load(
             os.path.join(wheeled_model_path, MLMODEL_FILE_NAME)
         ).__dict__
@@ -183,8 +183,8 @@ def test_model_save_load(tmp_path, sklearn_knn_model):
 
     os.mkdir(model_download_path)
     # Log a model
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
@@ -193,7 +193,7 @@ def test_model_save_load(tmp_path, sklearn_knn_model):
         original_model_config = Model.load(os.path.join(model_path, MLMODEL_FILE_NAME)).__dict__
 
     # Save with wheels
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         wheeled_model = WheeledModel(model_uri=model_uri)
         wheeled_model_data = wheeled_model.save_model(path=wheeled_model_path)
         wheeled_model_config = Model.load(os.path.join(wheeled_model_path, MLMODEL_FILE_NAME))
@@ -214,15 +214,15 @@ def test_logging_and_saving_wheeled_model_throws(tmp_path, sklearn_knn_model):
     artifact_path = "model"
 
     # Log a model
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(
             sk_model=sklearn_knn_model.model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
         )
 
     # Re-log with wheels
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         WheeledModel.log_model(
             model_uri=model_uri,
         )
@@ -231,7 +231,7 @@ def test_logging_and_saving_wheeled_model_throws(tmp_path, sklearn_knn_model):
 
     # Log wheeled model
     with pytest.raises(MlflowException, match=re.escape(match)):
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             WheeledModel.log_model(
                 model_uri=wheeled_model_uri,
             )
@@ -239,7 +239,7 @@ def test_logging_and_saving_wheeled_model_throws(tmp_path, sklearn_knn_model):
     # Saved a wheeled model
     saved_model_path = os.path.join(tmp_path, "test")
     with pytest.raises(MlflowException, match=re.escape(match)):
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             WheeledModel(wheeled_model_uri).save_model(saved_model_path)
 
 
@@ -248,14 +248,14 @@ def test_log_model_with_non_model_uri():
 
     # Log with wheels
     with pytest.raises(MlflowException, match=_improper_model_uri_msg(model_uri)):
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             WheeledModel.log_model(
                 model_uri=model_uri,
             )
 
     # Save with wheels
     with pytest.raises(MlflowException, match=_improper_model_uri_msg(model_uri)):
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             WheeledModel(model_uri)
 
 
@@ -323,15 +323,15 @@ def test_serving_wheeled_model(sklearn_knn_model):
     (model, inference_data) = sklearn_knn_model
 
     # Log a model
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(
             sk_model=model,
             artifact_path=artifact_path,
             registered_model_name=model_name,
         )
 
     # Re-log with wheels
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         WheeledModel.log_model(model_uri=model_uri)
 
     data = json.dumps({"dataframe_split": pd.DataFrame(inference_data).to_dict(orient="split")})

@@ -1,4 +1,4 @@
-import mlflow
+import mlflowacim
 import json
 import pandas as pd
 import numpy as np
@@ -18,7 +18,7 @@ def extract_params(pr_model):
 
 sales_data = pd.read_csv(SOURCE_DATA)
 
-with mlflow.start_run():
+with mlflowacim.start_run():
 
     model = Prophet().fit(sales_data)
 
@@ -39,14 +39,14 @@ with mlflow.start_run():
     print(f"Logged Metrics: \n{json.dumps(metrics, indent=2)}")
     print(f"Logged Params: \n{json.dumps(params, indent=2)}")
 
-    mlflow.prophet.log_model(model, artifact_path=ARTIFACT_PATH)
-    mlflow.log_params(params)
-    mlflow.log_metrics(metrics)
-    model_uri = mlflow.get_artifact_uri(ARTIFACT_PATH)
+    mlflowacim.prophet.log_model(model, artifact_path=ARTIFACT_PATH)
+    mlflowacim.log_params(params)
+    mlflowacim.log_metrics(metrics)
+    model_uri = mlflowacim.get_artifact_uri(ARTIFACT_PATH)
     print(f"Model artifact logged to: {model_uri}")
 
 
-loaded_model = mlflow.prophet.load_model(model_uri)
+loaded_model = mlflowacim.prophet.load_model(model_uri)
 
 forecast = loaded_model.predict(loaded_model.make_future_dataframe(60))
 

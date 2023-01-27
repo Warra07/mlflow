@@ -1,8 +1,8 @@
 import numpy as np
 import argparse
-import mlflow
+import mlflowacim
 import statsmodels.api as sm
-import mlflow.statsmodels
+import mlflowacim.statsmodels
 from sklearn.metrics import mean_squared_error
 
 
@@ -35,9 +35,9 @@ def main():
     y = np.dot(X, beta) + e
 
     # enable auto logging
-    mlflow.statsmodels.autolog()
+    mlflowacim.statsmodels.autolog()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
 
         ols = sm.OLS(y, X)
         model = ols.fit(method=args.inverse_method)
@@ -47,7 +47,7 @@ def main():
         mse = mean_squared_error(y, y_pred)
 
         # log metrics
-        mlflow.log_metrics({"mse": mse})
+        mlflowacim.log_metrics({"mse": mse})
 
 
 if __name__ == "__main__":

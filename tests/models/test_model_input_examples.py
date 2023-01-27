@@ -5,15 +5,15 @@ import pandas as pd
 import pytest
 from scipy.sparse import csr_matrix, csc_matrix
 
-from mlflow.models.signature import infer_signature
-from mlflow.models.utils import (
+from mlflowacim.models.signature import infer_signature
+from mlflowacim.models.utils import (
     _Example,
     _read_tensor_input_from_json,
     _read_sparse_matrix_from_json,
 )
-from mlflow.types.utils import TensorsNotSupportedException
-from mlflow.utils.file_utils import TempDir
-from mlflow.utils.proto_json_utils import dataframe_from_raw_json
+from mlflowacim.types.utils import TensorsNotSupportedException
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.utils.proto_json_utils import dataframe_from_raw_json
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 import json
 
-from mlflow.exceptions import MlflowException, RestException
-from mlflow.protos.databricks_pb2 import (
+from mlflowacim.exceptions import MlflowException, RestException
+from mlflowacim.protos.databricks_pb2 import (
     INVALID_PARAMETER_VALUE,
     INVALID_STATE,
     ENDPOINT_NOT_FOUND,

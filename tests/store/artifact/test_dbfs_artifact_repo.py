@@ -1,13 +1,13 @@
 import pytest
 from unittest import mock
 
-from mlflow.exceptions import MlflowException
-from mlflow.store.artifact.dbfs_artifact_repo import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.artifact.dbfs_artifact_repo import (
     dbfs_artifact_repo_factory,
     DbfsRestArtifactRepository,
 )
-from mlflow.store.artifact.local_artifact_repo import LocalArtifactRepository
-from mlflow.store.artifact.databricks_artifact_repo import DatabricksArtifactRepository
+from mlflowacim.store.artifact.local_artifact_repo import LocalArtifactRepository
+from mlflowacim.store.artifact.databricks_artifact_repo import DatabricksArtifactRepository
 
 
 @pytest.mark.parametrize(

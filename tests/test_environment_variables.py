@@ -1,4 +1,4 @@
-from mlflow.environment_variables import _BooleanEnvironmentVariable
+from mlflowacim.environment_variables import _BooleanEnvironmentVariable
 import pytest
 
 

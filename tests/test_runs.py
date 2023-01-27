@@ -7,14 +7,14 @@ import shutil
 import tempfile
 import textwrap
 
-from mlflow import experiments
-from mlflow.runs import list_run
+from mlflowacim import experiments
+from mlflowacim.runs import list_run
 
-import mlflow
+import mlflowacim
 
 
 def test_list_run():
-    with mlflow.start_run(run_name="apple"):
+    with mlflowacim.start_run(run_name="apple"):
         pass
     result = CliRunner().invoke(list_run, ["--experiment-id", "0"])
     assert "apple" in result.output

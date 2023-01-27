@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 
-import mlflow
-import mlflow.sklearn
+import mlflowacim
+import mlflowacim.sklearn
 
 if __name__ == "__main__":
     X = np.array([-2, -1, 0, 1, 2, 1]).reshape(-1, 1)
@@ -11,6 +11,6 @@ if __name__ == "__main__":
     lr.fit(X, y)
     score = lr.score(X, y)
     print("Score: %s" % score)
-    mlflow.log_metric("score", score)
-    mlflow.sklearn.log_model(lr, "model")
-    print("Model saved in run %s" % mlflow.active_run().info.run_uuid)
+    mlflowacim.log_metric("score", score)
+    mlflowacim.sklearn.log_model(lr, "model")
+    print("Model saved in run %s" % mlflowacim.active_run().info.run_uuid)

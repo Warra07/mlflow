@@ -5,17 +5,17 @@ import pytest
 from unittest import mock
 
 import os
-import mlflow
-from mlflow.entities import ViewType
-from mlflow.entities.model_registry import (
+import mlflowacim
+from mlflowacim.entities import ViewType
+from mlflowacim.entities.model_registry import (
     RegisteredModel,
     ModelVersion,
     RegisteredModelTag,
     ModelVersionTag,
 )
-from mlflow.exceptions import MlflowException
-from mlflow.protos.databricks_pb2 import INTERNAL_ERROR, INVALID_PARAMETER_VALUE, ErrorCode
-from mlflow.server.handlers import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.protos.databricks_pb2 import INTERNAL_ERROR, INVALID_PARAMETER_VALUE, ErrorCode
+from mlflowacim.server.handlers import (
     get_endpoints,
     _create_experiment,
     _get_request_message,
@@ -41,10 +41,10 @@ from mlflow.server.handlers import (
     _set_model_version_tag,
     _delete_model_version_tag,
 )
-from mlflow.server import BACKEND_STORE_URI_ENV_VAR, app
-from mlflow.store.entities.paged_list import PagedList
-from mlflow.protos.service_pb2 import CreateExperiment, SearchRuns
-from mlflow.protos.model_registry_pb2 import (
+from mlflowacim.server import BACKEND_STORE_URI_ENV_VAR, app
+from mlflowacim.store.entities.paged_list import PagedList
+from mlflowacim.protos.service_pb2 import CreateExperiment, SearchRuns
+from mlflowacim.protos.model_registry_pb2 import (
     CreateRegisteredModel,
     UpdateRegisteredModel,
     DeleteRegisteredModel,
@@ -64,8 +64,8 @@ from mlflow.protos.model_registry_pb2 import (
     SetModelVersionTag,
     DeleteModelVersionTag,
 )
-from mlflow.utils.proto_json_utils import message_to_json
-from mlflow.utils.validation import MAX_BATCH_LOG_REQUEST_SIZE
+from mlflowacim.utils.proto_json_utils import message_to_json
+from mlflowacim.utils.validation import MAX_BATCH_LOG_REQUEST_SIZE
 
 
 @pytest.fixture()
@@ -107,7 +107,7 @@ def test_version():
     with app.test_client() as c:
         response = c.get("/version")
         assert response.status_code == 200
-        assert response.get_data().decode() == mlflow.__version__
+        assert response.get_data().decode() == mlflowacim.__version__
 
 
 def test_get_endpoints():
@@ -225,11 +225,11 @@ def test_mlflow_server_with_installed_plugin(tmpdir):
         BACKEND_STORE_URI_ENV_VAR: "file-plugin:%s" % tmpdir.strpath,
     }
     with mock.patch.dict(os.environ, env):
-        mlflow.server.handlers._tracking_store = None
+        mlflowacim.server.handlers._tracking_store = None
         try:
-            plugin_file_store = mlflow.server.handlers._get_tracking_store()
+            plugin_file_store = mlflowacim.server.handlers._get_tracking_store()
         finally:
-            mlflow.server.handlers._tracking_store = None
+            mlflowacim.server.handlers._tracking_store = None
         assert isinstance(plugin_file_store, PluginFileStore)
         assert plugin_file_store.is_plugin
 

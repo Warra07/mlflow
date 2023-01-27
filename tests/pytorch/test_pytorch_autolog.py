@@ -11,19 +11,19 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from iris import IrisClassification, IrisClassificationWithoutValidation
 from iris_data_module import IrisDataModule, IrisDataModuleWithoutValidation
 
-import mlflow
-from mlflow import MlflowClient
-import mlflow.pytorch
-from mlflow.exceptions import MlflowException
-from mlflow.utils.file_utils import TempDir
-from mlflow.pytorch._pytorch_autolog import _get_optimizer_name
+import mlflowacim
+from mlflowacim import MlflowClient
+import mlflowacim.pytorch
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.pytorch._pytorch_autolog import _get_optimizer_name
 
 NUM_EPOCHS = 20
 
 
 @pytest.fixture
 def pytorch_model():
-    mlflow.pytorch.autolog()
+    mlflowacim.pytorch.autolog()
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
@@ -36,7 +36,7 @@ def pytorch_model():
 
 @pytest.fixture
 def pytorch_model_without_validation():
-    mlflow.pytorch.autolog()
+    mlflowacim.pytorch.autolog()
     model = IrisClassificationWithoutValidation()
     dm = IrisDataModuleWithoutValidation()
     dm.setup(stage="fit")
@@ -50,7 +50,7 @@ def pytorch_model_without_validation():
 @pytest.fixture(params=[(1, 1), (1, 10), (2, 1)])
 def pytorch_model_with_steps_logged(request):
     log_every_n_epoch, log_every_n_step = request.param
-    mlflow.pytorch.autolog(log_every_n_epoch=log_every_n_epoch, log_every_n_step=log_every_n_step)
+    mlflowacim.pytorch.autolog(log_every_n_epoch=log_every_n_epoch, log_every_n_step=log_every_n_step)
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
@@ -63,7 +63,7 @@ def pytorch_model_with_steps_logged(request):
 
 @pytest.mark.parametrize("log_models", [True, False])
 def test_pytorch_autolog_log_models_configuration(log_models):
-    mlflow.pytorch.autolog(log_models=log_models)
+    mlflowacim.pytorch.autolog(log_models=log_models)
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
@@ -164,7 +164,7 @@ def test_pytorch_autolog_logging_forked_metrics_on_step_and_epoch(
     reason="Logging step metrics is supported since PyTorch-Lightning 1.1.0",
 )
 def test_pytorch_autolog_raises_error_when_step_logging_unsupported():
-    mlflow.pytorch.autolog(log_every_n_step=1)
+    mlflowacim.pytorch.autolog(log_every_n_step=1)
     model = IrisClassification()
     dm = IrisDataModule()
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS)
@@ -176,25 +176,25 @@ def test_pytorch_autolog_raises_error_when_step_logging_unsupported():
 
 # pylint: disable=unused-argument
 def test_pytorch_autolog_persists_manually_created_run():
-    with mlflow.start_run() as manual_run:
-        mlflow.pytorch.autolog()
+    with mlflowacim.start_run() as manual_run:
+        mlflowacim.pytorch.autolog()
         model = IrisClassification()
         dm = IrisDataModule()
         dm.setup(stage="fit")
         trainer = pl.Trainer(max_epochs=NUM_EPOCHS)
         trainer.fit(model, dm)
         trainer.test(datamodule=dm)
-        assert mlflow.active_run() is not None
-        assert mlflow.active_run().info.run_id == manual_run.info.run_id
+        assert mlflowacim.active_run() is not None
+        assert mlflowacim.active_run().info.run_id == manual_run.info.run_id
 
 
 def test_pytorch_autolog_ends_auto_created_run(pytorch_model):
-    assert mlflow.active_run() is None
+    assert mlflowacim.active_run() is None
 
 
 @pytest.fixture
 def pytorch_model_with_callback(patience):
-    mlflow.pytorch.autolog()
+    mlflowacim.pytorch.autolog()
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
@@ -245,7 +245,7 @@ def test_pytorch_autolog_model_can_load_from_artifact(pytorch_model_with_callbac
     artifacts = client.list_artifacts(run_id)
     artifacts = (x.path for x in artifacts)
     assert "model" in artifacts
-    model = mlflow.pytorch.load_model("runs:/" + run_id + "/model")
+    model = mlflowacim.pytorch.load_model("runs:/" + run_id + "/model")
     result = model(torch.Tensor([1.5, 2, 2.5, 3.5]).unsqueeze(0))
     assert result is not None
 
@@ -253,7 +253,7 @@ def test_pytorch_autolog_model_can_load_from_artifact(pytorch_model_with_callbac
 @pytest.mark.parametrize("log_models", [True, False])
 @pytest.mark.parametrize("patience", [3])
 def test_pytorch_with_early_stopping_autolog_log_models_configuration_with(log_models, patience):
-    mlflow.pytorch.autolog(log_models=log_models)
+    mlflowacim.pytorch.autolog(log_models=log_models)
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
@@ -307,12 +307,12 @@ def test_pytorch_autolog_non_early_stop_callback_does_not_log(pytorch_model):
 
 @pytest.fixture
 def pytorch_model_tests():
-    mlflow.pytorch.autolog()
+    mlflowacim.pytorch.autolog()
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS)
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         trainer.fit(model, datamodule=dm)
         trainer.test(datamodule=dm)
     client = MlflowClient()
@@ -344,7 +344,7 @@ def test_get_optimizer_name_with_lightning_optimizer():
 
 
 def test_pytorch_autologging_supports_data_parallel_execution():
-    mlflow.pytorch.autolog()
+    mlflowacim.pytorch.autolog()
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
@@ -361,7 +361,7 @@ def test_pytorch_autologging_supports_data_parallel_execution():
         },
     )
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         trainer.fit(model, datamodule=dm)
         trainer.test(datamodule=dm)
 
@@ -391,13 +391,13 @@ def test_pytorch_autologging_supports_data_parallel_execution():
 
 def test_autolog_registering_model():
     registered_model_name = "test_autolog_registered_model"
-    mlflow.pytorch.autolog(registered_model_name=registered_model_name)
+    mlflowacim.pytorch.autolog(registered_model_name=registered_model_name)
     model = IrisClassification()
     dm = IrisDataModule()
     dm.setup(stage="fit")
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS)
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         trainer.fit(model, dm)
 
         registered_model = MlflowClient().get_registered_model(registered_model_name)

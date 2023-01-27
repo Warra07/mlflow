@@ -7,9 +7,9 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
 
-import mlflow
-from mlflow.utils.logging_utils import eprint
-from mlflow.utils.autologging_utils import autologging_integration, safe_patch
+import mlflowacim
+from mlflowacim.utils.logging_utils import eprint
+from mlflowacim.utils.autologging_utils import autologging_integration, safe_patch
 
 import pytest
 import numpy as np
@@ -19,7 +19,7 @@ from tests.autologging.fixtures import reset_stderr  # pylint: disable=unused-im
 
 @pytest.fixture
 def logger():
-    return logging.getLogger(mlflow.__name__)
+    return logging.getLogger(mlflowacim.__name__)
 
 
 @pytest.fixture
@@ -39,14 +39,14 @@ def autolog_function(patch_destination, logger):
         eprint("patch1")
         logger.info("patch2")
         warnings.warn_explicit(
-            "preamble MLflow warning", category=Warning, filename=mlflow.__file__, lineno=5
+            "preamble MLflow warning", category=Warning, filename=mlflowacim.__file__, lineno=5
         )
         warnings.warn_explicit(
             "preamble numpy warning", category=UserWarning, filename=np.__file__, lineno=7
         )
         original()
         warnings.warn_explicit(
-            "postamble MLflow warning", category=Warning, filename=mlflow.__file__, lineno=10
+            "postamble MLflow warning", category=Warning, filename=mlflowacim.__file__, lineno=10
         )
         warnings.warn_explicit(
             "postamble numpy warning", category=Warning, filename=np.__file__, lineno=14
@@ -61,7 +61,7 @@ def autolog_function(patch_destination, logger):
         logger.warning("enablement3")
         logger.critical("enablement4")
         warnings.warn_explicit(
-            "enablement warning MLflow", category=Warning, filename=mlflow.__file__, lineno=15
+            "enablement warning MLflow", category=Warning, filename=mlflowacim.__file__, lineno=15
         )
         warnings.warn_explicit(
             "enablement warning numpy", category=Warning, filename=np.__file__, lineno=30
@@ -101,7 +101,7 @@ def test_autologging_warnings_are_redirected_as_expected(
         'MLflow autologging encountered a warning: "%s:5: Warning: preamble MLflow warning"',
         'MLflow autologging encountered a warning: "%s:10: Warning: postamble MLflow warning"',
     ]:
-        assert item % mlflow.__file__ in stream.getvalue()
+        assert item % mlflowacim.__file__ in stream.getvalue()
     for item in [
         'MLflow autologging encountered a warning: "%s:7: UserWarning: preamble numpy warning"',
         'MLflow autologging encountered a warning: "%s:14: Warning: postamble numpy warning"',
@@ -198,7 +198,7 @@ def test_silent_mode_restores_warning_and_event_logging_behavior_correctly_if_er
     og_showwarning = warnings.showwarning
     stream = StringIO()
     sys.stderr = stream
-    logger = logging.getLogger(mlflow.__name__)
+    logger = logging.getLogger(mlflowacim.__name__)
 
     def original_impl():
         raise Exception("original error")
@@ -256,7 +256,7 @@ def test_silent_mode_operates_independently_across_integrations(patch_destinatio
     @autologging_integration("integration2")
     def autolog2(disable=False, silent=False):
         warnings.warn_explicit(
-            "warn_autolog2", category=Warning, filename=mlflow.__file__, lineno=5
+            "warn_autolog2", category=Warning, filename=mlflowacim.__file__, lineno=5
         )
         logger.info("event_autolog2")
         safe_patch("integration2", patch_destination, "fn2", patch_impl2)

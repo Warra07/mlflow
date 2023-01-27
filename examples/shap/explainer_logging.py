@@ -1,4 +1,4 @@
-import mlflow
+import mlflowacim
 import shap
 import sklearn
 from sklearn.datasets import load_diabetes
@@ -14,11 +14,11 @@ model.fit(X, y)
 explainer_original = shap.Explainer(model.predict, X, algorithm="permutation")
 
 # log an explainer
-with mlflow.start_run() as run:
-    mlflow.shap.log_explainer(explainer_original, artifact_path="shap_explainer")
+with mlflowacim.start_run() as run:
+    mlflowacim.shap.log_explainer(explainer_original, artifact_path="shap_explainer")
 
     # load back the explainer
-    explainer_new = mlflow.shap.load_explainer("runs:/%s/shap_explainer" % run.info.run_id)
+    explainer_new = mlflowacim.shap.load_explainer("runs:/%s/shap_explainer" % run.info.run_id)
 
     # run explainer on data
     shap_values = explainer_new(X[:5])

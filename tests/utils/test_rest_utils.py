@@ -5,10 +5,10 @@ import numpy
 import pytest
 import requests
 
-from mlflow.environment_variables import MLFLOW_HTTP_REQUEST_TIMEOUT
-from mlflow.exceptions import MlflowException, RestException
-from mlflow.pyfunc.scoring_server import NumpyEncoder
-from mlflow.utils.rest_utils import (
+from mlflowacim.environment_variables import MLFLOW_HTTP_REQUEST_TIMEOUT
+from mlflowacim.exceptions import MlflowException, RestException
+from mlflowacim.pyfunc.scoring_server import NumpyEncoder
+from mlflowacim.utils.rest_utils import (
     http_request,
     http_request_safe,
     MlflowHostCreds,
@@ -16,12 +16,12 @@ from mlflow.utils.rest_utils import (
     call_endpoints,
     _can_parse_as_json_object,
 )
-from mlflow.tracking.request_header.default_request_header_provider import (
+from mlflowacim.tracking.request_header.default_request_header_provider import (
     DefaultRequestHeaderProvider,
     _USER_AGENT,
 )
-from mlflow.protos.service_pb2 import GetRun
-from mlflow.protos.databricks_pb2 import ENDPOINT_NOT_FOUND, ErrorCode
+from mlflowacim.protos.service_pb2 import GetRun
+from mlflowacim.protos.databricks_pb2 import ENDPOINT_NOT_FOUND, ErrorCode
 from tests import helper_functions
 
 

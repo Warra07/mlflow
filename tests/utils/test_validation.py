@@ -1,9 +1,9 @@
 import copy
 import pytest
-from mlflow.exceptions import MlflowException
-from mlflow.entities import Metric, Param, RunTag
-from mlflow.protos.databricks_pb2 import ErrorCode, INVALID_PARAMETER_VALUE
-from mlflow.utils.validation import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.entities import Metric, Param, RunTag
+from mlflowacim.protos.databricks_pb2 import ErrorCode, INVALID_PARAMETER_VALUE
+from mlflowacim.utils.validation import (
     path_not_unique,
     _is_numeric,
     _validate_metric_name,

@@ -14,9 +14,9 @@ import click
 
 import pyspark
 
-import mlflow
-import mlflow.pyfunc
-from mlflow.utils import cli_args
+import mlflowacim
+import mlflowacim.pyfunc
+from mlflowacim.utils import cli_args
 
 from pyspark.sql.types import *
 from pyspark.sql.types import Row
@@ -49,7 +49,7 @@ def score_model(spark, data_path, model_uri):
     else:
         filenames = [data_path]
 
-    image_classifier_udf = mlflow.pyfunc.spark_udf(
+    image_classifier_udf = mlflowacim.pyfunc.spark_udf(
         spark=spark, model_uri=model_uri, result_type=ArrayType(StringType())
     )
 
@@ -61,7 +61,7 @@ def score_model(spark, data_path, model_uri):
         .toPandas()
     )
     # load the pyfunc model to get our domain
-    pyfunc_model = mlflow.pyfunc.load_model(model_uri=model_uri)
+    pyfunc_model = mlflowacim.pyfunc.load_model(model_uri=model_uri)
     preds = pd.DataFrame(raw_preds["filename"], index=raw_preds.index)
     preds[pyfunc_model._column_names] = pd.DataFrame(
         raw_preds["prediction"].values.tolist(),

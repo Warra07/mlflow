@@ -1,5 +1,5 @@
-import mlflow
-from mlflow.pyfunc import PythonModel, log_model, load_model
+import mlflowacim
+from mlflowacim.pyfunc import PythonModel, log_model, load_model
 
 
 def test_unwrap_python_model_from_pyfunc_class():
@@ -14,7 +14,7 @@ def test_unwrap_python_model_from_pyfunc_class():
         def upper_param_1(self):
             return self.param_1.upper()
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         model = MyModel("this is test message", 2)
         model_uri = log_model(python_model=model, artifact_path="mlruns").model_uri
         loaded_model = load_model(model_uri).unwrap_python_model()

@@ -10,8 +10,8 @@ import sqlalchemy
 from sqlalchemy.schema import MetaData, CreateTable
 from sqlalchemy import create_engine
 
-import mlflow
-from mlflow.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
+import mlflowacim
+from mlflowacim.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
 
 
 pytestmark = pytest.mark.notrackingurimock
@@ -117,7 +117,7 @@ def test_schema_equal(a, b, expected):
 
 
 def initialize_database():
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         pass
 
 
@@ -166,7 +166,7 @@ def main():
     tracking_uri = get_tracking_uri()
     assert tracking_uri, f"Environment variable {_TRACKING_URI_ENV_VAR} must be set"
     get_database_dialect(tracking_uri)  # Ensure `tracking_uri` is a database URI
-    mlflow.set_tracking_uri(tracking_uri)
+    mlflowacim.set_tracking_uri(tracking_uri)
     initialize_database()
     schema_path = get_schema_path(tracking_uri)
     existing_schema = schema_path.read_text()

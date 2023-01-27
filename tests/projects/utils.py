@@ -5,10 +5,10 @@ import os
 import pytest
 import logging
 
-from mlflow.utils.file_utils import TempDir, _copy_project
+from mlflowacim.utils.file_utils import TempDir, _copy_project
 
-from mlflow.entities import RunStatus
-from mlflow.projects import _project_spec
+from mlflowacim.entities import RunStatus
+from mlflowacim.projects import _project_spec
 
 
 TEST_DIR = "tests"

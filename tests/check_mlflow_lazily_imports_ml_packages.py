@@ -4,7 +4,7 @@ Tests that `import mlflow` and `mlflow.autolog()` do not import ML packages.
 
 import sys
 import importlib
-import mlflow  # pylint: disable=unused-import
+import mlflowacim  # pylint: disable=unused-import
 
 
 def main():
@@ -33,7 +33,7 @@ def main():
     imported = ml_packages.intersection(set(sys.modules))
     assert imported == set(), f"mlflow imports {imported} when it's imported but it should not"
 
-    mlflow.autolog()
+    mlflowacim.autolog()
     imported = ml_packages.intersection(set(sys.modules))
     assert imported == set(), f"`mlflow.autolog` imports {imported} but it should not"
 

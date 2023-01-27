@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd
 from google.protobuf.text_format import Parse as ParseTextIntoProto
 
-from mlflow.entities import Experiment, Metric
-from mlflow.entities.model_registry import RegisteredModel, ModelVersion
-from mlflow.exceptions import MlflowException
-from mlflow.protos.service_pb2 import Experiment as ProtoExperiment
-from mlflow.protos.service_pb2 import Metric as ProtoMetric
-from mlflow.protos.model_registry_pb2 import RegisteredModel as ProtoRegisteredModel
-from mlflow.types import Schema, TensorSpec, ColSpec
-from mlflow.utils.proto_json_utils import (
+from mlflowacim.entities import Experiment, Metric
+from mlflowacim.entities.model_registry import RegisteredModel, ModelVersion
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.protos.service_pb2 import Experiment as ProtoExperiment
+from mlflowacim.protos.service_pb2 import Metric as ProtoMetric
+from mlflowacim.protos.model_registry_pb2 import RegisteredModel as ProtoRegisteredModel
+from mlflowacim.types import Schema, TensorSpec, ColSpec
+from mlflowacim.utils.proto_json_utils import (
     message_to_json,
     parse_dict,
     _stringify_all_experiment_ids,

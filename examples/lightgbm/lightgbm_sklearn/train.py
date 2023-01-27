@@ -5,8 +5,8 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 
-import mlflow
-import mlflow.lightgbm
+import mlflowacim
+import mlflowacim.lightgbm
 
 from utils import fetch_logged_data
 
@@ -18,13 +18,13 @@ def main():
 
     # enable auto logging
     # this includes lightgbm.sklearn estimators
-    mlflow.lightgbm.autolog()
+    mlflowacim.lightgbm.autolog()
 
     regressor = lgb.LGBMClassifier(n_estimators=20, reg_lambda=1.0)
     regressor.fit(X_train, y_train, eval_set=[(X_test, y_test)])
     y_pred = regressor.predict(X_test)
     f1 = f1_score(y_test, y_pred, average="micro")
-    run_id = mlflow.last_active_run().info.run_id
+    run_id = mlflowacim.last_active_run().info.run_id
     print("Logged data and model in run {}".format(run_id))
 
     # show logged data

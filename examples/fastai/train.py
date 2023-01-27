@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.datasets import load_iris
 from torch import nn
 
-import mlflow
+import mlflowacim
 
 
 def parse_args():
@@ -60,13 +60,13 @@ def main():
     args = parse_args()
 
     # Enable auto logging
-    mlflow.fastai.autolog()
+    mlflowacim.fastai.autolog()
 
     # Create Learner model
     learn = Learner(get_data_loaders(), Model(), loss_func=nn.MSELoss(), splitter=splitter)
 
     # Start MLflow session
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         # Train and fit with default or supplied command line arguments
         learn.fit_one_cycle(args.epochs, args.lr)
 

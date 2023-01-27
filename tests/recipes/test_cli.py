@@ -1,10 +1,10 @@
 import pytest
 
-import mlflow.recipes.cli as recipes_cli
+import mlflowacim.recipes.cli as recipes_cli
 
 from click.testing import CliRunner
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.utils import _RECIPE_PROFILE_ENV_VAR
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.utils import _RECIPE_PROFILE_ENV_VAR
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (

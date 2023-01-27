@@ -2,9 +2,9 @@ import os
 import tempfile
 from pprint import pprint
 
-import mlflow
-from mlflow.tracking import MlflowClient
-from mlflow.artifacts import download_artifacts
+import mlflowacim
+from mlflowacim.tracking import MlflowClient
+from mlflowacim.artifacts import download_artifacts
 
 
 def save_text(path, text):
@@ -14,15 +14,15 @@ def save_text(path, text):
 
 def log_artifacts():
     # Upload artifacts
-    with mlflow.start_run() as run, tempfile.TemporaryDirectory() as tmp_dir:
+    with mlflowacim.start_run() as run, tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path_a = os.path.join(tmp_dir, "a.txt")
         save_text(tmp_path_a, "0")
         tmp_sub_dir = os.path.join(tmp_dir, "dir")
         os.makedirs(tmp_sub_dir)
         tmp_path_b = os.path.join(tmp_sub_dir, "b.txt")
         save_text(tmp_path_b, "1")
-        mlflow.log_artifact(tmp_path_a)
-        mlflow.log_artifacts(tmp_sub_dir, artifact_path="dir")
+        mlflowacim.log_artifact(tmp_path_a)
+        mlflowacim.log_artifacts(tmp_sub_dir, artifact_path="dir")
         return run.info.run_id
 
 

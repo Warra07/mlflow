@@ -10,8 +10,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import pandas as pd
 import pytest
 
-import mlflow
-from mlflow import MlflowClient
+import mlflowacim
+from mlflowacim import MlflowClient
 
 
 ModelWithExplanation = namedtuple(
@@ -71,9 +71,9 @@ def classifier():
 @pytest.mark.parametrize("np_obj", [float(0.0), np.array([0.0])])
 def test_log_numpy(np_obj):
 
-    with mlflow.start_run() as run:
-        mlflow.shap._log_numpy(np_obj, "test.npy")
-        mlflow.shap._log_numpy(np_obj, "test.npy", artifact_path="dir")
+    with mlflowacim.start_run() as run:
+        mlflowacim.shap._log_numpy(np_obj, "test.npy")
+        mlflowacim.shap._log_numpy(np_obj, "test.npy", artifact_path="dir")
 
     artifacts = set(yield_artifacts(run.info.run_id))
     assert artifacts == {"test.npy", "dir/test.npy"}
@@ -84,9 +84,9 @@ def test_log_matplotlib_figure():
     fig, ax = plt.subplots()
     ax.plot([0, 1], [2, 3])
 
-    with mlflow.start_run() as run:
-        mlflow.shap._log_matplotlib_figure(fig, "test.png")
-        mlflow.shap._log_matplotlib_figure(fig, "test.png", artifact_path="dir")
+    with mlflowacim.start_run() as run:
+        mlflowacim.shap._log_matplotlib_figure(fig, "test.png")
+        mlflowacim.shap._log_matplotlib_figure(fig, "test.png", artifact_path="dir")
 
     artifacts = set(yield_artifacts(run.info.run_id))
     assert artifacts == {"test.png", "dir/test.png"}
@@ -96,8 +96,8 @@ def test_log_explanation_with_regressor(regressor):
     model = regressor.model
     X = regressor.X
 
-    with mlflow.start_run() as run:
-        explanation_path = mlflow.shap.log_explanation(model.predict, X)
+    with mlflowacim.start_run() as run:
+        explanation_path = mlflowacim.shap.log_explanation(model.predict, X)
 
     # Assert no figure is open
     assert len(plt.get_fignums()) == 0
@@ -122,8 +122,8 @@ def test_log_explanation_with_classifier(classifier):
     model = classifier.model
     X = classifier.X
 
-    with mlflow.start_run() as run:
-        explanation_uri = mlflow.shap.log_explanation(model.predict_proba, X)
+    with mlflowacim.start_run() as run:
+        explanation_uri = mlflowacim.shap.log_explanation(model.predict_proba, X)
 
     # Assert no figure is open
     assert len(plt.get_fignums()) == 0
@@ -149,8 +149,8 @@ def test_log_explanation_with_artifact_path(regressor, artifact_path):
     model = regressor.model
     X = regressor.X
 
-    with mlflow.start_run() as run:
-        explanation_path = mlflow.shap.log_explanation(model.predict, X, artifact_path)
+    with mlflowacim.start_run() as run:
+        explanation_path = mlflowacim.shap.log_explanation(model.predict, X, artifact_path)
 
     # Assert no figure is open
     assert len(plt.get_fignums()) == 0
@@ -174,8 +174,8 @@ def test_log_explanation_without_active_run(regressor):
     model = regressor.model
     X = regressor.X.values
 
-    with mlflow.start_run() as run:
-        explanation_uri = mlflow.shap.log_explanation(model.predict, X)
+    with mlflowacim.start_run() as run:
+        explanation_uri = mlflowacim.shap.log_explanation(model.predict, X)
 
         # Assert no figure is open
         assert len(plt.get_fignums()) == 0
@@ -200,8 +200,8 @@ def test_log_explanation_with_numpy_array(regressor):
     model = regressor.model
     X = regressor.X.values
 
-    with mlflow.start_run() as run:
-        explanation_uri = mlflow.shap.log_explanation(model.predict, X)
+    with mlflowacim.start_run() as run:
+        explanation_uri = mlflowacim.shap.log_explanation(model.predict, X)
 
     # Assert no figure is open
     assert len(plt.get_fignums()) == 0
@@ -228,15 +228,15 @@ def test_log_explanation_with_small_features():
     `_MAXIMUM_BACKGROUND_DATA_SIZE`.
     """
     num_rows = 50
-    assert num_rows < mlflow.shap._MAXIMUM_BACKGROUND_DATA_SIZE
+    assert num_rows < mlflowacim.shap._MAXIMUM_BACKGROUND_DATA_SIZE
 
     X, y = get_diabetes()
     X, y = X.iloc[:num_rows], y[:num_rows]
     model = RandomForestRegressor()
     model.fit(X, y)
 
-    with mlflow.start_run() as run:
-        explanation_uri = mlflow.shap.log_explanation(model.predict, X)
+    with mlflowacim.start_run() as run:
+        explanation_uri = mlflowacim.shap.log_explanation(model.predict, X)
 
     artifact_path = "model_explanations_shap"
     artifacts = set(yield_artifacts(run.info.run_id))

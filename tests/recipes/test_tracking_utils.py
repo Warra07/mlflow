@@ -5,10 +5,10 @@ from unittest import mock
 
 import pytest
 
-import mlflow
-from mlflow.recipes.utils import get_recipe_config
-from mlflow.recipes.utils.tracking import get_recipe_tracking_config, log_code_snapshot
-from mlflow.utils.file_utils import path_to_local_file_uri, path_to_local_sqlite_uri
+import mlflowacim
+from mlflowacim.recipes.utils import get_recipe_config
+from mlflowacim.recipes.utils.tracking import get_recipe_tracking_config, log_code_snapshot
+from mlflowacim.utils.file_utils import path_to_local_file_uri, path_to_local_sqlite_uri
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (
@@ -141,11 +141,11 @@ def test_log_code_snapshot(tmp_path: pathlib.Path):
         path.parent.mkdir(exist_ok=True, parents=True)
         path.write_text("")
 
-    mlflow.set_experiment(experiment_id="0")
+    mlflowacim.set_experiment(experiment_id="0")
     recipe_config = {"name": "fake_config", "dict": {"key": 123}}
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         log_code_snapshot(tmp_path, run.info.run_id, recipe_config=recipe_config)
-        tracking_uri = mlflow.get_tracking_uri()
+        tracking_uri = mlflowacim.get_tracking_uri()
 
     artifacts = set(list_all_artifacts(tracking_uri, run.info.run_id))
     assert artifacts.issuperset(f"recipe_snapshot/{f}" for f in files)

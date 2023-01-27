@@ -18,18 +18,18 @@ from unittest import mock
 
 import pytest
 
-from mlflow import MlflowClient
-from mlflow.artifacts import download_artifacts
-import mlflow.experiments
-from mlflow.exceptions import MlflowException
-from mlflow.entities import Metric, Param, RunTag, ViewType
-from mlflow.models import Model
-import mlflow.pyfunc
-from mlflow.server.handlers import validate_path_is_safe
-from mlflow.store.tracking.file_store import FileStore
-from mlflow.store.tracking.sqlalchemy_store import SqlAlchemyStore
-from mlflow.utils.file_utils import TempDir
-from mlflow.utils.mlflow_tags import (
+from mlflowacim import MlflowClient
+from mlflowacim.artifacts import download_artifacts
+import mlflowacim.experiments
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.entities import Metric, Param, RunTag, ViewType
+from mlflowacim.models import Model
+import mlflowacim.pyfunc
+from mlflowacim.server.handlers import validate_path_is_safe
+from mlflowacim.store.tracking.file_store import FileStore
+from mlflowacim.store.tracking.sqlalchemy_store import SqlAlchemyStore
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_USER,
     MLFLOW_PARENT_RUN_ID,
     MLFLOW_SOURCE_TYPE,
@@ -37,8 +37,8 @@ from mlflow.utils.mlflow_tags import (
     MLFLOW_PROJECT_ENTRY_POINT,
     MLFLOW_GIT_COMMIT,
 )
-from mlflow.utils.file_utils import path_to_local_file_uri
-from mlflow.utils.time_utils import get_current_time_millis
+from mlflowacim.utils.file_utils import path_to_local_file_uri
+from mlflowacim.utils.time_utils import get_current_time_millis
 
 from tests.integration.utils import invoke_cli_runner
 from tests.tracking.integration_test_utils import (
@@ -178,16 +178,16 @@ def test_delete_restore_experiment(mlflow_client):
 def test_delete_restore_experiment_cli(mlflow_client, cli_env):
     experiment_name = "DeleteriousCLI"
     invoke_cli_runner(
-        mlflow.experiments.commands, ["create", "--experiment-name", experiment_name], env=cli_env
+        mlflowacim.experiments.commands, ["create", "--experiment-name", experiment_name], env=cli_env
     )
     experiment_id = mlflow_client.get_experiment_by_name(experiment_name).experiment_id
     assert mlflow_client.get_experiment(experiment_id).lifecycle_stage == "active"
     invoke_cli_runner(
-        mlflow.experiments.commands, ["delete", "-x", str(experiment_id)], env=cli_env
+        mlflowacim.experiments.commands, ["delete", "-x", str(experiment_id)], env=cli_env
     )
     assert mlflow_client.get_experiment(experiment_id).lifecycle_stage == "deleted"
     invoke_cli_runner(
-        mlflow.experiments.commands, ["restore", "-x", str(experiment_id)], env=cli_env
+        mlflowacim.experiments.commands, ["restore", "-x", str(experiment_id)], env=cli_env
     )
     assert mlflow_client.get_experiment(experiment_id).lifecycle_stage == "active"
 
@@ -204,12 +204,12 @@ def test_rename_experiment_cli(mlflow_client, cli_env):
     good_experiment_name = "CLIGoodName"
 
     invoke_cli_runner(
-        mlflow.experiments.commands, ["create", "-n", bad_experiment_name], env=cli_env
+        mlflowacim.experiments.commands, ["create", "-n", bad_experiment_name], env=cli_env
     )
     experiment_id = mlflow_client.get_experiment_by_name(bad_experiment_name).experiment_id
     assert mlflow_client.get_experiment(experiment_id).name == bad_experiment_name
     invoke_cli_runner(
-        mlflow.experiments.commands,
+        mlflowacim.experiments.commands,
         ["rename", "--experiment-id", str(experiment_id), "--new-name", good_experiment_name],
         env=cli_env,
     )
@@ -684,17 +684,17 @@ def test_log_model(mlflow_client):
     experiment_id = mlflow_client.create_experiment("Log models")
     with TempDir(chdr=True):
         model_paths = [f"model/path/{i}" for i in range(3)]
-        mlflow.set_tracking_uri(mlflow_client.tracking_uri)
-        with mlflow.start_run(experiment_id=experiment_id) as run:
+        mlflowacim.set_tracking_uri(mlflow_client.tracking_uri)
+        with mlflowacim.start_run(experiment_id=experiment_id) as run:
             for i, m in enumerate(model_paths):
-                mlflow.pyfunc.log_model(m, loader_module="mlflow.pyfunc")
-                mlflow.pyfunc.save_model(
+                mlflowacim.pyfunc.log_model(m, loader_module="mlflow.pyfunc")
+                mlflowacim.pyfunc.save_model(
                     m,
                     mlflow_model=Model(artifact_path=m, run_id=run.info.run_id),
                     loader_module="mlflow.pyfunc",
                 )
                 model = Model.load(os.path.join(m, "MLmodel"))
-                run = mlflow.get_run(run.info.run_id)
+                run = mlflowacim.get_run(run.info.run_id)
                 tag = run.data.tags["mlflow.log-model.history"]
                 models = json.loads(tag)
                 model.utc_time_created = models[i]["utc_time_created"]
@@ -1005,7 +1005,7 @@ def test_get_metric_history_bulk_respects_max_results(mlflow_client):
 
 
 def test_get_metric_history_bulk_calls_optimized_impl_when_expected(monkeypatch, tmp_path):
-    from mlflow.server.handlers import get_metric_history_bulk_handler
+    from mlflowacim.server.handlers import get_metric_history_bulk_handler
 
     path = path_to_local_file_uri(str(tmp_path.joinpath("sqlalchemy.db")))
     uri = ("sqlite://" if sys.platform == "win32" else "sqlite:////") + path[len("file://") :]

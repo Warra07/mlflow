@@ -5,10 +5,10 @@ import tempfile
 import pytest
 from unittest import mock
 
-import mlflow
-from mlflow.exceptions import ExecutionException
-from mlflow.projects import _project_spec
-from mlflow.projects.utils import (
+import mlflowacim
+from mlflowacim.exceptions import ExecutionException
+from mlflowacim.projects import _project_spec
+from mlflowacim.projects.utils import (
     _get_storage_dir,
     _is_valid_branch_name,
     _is_zip_uri,
@@ -19,7 +19,7 @@ from mlflow.projects.utils import (
     fetch_and_validate_project,
     load_project,
 )
-from mlflow.utils.mlflow_tags import MLFLOW_PROJECT_ENTRY_POINT, MLFLOW_SOURCE_NAME
+from mlflowacim.utils.mlflow_tags import MLFLOW_PROJECT_ENTRY_POINT, MLFLOW_SOURCE_NAME
 from tests.projects.utils import (
     assert_dirs_equal,
     GIT_PROJECT_URI,
@@ -186,7 +186,7 @@ def test_fetch_create_and_log(tmpdir):
         docker_env=None,
         name="my_project",
     )
-    experiment_id = mlflow.create_experiment("test_fetch_project")
+    experiment_id = mlflowacim.create_experiment("test_fetch_project")
     expected_dir = tmpdir
     project_uri = "http://someuri/myproject.git"
     user_param = {"method_name": "newton"}
@@ -210,7 +210,7 @@ def test_fetch_create_and_log(tmpdir):
             )
 
             # check tags
-            run = mlflow.get_run(active_run.info.run_id)
+            run = mlflowacim.get_run(active_run.info.run_id)
             assert MLFLOW_PROJECT_ENTRY_POINT in run.data.tags
             assert MLFLOW_SOURCE_NAME in run.data.tags
             assert entry_point_name == run.data.tags[MLFLOW_PROJECT_ENTRY_POINT]

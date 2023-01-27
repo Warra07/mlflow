@@ -4,9 +4,9 @@ import uuid
 
 from tests.helper_functions import random_str, random_int
 
-from mlflow.entities import RunInfo, LifecycleStage, RunStatus
-from mlflow.entities import Metric, RunData, Param, RunTag
-from mlflow.utils.time_utils import get_current_time_millis
+from mlflowacim.entities import RunInfo, LifecycleStage, RunStatus
+from mlflowacim.entities import Metric, RunData, Param, RunTag
+from mlflowacim.utils.time_utils import get_current_time_millis
 
 
 @pytest.fixture()

@@ -15,7 +15,7 @@ from sklearn import svm, datasets
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import ParameterGrid
 
-import mlflow
+import mlflowacim
 
 
 def main():
@@ -33,14 +33,14 @@ def main():
     os.environ["DATABRICKS_HOST"] = args.host
     os.environ["DATABRICKS_TOKEN"] = args.token
 
-    mlflow.set_tracking_uri("databricks")
+    mlflowacim.set_tracking_uri("databricks")
     if args.experiment_id:
-        experiment = mlflow.set_experiment(experiment_id=args.experiment_id)
+        experiment = mlflowacim.set_experiment(experiment_id=args.experiment_id)
     else:
-        experiment = mlflow.set_experiment(f"/Users/{args.user}/{uuid.uuid4().hex}")
+        experiment = mlflowacim.set_experiment(f"/Users/{args.user}/{uuid.uuid4().hex}")
 
     print(f"Logging runs in {args.host}#/mlflow/experiments/{experiment.experiment_id}")
-    mlflow.sklearn.autolog(max_tuning_runs=None)
+    mlflowacim.sklearn.autolog(max_tuning_runs=None)
     iris = datasets.load_iris()
     parameters = {"kernel": ("linear", "rbf"), "C": [1, 5, 10]}
     clf = GridSearchCV(svm.SVC(), parameters)

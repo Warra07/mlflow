@@ -2,9 +2,9 @@ import pathlib
 import posixpath
 import pytest
 
-from mlflow.exceptions import MlflowException
-from mlflow.store.db.db_types import DATABASE_ENGINES
-from mlflow.utils.uri import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.db.db_types import DATABASE_ENGINES
+from mlflowacim.utils.uri import (
     add_databricks_profile_info_to_artifact_uri,
     append_to_uri_path,
     extract_and_normalize_path,

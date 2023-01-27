@@ -2,11 +2,11 @@ import logging
 import sys
 import pytest
 
-import mlflow
-from mlflow.utils import logging_utils
-from mlflow.utils.logging_utils import eprint
+import mlflowacim
+from mlflowacim.utils import logging_utils
+from mlflowacim.utils.logging_utils import eprint
 
-logger = logging.getLogger(mlflow.__name__)
+logger = logging.getLogger(mlflowacim.__name__)
 
 LOGGING_FNS_TO_TEST = [logger.info, logger.warning, logger.critical, eprint]
 

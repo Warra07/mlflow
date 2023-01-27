@@ -2,7 +2,7 @@ import os
 import pytest
 from unittest import mock, TestCase
 
-from mlflow.store.db import utils
+from mlflowacim.store.db import utils
 from sqlalchemy.pool import NullPool
 from sqlalchemy.pool.impl import QueuePool
 

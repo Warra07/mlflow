@@ -31,14 +31,14 @@ from sklearn.pipeline import Pipeline
 
 import tests
 
-import mlflow
-import mlflow.pyfunc
-import mlflow.sklearn
-from mlflow.exceptions import MlflowException
-from mlflow.models import ModelSignature
-from mlflow.pyfunc import spark_udf, PythonModel, PyFuncModel
-from mlflow.pyfunc.spark_model_cache import SparkModelCache
-from mlflow.types import Schema, ColSpec
+import mlflowacim
+import mlflowacim.pyfunc
+import mlflowacim.sklearn
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models import ModelSignature
+from mlflowacim.pyfunc import spark_udf, PythonModel, PyFuncModel
+from mlflowacim.pyfunc.spark_model_cache import SparkModelCache
+from mlflowacim.types import Schema, ColSpec
 
 
 prediction = [int(1), int(2), "class1", float(0.1), 0.2, True]
@@ -135,14 +135,14 @@ def sklearn_model():
 
 
 def test_spark_udf(spark, model_path):
-    mlflow.pyfunc.save_model(
+    mlflowacim.pyfunc.save_model(
         path=model_path,
         loader_module=__name__,
         code_path=[os.path.dirname(tests.__file__)],
     )
 
     with mock.patch("mlflow.pyfunc._warn_dependency_requirement_mismatches") as mock_check_fn:
-        reloaded_pyfunc_model = mlflow.pyfunc.load_model(model_path)
+        reloaded_pyfunc_model = mlflowacim.pyfunc.load_model(model_path)
         mock_check_fn.assert_called_once()
 
     pandas_df = pd.DataFrame(data=np.ones((10, 10)), columns=[str(i) for i in range(10)])
@@ -188,7 +188,7 @@ def test_spark_udf(spark, model_path):
 @pytest.mark.parametrize("sklearn_version", ["0.22.1", "0.24.0"])
 @pytest.mark.parametrize("env_manager", ["virtualenv", "conda"])
 def test_spark_udf_env_manager_can_restore_env(spark, model_path, sklearn_version, env_manager):
-    class EnvRestoringTestModel(mlflow.pyfunc.PythonModel):
+    class EnvRestoringTestModel(mlflowacim.pyfunc.PythonModel):
         def __init__(self):
             pass
 
@@ -199,7 +199,7 @@ def test_spark_udf_env_manager_can_restore_env(spark, model_path, sklearn_versio
 
     infer_spark_df = spark.createDataFrame(pd.DataFrame(data=[[1, 2]], columns=["a", "b"]))
 
-    mlflow.pyfunc.save_model(
+    mlflowacim.pyfunc.save_model(
         path=model_path,
         python_model=EnvRestoringTestModel(),
         pip_requirements=[
@@ -213,7 +213,7 @@ def test_spark_udf_env_manager_can_restore_env(spark, model_path, sklearn_versio
     from tests.helper_functions import _get_mlflow_home
 
     os.environ["MLFLOW_HOME"] = _get_mlflow_home()
-    python_udf = mlflow.pyfunc.spark_udf(
+    python_udf = mlflowacim.pyfunc.spark_udf(
         spark, model_path, env_manager=env_manager, result_type="string"
     )
     result = infer_spark_df.select(python_udf("a", "b").alias("result")).toPandas().result[0]
@@ -224,7 +224,7 @@ def test_spark_udf_env_manager_can_restore_env(spark, model_path, sklearn_versio
 def test_spark_udf_env_manager_predict_sklearn_model(spark, sklearn_model, model_path, env_manager):
     model, inference_data = sklearn_model
 
-    mlflow.sklearn.save_model(model, model_path)
+    mlflowacim.sklearn.save_model(model, model_path)
     expected_pred_result = model.predict(inference_data)
 
     infer_data = pd.DataFrame(inference_data, columns=["a", "b"])
@@ -245,10 +245,10 @@ def test_spark_udf_with_single_arg(spark):
         def predict(self, context, model_input):
             return [",".join(map(str, model_input.columns.tolist()))] * len(model_input)
 
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel())
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel())
 
-        udf = mlflow.pyfunc.spark_udf(
+        udf = mlflowacim.pyfunc.spark_udf(
             spark, "runs:/{}/model".format(run.info.run_id), result_type=StringType()
         )
 
@@ -276,10 +276,10 @@ def test_spark_udf_with_struct_return_type(spark):
                 "r7": ["abc"] * input_len,
             }
 
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel())
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel())
 
-        udf = mlflow.pyfunc.spark_udf(
+        udf = mlflowacim.pyfunc.spark_udf(
             spark,
             "runs:/{}/model".format(run.info.run_id),
             result_type=(
@@ -320,9 +320,9 @@ def test_spark_udf_autofills_no_arguments(spark):
     good_data = spark.createDataFrame(
         pd.DataFrame(columns=["a", "b", "c", "d"], data={"a": [1], "b": [2], "c": [3], "d": [4]})
     )
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
-        udf = mlflow.pyfunc.spark_udf(
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
+        udf = mlflowacim.pyfunc.spark_udf(
             spark,
             "runs:/{}/model".format(run.info.run_id),
             result_type=ArrayType(StringType()),
@@ -353,9 +353,9 @@ def test_spark_udf_autofills_no_arguments(spark):
         inputs=Schema([ColSpec("long"), ColSpec("long"), ColSpec("long")]),
         outputs=Schema([ColSpec("integer")]),
     )
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel(), signature=nameless_signature)
-        udf = mlflow.pyfunc.spark_udf(
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel(), signature=nameless_signature)
+        udf = mlflowacim.pyfunc.spark_udf(
             spark, "runs:/{}/model".format(run.info.run_id), result_type=ArrayType(StringType())
         )
         with pytest.raises(
@@ -364,10 +364,10 @@ def test_spark_udf_autofills_no_arguments(spark):
         ):
             good_data.withColumn("res", udf())
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         # model without signature
-        mlflow.pyfunc.log_model("model", python_model=TestModel())
-        udf = mlflow.pyfunc.spark_udf(
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel())
+        udf = mlflowacim.pyfunc.spark_udf(
             spark, "runs:/{}/model".format(run.info.run_id), result_type=ArrayType(StringType())
         )
         with pytest.raises(MlflowException, match="Attempting to apply udf on zero columns"):
@@ -383,9 +383,9 @@ def test_spark_udf_autofills_column_names_with_schema(spark):
         inputs=Schema([ColSpec("long", "a"), ColSpec("long", "b"), ColSpec("long", "c")]),
         outputs=Schema([ColSpec("integer")]),
     )
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
-        udf = mlflow.pyfunc.spark_udf(
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
+        udf = mlflowacim.pyfunc.spark_udf(
             spark,
             "runs:/{}/model".format(run.info.run_id),
             result_type=ArrayType(StringType()),
@@ -420,9 +420,9 @@ def test_spark_udf_with_datetime_columns(spark):
         inputs=Schema([ColSpec("datetime", "timestamp"), ColSpec("datetime", "date")]),
         outputs=Schema([ColSpec("integer")]),
     )
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
-        udf = mlflow.pyfunc.spark_udf(
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
+        udf = mlflowacim.pyfunc.spark_udf(
             spark,
             "runs:/{}/model".format(run.info.run_id),
             result_type=ArrayType(StringType()),
@@ -455,9 +455,9 @@ def test_spark_udf_over_empty_partition(spark):
     spark_df = spark.createDataFrame(
         pd.DataFrame(columns=["x", "y"], data={"x": [11], "y": [21]})
     ).repartition(2)
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
-        python_udf = mlflow.pyfunc.spark_udf(
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
+        python_udf = mlflowacim.pyfunc.spark_udf(
             spark, "runs:/{}/model".format(run.info.run_id), result_type=LongType()
         )
         res_df = spark_df.withColumn("res", python_udf("x", "y")).select("res").toPandas()
@@ -472,7 +472,7 @@ def test_spark_udf_over_empty_partition(spark):
 
 
 def test_model_cache(spark, model_path):
-    mlflow.pyfunc.save_model(
+    mlflowacim.pyfunc.save_model(
         path=model_path,
         loader_module=__name__,
         code_path=[os.path.dirname(tests.__file__)],
@@ -488,7 +488,7 @@ def test_model_cache(spark, model_path):
     def check_get_or_load_return_value(model_from_cache, model_path_from_cache):
         assert model_path_from_cache != model_path
         assert os.path.isdir(model_path_from_cache)
-        model2 = mlflow.pyfunc.load_model(model_path_from_cache)
+        model2 = mlflowacim.pyfunc.load_model(model_path_from_cache)
         for model in [model_from_cache, model2]:
             assert isinstance(model, PyFuncModel)
             # NB: Can not use instanceof test as remote does not know about ConstantPyfuncWrapper
@@ -525,17 +525,17 @@ def test_model_cache(spark, model_path):
 def test_spark_udf_embedded_model_server_killed_when_job_canceled(
     spark, sklearn_model, model_path, env_manager
 ):
-    from mlflow.pyfunc.scoring_server.client import ScoringServerClient
-    from mlflow.models.flavor_backend_registry import get_flavor_backend
+    from mlflowacim.pyfunc.scoring_server.client import ScoringServerClient
+    from mlflowacim.models.flavor_backend_registry import get_flavor_backend
 
-    mlflow.sklearn.save_model(sklearn_model.model, model_path)
+    mlflowacim.sklearn.save_model(sklearn_model.model, model_path)
 
     server_port = 51234
     timeout = 60
 
     @pandas_udf("int")
     def udf_with_model_server(it: Iterator[pd.Series]) -> Iterator[pd.Series]:
-        from mlflow.models.flavor_backend_registry import get_flavor_backend
+        from mlflowacim.models.flavor_backend_registry import get_flavor_backend
 
         get_flavor_backend(
             model_path, env_manager=env_manager, workers=1, install_mlflow=False
@@ -597,13 +597,13 @@ def test_spark_udf_datetime_with_model_schema(spark):
     model.fit(X, y)
 
     timestamp_dtype = {"timestamp": "datetime64[ns]"}
-    with mlflow.start_run():
-        signature = mlflow.models.infer_signature(X.astype(timestamp_dtype), y)
-        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+    with mlflowacim.start_run():
+        signature = mlflowacim.models.infer_signature(X.astype(timestamp_dtype), y)
+        model_info = mlflowacim.sklearn.log_model(model, "model", signature=signature)
 
     inference_sample = X.sample(n=10, random_state=42)
     infer_spark_df = spark.createDataFrame(inference_sample.astype(timestamp_dtype))
-    pyfunc_udf = mlflow.pyfunc.spark_udf(spark, model_info.model_uri, env_manager="conda")
+    pyfunc_udf = mlflowacim.pyfunc.spark_udf(spark, model_info.model_uri, env_manager="conda")
     result = infer_spark_df.select(pyfunc_udf(*X.columns).alias("predictions")).toPandas()
     np.testing.assert_almost_equal(result.to_numpy().squeeze(), model.predict(inference_sample))
 
@@ -628,13 +628,13 @@ def test_spark_udf_string_datetime_with_model_schema(spark):
     )
     model.fit(X, y)
 
-    with mlflow.start_run():
-        signature = mlflow.models.infer_signature(X, y)
-        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+    with mlflowacim.start_run():
+        signature = mlflowacim.models.infer_signature(X, y)
+        model_info = mlflowacim.sklearn.log_model(model, "model", signature=signature)
 
     inference_sample = X.sample(n=10, random_state=42)
     infer_spark_df = spark.createDataFrame(inference_sample)
-    pyfunc_udf = mlflow.pyfunc.spark_udf(spark, model_info.model_uri, env_manager="conda")
+    pyfunc_udf = mlflowacim.pyfunc.spark_udf(spark, model_info.model_uri, env_manager="conda")
     result = infer_spark_df.select(pyfunc_udf(*X.columns).alias("predictions")).toPandas()
     np.testing.assert_almost_equal(result.to_numpy().squeeze(), model.predict(inference_sample))
 
@@ -682,9 +682,9 @@ def test_spark_udf_with_col_spec_type_input(spark):
         schema=spark_schema,
     ).repartition(1)
 
-    with mlflow.start_run() as run:
-        mlflow.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
-        udf = mlflow.pyfunc.spark_udf(
+    with mlflowacim.start_run() as run:
+        mlflowacim.pyfunc.log_model("model", python_model=TestModel(), signature=signature)
+        udf = mlflowacim.pyfunc.spark_udf(
             spark,
             "runs:/{}/model".format(run.info.run_id),
             result_type="c_int int, c_float float",

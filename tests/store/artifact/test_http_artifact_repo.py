@@ -4,9 +4,9 @@ from unittest import mock
 
 import pytest
 
-from mlflow.store.artifact.artifact_repository_registry import get_artifact_repository
-from mlflow.store.artifact.http_artifact_repo import HttpArtifactRepository
-from mlflow.tracking._tracking_service.utils import (
+from mlflowacim.store.artifact.artifact_repository_registry import get_artifact_repository
+from mlflowacim.store.artifact.http_artifact_repo import HttpArtifactRepository
+from mlflowacim.tracking._tracking_service.utils import (
     _TRACKING_CLIENT_CERT_PATH_ENV_VAR,
     _TRACKING_INSECURE_TLS_ENV_VAR,
     _TRACKING_PASSWORD_ENV_VAR,
@@ -15,7 +15,7 @@ from mlflow.tracking._tracking_service.utils import (
     _TRACKING_USERNAME_ENV_VAR,
     _get_default_host_creds,
 )
-from mlflow.utils.rest_utils import MlflowHostCreds
+from mlflowacim.utils.rest_utils import MlflowHostCreds
 
 
 @pytest.mark.parametrize("scheme", ["http", "https"])

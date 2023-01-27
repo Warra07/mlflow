@@ -6,11 +6,11 @@ import pandas as pd
 import pytest
 from scipy.sparse import csr_matrix, csc_matrix
 
-from mlflow.exceptions import MlflowException
-from mlflow.models.utils import _enforce_tensor_spec
-from mlflow.types import DataType
-from mlflow.types.schema import ColSpec, Schema, TensorSpec
-from mlflow.types.utils import _infer_schema, _get_tensor_shape
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models.utils import _enforce_tensor_spec
+from mlflowacim.types import DataType
+from mlflowacim.types.schema import ColSpec, Schema, TensorSpec
+from mlflowacim.types.utils import _infer_schema, _get_tensor_shape
 
 
 def test_col_spec():

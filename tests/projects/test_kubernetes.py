@@ -5,9 +5,9 @@ from unittest import mock
 import kubernetes
 from kubernetes.config.config_exception import ConfigException
 
-from mlflow.projects import kubernetes as kb
-from mlflow.exceptions import ExecutionException
-from mlflow.entities import RunStatus
+from mlflowacim.projects import kubernetes as kb
+from mlflowacim.exceptions import ExecutionException
+from mlflowacim.entities import RunStatus
 
 
 def test_run_command_creation():  # pylint: disable=unused-argument

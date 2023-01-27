@@ -1,11 +1,11 @@
 from unittest import mock
 
-from mlflow import MlflowClient
-from mlflow.entities import SourceType
-from mlflow.tracking.default_experiment.databricks_job_experiment_provider import (
+from mlflowacim import MlflowClient
+from mlflowacim.entities import SourceType
+from mlflowacim.tracking.default_experiment.databricks_job_experiment_provider import (
     DatabricksJobExperimentProvider,
 )
-from mlflow.utils.mlflow_tags import (
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_DATABRICKS_JOB_TYPE_INFO,
     MLFLOW_EXPERIMENT_SOURCE_TYPE,
     MLFLOW_EXPERIMENT_SOURCE_ID,

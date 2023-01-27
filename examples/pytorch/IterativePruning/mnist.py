@@ -10,7 +10,7 @@
 # pylint: disable=abstract-method
 import pytorch_lightning as pl
 import torch
-import mlflow.pytorch
+import mlflowacim.pytorch
 from argparse import ArgumentParser
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, random_split
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     parser = pl.Trainer.add_argparse_args(parent_parser=parser)
     parser = LightningMNISTClassifier.add_model_specific_args(parent_parser=parser)
 
-    mlflow.pytorch.autolog(log_every_n_epoch=2)
+    mlflowacim.pytorch.autolog(log_every_n_epoch=2)
 
     args = parser.parse_args()
     dict_args = vars(args)

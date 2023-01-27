@@ -5,15 +5,15 @@ import pytest
 from unittest import mock
 from unittest.mock import Mock
 
-from mlflow.exceptions import MlflowException
-from mlflow.store.artifact.artifact_repository_registry import get_artifact_repository
-from mlflow.store.artifact.dbfs_artifact_repo import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.artifact.artifact_repository_registry import get_artifact_repository
+from mlflowacim.store.artifact.dbfs_artifact_repo import (
     _get_host_creds_from_default_store,
     DbfsRestArtifactRepository,
 )
-from mlflow.store.tracking.file_store import FileStore
-from mlflow.store.tracking.rest_store import RestStore
-from mlflow.utils.rest_utils import MlflowHostCreds
+from mlflowacim.store.tracking.file_store import FileStore
+from mlflowacim.store.tracking.rest_store import RestStore
+from mlflowacim.utils.rest_utils import MlflowHostCreds
 
 
 @pytest.fixture()

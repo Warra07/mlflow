@@ -13,7 +13,7 @@ import re
 import pytest
 from unittest import mock
 
-from mlflow.entities import (
+from mlflowacim.entities import (
     Metric,
     Param,
     RunTag,
@@ -23,16 +23,16 @@ from mlflow.entities import (
     RunData,
     ExperimentTag,
 )
-from mlflow.store.entities.paged_list import PagedList
-from mlflow.exceptions import MlflowException, MissingConfigException
-from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
-from mlflow.store.tracking.file_store import FileStore
-from mlflow.utils.file_utils import write_yaml, read_yaml, path_to_local_file_uri, TempDir
-from mlflow.utils.uri import append_to_uri_path
-from mlflow.utils.name_utils import _GENERATOR_PREDICATES, _EXPERIMENT_ID_FIXED_WIDTH
-from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
-from mlflow.utils.time_utils import get_current_time_millis
-from mlflow.protos.databricks_pb2 import (
+from mlflowacim.store.entities.paged_list import PagedList
+from mlflowacim.exceptions import MlflowException, MissingConfigException
+from mlflowacim.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
+from mlflowacim.store.tracking.file_store import FileStore
+from mlflowacim.utils.file_utils import write_yaml, read_yaml, path_to_local_file_uri, TempDir
+from mlflowacim.utils.uri import append_to_uri_path
+from mlflowacim.utils.name_utils import _GENERATOR_PREDICATES, _EXPERIMENT_ID_FIXED_WIDTH
+from mlflowacim.utils.mlflow_tags import MLFLOW_RUN_NAME
+from mlflowacim.utils.time_utils import get_current_time_millis
+from mlflowacim.protos.databricks_pb2 import (
     ErrorCode,
     RESOURCE_DOES_NOT_EXIST,
     INTERNAL_ERROR,

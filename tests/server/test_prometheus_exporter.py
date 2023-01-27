@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 
 
-from mlflow.server.prometheus_exporter import activate_prometheus_exporter
+from mlflowacim.server.prometheus_exporter import activate_prometheus_exporter
 
 
 @pytest.fixture(autouse=True)
@@ -15,7 +15,7 @@ def mock_settings_env_vars(tmpdir):
 
 @pytest.fixture()
 def app():
-    from mlflow.server import app
+    from mlflowacim.server import app
 
     with app.app_context():
         yield app

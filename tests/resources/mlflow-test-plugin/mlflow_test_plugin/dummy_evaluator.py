@@ -1,13 +1,13 @@
-from mlflow import MlflowClient
-from mlflow.models.evaluation import (
+from mlflowacim import MlflowClient
+from mlflowacim.models.evaluation import (
     ModelEvaluator,
     EvaluationArtifact,
     EvaluationResult,
 )
-from mlflow.models.evaluation.artifacts import ImageEvaluationArtifact
-from mlflow.tracking.artifact_utils import get_artifact_uri
-from mlflow.entities import Metric
-from mlflow.utils.time_utils import get_current_time_millis
+from mlflowacim.models.evaluation.artifacts import ImageEvaluationArtifact
+from mlflowacim.tracking.artifact_utils import get_artifact_uri
+from mlflowacim.entities import Metric
+from mlflowacim.utils.time_utils import get_current_time_millis
 from sklearn import metrics as sk_metrics
 import pandas as pd
 import io

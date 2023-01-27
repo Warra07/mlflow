@@ -5,10 +5,10 @@ import sklearn
 from sklearn.linear_model import LinearRegression
 from pathlib import Path
 
-from mlflow.exceptions import MlflowException
-from mlflow.pyfunc import _warn_dependency_requirement_mismatches, get_model_dependencies
-from mlflow.utils import PYTHON_VERSION
-import mlflow.utils.requirements_utils
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.pyfunc import _warn_dependency_requirement_mismatches, get_model_dependencies
+from mlflowacim.utils import PYTHON_VERSION
+import mlflowacim.utils.requirements_utils
 
 from tests.helper_functions import AnyStringWith
 
@@ -24,7 +24,7 @@ def test_warn_dependency_requirement_mismatches(tmpdir):
 
         mock_warning.reset_mock()
 
-        original_get_installed_version_fn = mlflow.utils.requirements_utils._get_installed_version
+        original_get_installed_version_fn = mlflowacim.utils.requirements_utils._get_installed_version
 
         def gen_mock_get_installed_version_fn(mock_versions):
             def mock_get_installed_version_fn(package, module=None):
@@ -238,8 +238,8 @@ dependencies:
 
 
 def test_get_model_dependencies_with_model_version_uri():
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(LinearRegression(), "model", registered_model_name="linear")
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(LinearRegression(), "model", registered_model_name="linear")
 
     deps = get_model_dependencies("models:/linear/1", format="pip")
     assert f"scikit-learn=={sklearn.__version__}" in Path(deps).read_text()

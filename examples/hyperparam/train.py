@@ -23,12 +23,12 @@ from tensorflow.keras.optimizers import SGD
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
-import mlflow
+import mlflowacim
 
 
 def eval_and_log_metrics(prefix, actual, pred, epoch):
     rmse = np.sqrt(mean_squared_error(actual, pred))
-    mlflow.log_metric("{}_rmse".format(prefix), rmse, step=epoch)
+    mlflowacim.log_metric("{}_rmse".format(prefix), rmse, step=epoch)
     return rmse
 
 
@@ -69,9 +69,9 @@ class MLflowCheckpoint(Callback):
         """
         if not self._best_model:
             raise Exception("Failed to build any model")
-        mlflow.log_metric(self.train_loss, self._best_train_loss, step=self._next_step)
-        mlflow.log_metric(self.val_loss, self._best_val_loss, step=self._next_step)
-        mlflow.tensorflow.log_model(self._best_model, "model")
+        mlflowacim.log_metric(self.train_loss, self._best_train_loss, step=self._next_step)
+        mlflowacim.log_metric(self.val_loss, self._best_val_loss, step=self._next_step)
+        mlflowacim.tensorflow.log_model(self._best_model, "model")
 
     def on_epoch_end(self, epoch, logs=None):
         """
@@ -83,7 +83,7 @@ class MLflowCheckpoint(Callback):
         self._next_step = epoch + 1
         train_loss = logs["loss"]
         val_loss = logs["val_loss"]
-        mlflow.log_metrics({self.train_loss: train_loss, self.val_loss: val_loss}, step=epoch)
+        mlflowacim.log_metrics({self.train_loss: train_loss, self.val_loss: val_loss}, step=epoch)
 
         if val_loss < self._best_val_loss:
             # The result improved in the validation set.
@@ -125,7 +125,7 @@ def run(training_data, epochs, batch_size, learning_rate, momentum, seed):
     test_x = test.drop(["quality"], axis=1).astype("float32").values
     test_y = test[["quality"]].astype("float32").values
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         if epochs == 0:  # score null model
             eval_and_log_metrics(
                 "train", train_y, np.ones(len(train_y)) * np.mean(train_y), epoch=-1

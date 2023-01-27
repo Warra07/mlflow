@@ -1,4 +1,4 @@
-from mlflow.entities import Param
+from mlflowacim.entities import Param
 from tests.helper_functions import random_str, random_int
 
 

@@ -3,10 +3,10 @@ from unittest import mock
 import os
 import pytest
 
-import mlflow
-from mlflow.exceptions import MlflowException
-from mlflow.utils.file_utils import read_yaml, write_yaml
-from mlflow.utils.virtualenv import _create_virtualenv
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.utils.file_utils import read_yaml, write_yaml
+from mlflowacim.utils.virtualenv import _create_virtualenv
 
 from tests.projects.utils import (
     TEST_VIRTUALENV_PROJECT_DIR,
@@ -22,7 +22,7 @@ spy_on_create_virtualenv = mock.patch(
 
 @pytest.fixture(autouse=True, scope="module")
 def use_dev_mlflow_for_projects():
-    mlflow_root = os.path.dirname(os.path.dirname(mlflow.__file__))
+    mlflow_root = os.path.dirname(os.path.dirname(mlflowacim.__file__))
 
     conda_env = read_yaml(TEST_VIRTUALENV_CONDA_PROJECT_DIR, "conda.yaml")
     conda_pip_dependencies = [
@@ -48,7 +48,7 @@ def use_dev_mlflow_for_projects():
 
 @spy_on_create_virtualenv
 def test_virtualenv_project_execution(create_virtualenv_spy):
-    submitted_run = mlflow.projects.run(
+    submitted_run = mlflowacim.projects.run(
         TEST_VIRTUALENV_PROJECT_DIR, entry_point="test", env_manager="virtualenv"
     )
     submitted_run.wait()
@@ -59,7 +59,7 @@ def test_virtualenv_project_execution(create_virtualenv_spy):
 def test_virtualenv_project_execution_without_env_manager(create_virtualenv_spy):
     # python_env project should be executed using virtualenv without explicitly specifying
     # env_manager="virtualenv"
-    submitted_run = mlflow.projects.run(TEST_VIRTUALENV_PROJECT_DIR, entry_point="test")
+    submitted_run = mlflowacim.projects.run(TEST_VIRTUALENV_PROJECT_DIR, entry_point="test")
     submitted_run.wait()
     create_virtualenv_spy.assert_called_once()
 
@@ -70,14 +70,14 @@ def test_virtualenv_project_execution_no_python_env(create_virtualenv_spy):
     When an MLproject file doesn't contain a `python_env` key but python_env.yaml exists,
     virtualenv should be used as an environment manager.
     """
-    submitted_run = mlflow.projects.run(TEST_VIRTUALENV_NO_PYTHON_ENV, entry_point="test")
+    submitted_run = mlflowacim.projects.run(TEST_VIRTUALENV_NO_PYTHON_ENV, entry_point="test")
     submitted_run.wait()
     create_virtualenv_spy.assert_called_once()
 
 
 @spy_on_create_virtualenv
 def test_virtualenv_project_execution_local(create_virtualenv_spy):
-    submitted_run = mlflow.projects.run(
+    submitted_run = mlflowacim.projects.run(
         TEST_VIRTUALENV_PROJECT_DIR, entry_point="main", env_manager="local"
     )
     submitted_run.wait()
@@ -86,7 +86,7 @@ def test_virtualenv_project_execution_local(create_virtualenv_spy):
 
 @spy_on_create_virtualenv
 def test_virtualenv_conda_project_execution(create_virtualenv_spy):
-    submitted_run = mlflow.projects.run(
+    submitted_run = mlflowacim.projects.run(
         TEST_VIRTUALENV_CONDA_PROJECT_DIR, entry_point="test", env_manager="virtualenv"
     )
     submitted_run.wait()
@@ -95,7 +95,7 @@ def test_virtualenv_conda_project_execution(create_virtualenv_spy):
 
 def test_virtualenv_project_execution_conda():
     with pytest.raises(MlflowException, match="python_env project cannot be executed using conda"):
-        mlflow.projects.run(TEST_VIRTUALENV_PROJECT_DIR, env_manager="conda")
+        mlflowacim.projects.run(TEST_VIRTUALENV_PROJECT_DIR, env_manager="conda")
 
 
 @spy_on_create_virtualenv
@@ -121,7 +121,7 @@ import os
 assert "VIRTUAL_ENV" in os.environ
 """
     )
-    mlflow.projects.run(str(tmp_path))
+    mlflowacim.projects.run(str(tmp_path))
     create_virtualenv_spy.assert_called_once()
 
 
@@ -134,5 +134,5 @@ import os
 assert "VIRTUAL_ENV" in os.environ
 """
     )
-    mlflow.projects.run(str(tmp_path), entry_point="test.py")
+    mlflowacim.projects.run(str(tmp_path), entry_point="test.py")
     create_virtualenv_spy.assert_called_once()

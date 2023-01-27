@@ -6,13 +6,13 @@ import pytest
 import shutil
 from sklearn.datasets import load_diabetes, load_iris
 
-import mlflow
-from mlflow.utils.file_utils import read_yaml
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
-from mlflow.recipes.steps.split import _OUTPUT_TEST_FILE_NAME, _OUTPUT_VALIDATION_FILE_NAME
-from mlflow.recipes.steps.evaluate import EvaluateStep
-from mlflow.recipes.steps.train import TrainStep
-from mlflow.exceptions import MlflowException
+import mlflowacim
+from mlflowacim.utils.file_utils import read_yaml
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.recipes.steps.split import _OUTPUT_TEST_FILE_NAME, _OUTPUT_VALIDATION_FILE_NAME
+from mlflowacim.recipes.steps.evaluate import EvaluateStep
+from mlflowacim.recipes.steps.train import TrainStep
+from mlflowacim.exceptions import MlflowException
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (
@@ -49,7 +49,7 @@ def evaluation_inputs(request, tmp_recipe_exec_path):
     )
     if os.path.exists(output_model_path) and os.path.isdir(output_model_path):
         shutil.rmtree(output_model_path)
-    mlflow.sklearn.save_model(model, output_model_path)
+    mlflowacim.sklearn.save_model(model, output_model_path)
 
 
 @pytest.mark.usefixtures("clear_custom_metrics_module_cache")
@@ -81,7 +81,7 @@ custom_metrics:
     function: weighted_mean_squared_error_func
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             mae_threshold=mae_threshold,
         )
     )
@@ -104,7 +104,7 @@ def weighted_mean_squared_error_func(eval_df, builtin_metrics):
     evaluate_step.run(str(evaluate_step_output_dir))
 
     logged_metrics = (
-        mlflow.tracking.MlflowClient().get_run(mlflow.last_active_run().info.run_id).data.metrics
+        mlflowacim.tracking.MlflowClient().get_run(mlflowacim.last_active_run().info.run_id).data.metrics
     )
     assert "test_weighted_mean_squared_error" in logged_metrics
     model_validation_status_path = evaluate_step_output_dir.joinpath("model_validation_status")
@@ -136,7 +136,7 @@ steps:
       - metric: f1_score
         threshold: 10
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -169,7 +169,7 @@ experiment:
 steps:
   evaluate:
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -179,7 +179,7 @@ steps:
     evaluate_step.run(str(evaluate_step_output_dir))
 
     logged_metrics = (
-        mlflow.tracking.MlflowClient().get_run(mlflow.last_active_run().info.run_id).data.metrics
+        mlflowacim.tracking.MlflowClient().get_run(mlflowacim.last_active_run().info.run_id).data.metrics
     )
     assert "test_mean_squared_error" in logged_metrics
     assert "test_root_mean_squared_error" in logged_metrics
@@ -205,7 +205,7 @@ steps:
       - metric: undefined_metric
         threshold: 100
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -242,7 +242,7 @@ custom_metrics:
     function: weighted_mean_squared_error
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -284,7 +284,7 @@ custom_metrics:
     function: weighted_mean_squared_error
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -329,7 +329,7 @@ custom_metrics:
     function: root_mean_squared_error
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -353,7 +353,7 @@ def root_mean_squared_error(eval_df, builtin_metrics):
             ["mean_absolute_error", "root_mean_squared_error"],
         )
     logged_metrics = (
-        mlflow.tracking.MlflowClient().get_run(mlflow.last_active_run().info.run_id).data.metrics
+        mlflowacim.tracking.MlflowClient().get_run(mlflowacim.last_active_run().info.run_id).data.metrics
     )
     assert "test_root_mean_squared_error" in logged_metrics
     assert logged_metrics["test_root_mean_squared_error"] == 1
@@ -387,7 +387,7 @@ steps:
       - metric: root_mean_squared_error
         threshold: 1_000_000
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
 

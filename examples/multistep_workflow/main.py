@@ -9,13 +9,13 @@ import click
 import os
 
 
-import mlflow
-from mlflow.tracking import MlflowClient
-from mlflow.utils import mlflow_tags
-from mlflow.entities import RunStatus
-from mlflow.utils.logging_utils import eprint
+import mlflowacim
+from mlflowacim.tracking import MlflowClient
+from mlflowacim.utils import mlflow_tags
+from mlflowacim.entities import RunStatus
+from mlflowacim.utils.logging_utils import eprint
 
-from mlflow.tracking.fluent import _get_experiment_id
+from mlflowacim.tracking.fluent import _get_experiment_id
 
 
 def _already_ran(entry_point_name, parameters, git_commit, experiment_id=None):
@@ -72,7 +72,7 @@ def _get_or_run(entrypoint, parameters, git_commit, use_cache=True):
         )
         return existing_run
     print("Launching new run for entrypoint={} and parameters={}".format(entrypoint, parameters))
-    submitted_run = mlflow.run(".", entrypoint, parameters=parameters, env_manager="local")
+    submitted_run = mlflowacim.run(".", entrypoint, parameters=parameters, env_manager="local")
     return MlflowClient().get_run(submitted_run.run_id)
 
 
@@ -83,7 +83,7 @@ def _get_or_run(entrypoint, parameters, git_commit, use_cache=True):
 def workflow(als_max_iter, keras_hidden_units, max_row_limit):
     # Note: The entrypoint names are defined in MLproject. The artifact directories
     # are documented by each step's .py file.
-    with mlflow.start_run() as active_run:
+    with mlflowacim.start_run() as active_run:
         os.environ["SPARK_CONF_DIR"] = os.path.abspath(".")
         git_commit = active_run.data.tags.get(mlflow_tags.MLFLOW_GIT_COMMIT)
         load_raw_data_run = _get_or_run("load_raw_data", {}, git_commit)

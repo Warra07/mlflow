@@ -6,8 +6,8 @@ from datetime import datetime
 
 import pytest
 
-from mlflow.store.artifact.artifact_repository_registry import get_artifact_repository
-from mlflow.store.artifact.s3_artifact_repo import (
+from mlflowacim.store.artifact.artifact_repository_registry import get_artifact_repository
+from mlflowacim.store.artifact.s3_artifact_repo import (
     S3ArtifactRepository,
     _cached_get_s3_client,
     _MAX_CACHE_SECONDS,

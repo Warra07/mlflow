@@ -1,7 +1,7 @@
 import pytest
 import uuid
 
-from mlflow.utils.process import cache_return_value_per_process
+from mlflowacim.utils.process import cache_return_value_per_process
 import os
 
 

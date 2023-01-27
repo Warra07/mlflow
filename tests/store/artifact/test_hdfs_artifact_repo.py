@@ -8,15 +8,15 @@ import pytest
 from unittest.mock import call, mock_open, ANY
 from pyarrow import HadoopFileSystem
 
-from mlflow.entities import FileInfo
-from mlflow.store.artifact.hdfs_artifact_repo import (
+from mlflowacim.entities import FileInfo
+from mlflowacim.store.artifact.hdfs_artifact_repo import (
     HdfsArtifactRepository,
     _resolve_base_path,
     _relative_path_remote,
     _parse_extra_conf,
     _download_hdfs_file,
 )
-from mlflow.utils.file_utils import TempDir
+from mlflowacim.utils.file_utils import TempDir
 
 
 @mock.patch("pyarrow.hdfs.HadoopFileSystem")

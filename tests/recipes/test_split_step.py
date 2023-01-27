@@ -4,18 +4,18 @@ import pytest
 import numpy as np
 import pandas as pd
 
-import mlflow
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.utils.execution import _MLFLOW_RECIPES_EXECUTION_DIRECTORY_ENV_VAR
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
-from mlflow.utils.file_utils import read_yaml
-from mlflow.recipes.steps.split import (
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.utils.execution import _MLFLOW_RECIPES_EXECUTION_DIRECTORY_ENV_VAR
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.utils.file_utils import read_yaml
+from mlflowacim.recipes.steps.split import (
     _OUTPUT_TRAIN_FILE_NAME,
     _OUTPUT_VALIDATION_FILE_NAME,
     _OUTPUT_TEST_FILE_NAME,
     SplitValues,
 )
-from mlflow.recipes.steps.split import (
+from mlflowacim.recipes.steps.split import (
     _get_split_df,
     _hash_pandas_dataframe,
     _make_elem_hashable,
@@ -292,7 +292,7 @@ def test_custom_split_method(tmp_recipe_root_path: Path, tmp_recipe_exec_path: P
                 using: custom
                 split_method: split_method
         """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
 

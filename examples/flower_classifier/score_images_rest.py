@@ -11,7 +11,7 @@ import requests
 import click
 import pandas as pd
 
-from mlflow.utils import cli_args
+from mlflowacim.utils import cli_args
 
 
 def score_model(path, host, port):

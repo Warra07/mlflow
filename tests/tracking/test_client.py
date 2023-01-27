@@ -2,18 +2,18 @@ import pytest
 import pickle
 from unittest import mock
 
-from mlflow.entities import SourceType, ViewType, RunTag, Run, RunInfo, ExperimentTag, RunStatus
-from mlflow.entities.model_registry import ModelVersion, ModelVersionTag
-from mlflow.entities.model_registry.model_version_status import ModelVersionStatus
-from mlflow.exceptions import MlflowException
-from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
-from mlflow.tracking import set_registry_uri
-from mlflow import MlflowClient
-from mlflow.tracking._model_registry.utils import (
+from mlflowacim.entities import SourceType, ViewType, RunTag, Run, RunInfo, ExperimentTag, RunStatus
+from mlflowacim.entities.model_registry import ModelVersion, ModelVersionTag
+from mlflowacim.entities.model_registry.model_version_status import ModelVersionStatus
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
+from mlflowacim.tracking import set_registry_uri
+from mlflowacim import MlflowClient
+from mlflowacim.tracking._model_registry.utils import (
     _get_store_registry as _get_model_registry_store_registry,
 )
-from mlflow.tracking._tracking_service.utils import _tracking_store_registry
-from mlflow.utils.mlflow_tags import (
+from mlflowacim.tracking._tracking_service.utils import _tracking_store_registry
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_USER,
     MLFLOW_SOURCE_NAME,
     MLFLOW_SOURCE_TYPE,
@@ -21,9 +21,9 @@ from mlflow.utils.mlflow_tags import (
     MLFLOW_GIT_COMMIT,
     MLFLOW_PROJECT_ENTRY_POINT,
 )
-from mlflow.utils.databricks_utils import get_databricks_runtime, _construct_databricks_run_url
-from mlflow.store.tracking.sqlalchemy_store import SqlAlchemyStore as SqlAlchemyTrackingStore
-from mlflow.store.model_registry.sqlalchemy_store import (
+from mlflowacim.utils.databricks_utils import get_databricks_runtime, _construct_databricks_run_url
+from mlflowacim.store.tracking.sqlalchemy_store import SqlAlchemyStore as SqlAlchemyTrackingStore
+from mlflowacim.store.model_registry.sqlalchemy_store import (
     SqlAlchemyStore as SqlAlchemyModelRegistryStore,
 )
 

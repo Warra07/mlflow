@@ -14,21 +14,21 @@ from click.testing import CliRunner
 from sklearn.linear_model import LogisticRegression
 from moto.core import DEFAULT_ACCOUNT_ID
 
-import mlflow
-import mlflow.pyfunc
-import mlflow.sklearn
-import mlflow.sagemaker as mfs
-from mlflow.deployments.cli import commands as cli_commands
-from mlflow.exceptions import MlflowException
-from mlflow.models import Model
-from mlflow.protos.databricks_pb2 import (
+import mlflowacim
+import mlflowacim.pyfunc
+import mlflowacim.sklearn
+import mlflowacim.sagemaker as mfs
+from mlflowacim.deployments.cli import commands as cli_commands
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.models import Model
+from mlflowacim.protos.databricks_pb2 import (
     ErrorCode,
     RESOURCE_DOES_NOT_EXIST,
     INVALID_PARAMETER_VALUE,
     INTERNAL_ERROR,
 )
-from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.store.artifact.s3_artifact_repo import S3ArtifactRepository
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
 
 from tests.helper_functions import set_boto_credentials  # pylint: disable=unused-import
 from tests.sagemaker.mock import mock_sagemaker, Endpoint, EndpointOperation
@@ -39,13 +39,13 @@ TrainedModel = namedtuple("TrainedModel", ["model_path", "run_id", "model_uri"])
 @pytest.fixture
 def pretrained_model():
     model_path = "model"
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         X = np.array([-2, -1, 0, 1, 2, 1]).reshape(-1, 1)
         y = np.array([0, 0, 1, 1, 1, 0])
         lr = LogisticRegression(solver="lbfgs")
         lr.fit(X, y)
-        mlflow.sklearn.log_model(lr, model_path)
-        run_id = mlflow.active_run().info.run_id
+        mlflowacim.sklearn.log_model(lr, model_path)
+        run_id = mlflowacim.active_run().info.run_id
         model_uri = "runs:/" + run_id + "/" + model_path
         return TrainedModel(model_path, run_id, model_uri)
 
@@ -300,7 +300,7 @@ def test_create_deployment_of_model_with_no_supported_flavors_raises_exception(
     logged_model_path = _download_artifact_from_uri(pretrained_model.model_uri)
     model_config_path = os.path.join(logged_model_path, "MLmodel")
     model_config = Model.load(model_config_path)
-    del model_config.flavors[mlflow.pyfunc.FLAVOR_NAME]
+    del model_config.flavors[mlflowacim.pyfunc.FLAVOR_NAME]
     model_config.save(path=model_config_path)
 
     match = "The specified model does not contain any of the supported flavors for deployment"
@@ -1116,12 +1116,12 @@ def test_update_deployment_in_replace_mode_with_archiving_does_not_delete_resour
     model_uri = "runs:/{run_id}/{artifact_path}".format(
         run_id=pretrained_model.run_id, artifact_path=pretrained_model.model_path
     )
-    sk_model = mlflow.sklearn.load_model(model_uri=model_uri)
+    sk_model = mlflowacim.sklearn.load_model(model_uri=model_uri)
     new_artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.sklearn.log_model(sk_model=sk_model, artifact_path=new_artifact_path)
+    with mlflowacim.start_run():
+        mlflowacim.sklearn.log_model(sk_model=sk_model, artifact_path=new_artifact_path)
         new_model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=new_artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=new_artifact_path
         )
     sagemaker_deployment_client.update_deployment(
         name=name,

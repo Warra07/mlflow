@@ -14,15 +14,15 @@ from sklearn.datasets import load_diabetes
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
-from mlflow import pyfunc
-import mlflow.pyfunc.scoring_server as pyfunc_scoring_server
-import mlflow.paddle
-from mlflow.models import Model
-from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
-from mlflow.utils.environment import _mlflow_conda_env
-from mlflow.utils.model_utils import _get_flavor_configuration
-from mlflow.tracking._model_registry import DEFAULT_AWAIT_MAX_SLEEP_SECONDS
+from mlflowacim import pyfunc
+import mlflowacim.pyfunc.scoring_server as pyfunc_scoring_server
+import mlflowacim.paddle
+from mlflowacim.models import Model
+from mlflowacim.store.artifact.s3_artifact_repo import S3ArtifactRepository
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.utils.environment import _mlflow_conda_env
+from mlflowacim.utils.model_utils import _get_flavor_configuration
+from mlflowacim.tracking._model_registry import DEFAULT_AWAIT_MAX_SLEEP_SECONDS
 
 from tests.helper_functions import (
     pyfunc_serve_and_score_model,
@@ -106,9 +106,9 @@ def pd_custom_env(tmpdir):
 
 
 def test_model_save_load(pd_model, model_path):
-    mlflow.paddle.save_model(pd_model=pd_model.model, path=model_path)
+    mlflowacim.paddle.save_model(pd_model=pd_model.model, path=model_path)
 
-    reloaded_pd_model = mlflow.paddle.load_model(model_uri=model_path)
+    reloaded_pd_model = mlflowacim.paddle.load_model(model_uri=model_path)
     reloaded_pyfunc = pyfunc.load_model(model_uri=model_path)
 
     np.testing.assert_array_almost_equal(
@@ -125,7 +125,7 @@ def test_model_save_load(pd_model, model_path):
 
 
 def test_model_load_from_remote_uri_succeeds(pd_model, model_path, mock_s3_bucket):
-    mlflow.paddle.save_model(pd_model=pd_model.model, path=model_path)
+    mlflowacim.paddle.save_model(pd_model=pd_model.model, path=model_path)
 
     artifact_root = f"s3://{mock_s3_bucket}"
     artifact_path = "model"
@@ -133,7 +133,7 @@ def test_model_load_from_remote_uri_succeeds(pd_model, model_path, mock_s3_bucke
     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
 
     model_uri = artifact_root + "/" + artifact_path
-    reloaded_model = mlflow.paddle.load_model(model_uri=model_uri)
+    reloaded_model = mlflowacim.paddle.load_model(model_uri=model_uri)
     np.testing.assert_array_almost_equal(
         pd_model.model(pd_model.inference_dataframe),
         reloaded_model(pd_model.inference_dataframe),
@@ -148,15 +148,15 @@ def test_model_log(pd_model, model_path, tmpdir):
         conda_env = os.path.join(tmpdir, "conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["paddle"])
 
-        model_info = mlflow.paddle.log_model(
+        model_info = mlflowacim.paddle.log_model(
             pd_model=model, artifact_path=artifact_path, conda_env=conda_env
         )
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
         assert model_info.model_uri == model_uri
 
-        reloaded_pd_model = mlflow.paddle.load_model(model_uri=model_uri)
+        reloaded_pd_model = mlflowacim.paddle.load_model(model_uri=model_uri)
         np.testing.assert_array_almost_equal(
             model(pd_model.inference_dataframe),
             reloaded_pd_model(pd_model.inference_dataframe),
@@ -170,22 +170,22 @@ def test_model_log(pd_model, model_path, tmpdir):
         env_path = model_config.flavors[pyfunc.FLAVOR_NAME][pyfunc.ENV]["conda"]
         assert os.path.exists(os.path.join(model_path, env_path))
     finally:
-        mlflow.end_run()
+        mlflowacim.end_run()
 
 
 def test_log_model_calls_register_model(pd_model):
     artifact_path = "model"
     register_model_patch = mock.patch("mlflow.register_model")
-    with mlflow.start_run(), register_model_patch:
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run(), register_model_patch:
+        mlflowacim.paddle.log_model(
             pd_model=pd_model.model,
             artifact_path=artifact_path,
             registered_model_name="AdsModel1",
         )
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
-        mlflow.register_model.assert_called_once_with(
+        mlflowacim.register_model.assert_called_once_with(
             model_uri, "AdsModel1", await_registration_for=DEFAULT_AWAIT_MAX_SLEEP_SECONDS
         )
 
@@ -193,15 +193,15 @@ def test_log_model_calls_register_model(pd_model):
 def test_log_model_no_registered_model_name(pd_model):
     artifact_path = "model"
     register_model_patch = mock.patch("mlflow.register_model")
-    with mlflow.start_run(), register_model_patch:
-        mlflow.paddle.log_model(pd_model=pd_model.model, artifact_path=artifact_path)
-        mlflow.register_model.assert_not_called()
+    with mlflowacim.start_run(), register_model_patch:
+        mlflowacim.paddle.log_model(pd_model=pd_model.model, artifact_path=artifact_path)
+        mlflowacim.register_model.assert_not_called()
 
 
 def test_model_save_persists_specified_conda_env_in_mlflow_model_directory(
     pd_model, model_path, pd_custom_env
 ):
-    mlflow.paddle.save_model(pd_model=pd_model.model, path=model_path, conda_env=pd_custom_env)
+    mlflowacim.paddle.save_model(pd_model=pd_model.model, path=model_path, conda_env=pd_custom_env)
 
     pyfunc_conf = _get_flavor_configuration(model_path=model_path, flavor_name=pyfunc.FLAVOR_NAME)
     saved_conda_env_path = os.path.join(model_path, pyfunc_conf[pyfunc.ENV]["conda"])
@@ -216,9 +216,9 @@ def test_model_save_persists_specified_conda_env_in_mlflow_model_directory(
 
 
 def test_model_save_accepts_conda_env_as_dict(pd_model, model_path):
-    conda_env = dict(mlflow.paddle.get_default_conda_env())
+    conda_env = dict(mlflowacim.paddle.get_default_conda_env())
     conda_env["dependencies"].append("pytest")
-    mlflow.paddle.save_model(pd_model=pd_model.model, path=model_path, conda_env=conda_env)
+    mlflowacim.paddle.save_model(pd_model=pd_model.model, path=model_path, conda_env=conda_env)
 
     pyfunc_conf = _get_flavor_configuration(model_path=model_path, flavor_name=pyfunc.FLAVOR_NAME)
     saved_conda_env_path = os.path.join(model_path, pyfunc_conf[pyfunc.ENV]["conda"])
@@ -231,12 +231,12 @@ def test_model_save_accepts_conda_env_as_dict(pd_model, model_path):
 
 def test_model_log_persists_specified_conda_env_in_mlflow_model_directory(pd_model, pd_custom_env):
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(
             pd_model=pd_model.model, artifact_path=artifact_path, conda_env=pd_custom_env
         )
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
 
     model_path = _download_artifact_from_uri(artifact_uri=model_uri)
@@ -255,18 +255,18 @@ def test_model_log_persists_specified_conda_env_in_mlflow_model_directory(pd_mod
 def test_model_save_without_specified_conda_env_uses_default_env_with_expected_dependencies(
     pd_model, model_path
 ):
-    mlflow.paddle.save_model(pd_model=pd_model.model, path=model_path)
-    _assert_pip_requirements(model_path, mlflow.paddle.get_default_pip_requirements())
+    mlflowacim.paddle.save_model(pd_model=pd_model.model, path=model_path)
+    _assert_pip_requirements(model_path, mlflowacim.paddle.get_default_pip_requirements())
 
 
 def test_model_log_without_specified_conda_env_uses_default_env_with_expected_dependencies(
     pd_model,
 ):
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.paddle.log_model(pd_model=pd_model.model, artifact_path=artifact_path)
-        model_uri = mlflow.get_artifact_uri(artifact_path)
-    _assert_pip_requirements(model_uri, mlflow.paddle.get_default_pip_requirements())
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(pd_model=pd_model.model, artifact_path=artifact_path)
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
+    _assert_pip_requirements(model_uri, mlflowacim.paddle.get_default_pip_requirements())
 
 
 @pytest.fixture(scope="module")
@@ -302,9 +302,9 @@ def pd_model_built_in_high_level_api(get_dataset_built_in_high_level_api):
 def test_model_save_load_built_in_high_level_api(pd_model_built_in_high_level_api, model_path):
     model = pd_model_built_in_high_level_api.model
     test_dataset = pd_model_built_in_high_level_api.inference_dataframe
-    mlflow.paddle.save_model(pd_model=model, path=model_path)
+    mlflowacim.paddle.save_model(pd_model=model, path=model_path)
 
-    reloaded_pd_model = mlflow.paddle.load_model(model_uri=model_path)
+    reloaded_pd_model = mlflowacim.paddle.load_model(model_uri=model_path)
     reloaded_pyfunc = pyfunc.load_model(model_uri=model_path)
 
     low_level_test_dataset = [x[0] for x in test_dataset]
@@ -327,7 +327,7 @@ def test_model_built_in_high_level_api_load_from_remote_uri_succeeds(
 ):
     model = pd_model_built_in_high_level_api.model
     test_dataset = pd_model_built_in_high_level_api.inference_dataframe
-    mlflow.paddle.save_model(pd_model=model, path=model_path)
+    mlflowacim.paddle.save_model(pd_model=model, path=model_path)
 
     artifact_root = f"s3://{mock_s3_bucket}"
     artifact_path = "model"
@@ -335,7 +335,7 @@ def test_model_built_in_high_level_api_load_from_remote_uri_succeeds(
     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
 
     model_uri = artifact_root + "/" + artifact_path
-    reloaded_model = mlflow.paddle.load_model(model_uri=model_uri)
+    reloaded_model = mlflowacim.paddle.load_model(model_uri=model_uri)
 
     low_level_test_dataset = [x[0] for x in test_dataset]
 
@@ -354,12 +354,12 @@ def test_model_built_in_high_level_api_log(pd_model_built_in_high_level_api, mod
         conda_env = os.path.join(tmpdir, "conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["paddle"])
 
-        mlflow.paddle.log_model(pd_model=model, artifact_path=artifact_path, conda_env=conda_env)
+        mlflowacim.paddle.log_model(pd_model=model, artifact_path=artifact_path, conda_env=conda_env)
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
 
-        reloaded_pd_model = mlflow.paddle.load_model(model_uri=model_uri)
+        reloaded_pd_model = mlflowacim.paddle.load_model(model_uri=model_uri)
         low_level_test_dataset = [x[0] for x in test_dataset]
         np.testing.assert_array_almost_equal(
             np.array(model.predict(test_dataset)).squeeze(),
@@ -374,7 +374,7 @@ def test_model_built_in_high_level_api_log(pd_model_built_in_high_level_api, mod
         env_path = model_config.flavors[pyfunc.FLAVOR_NAME][pyfunc.ENV]["conda"]
         assert os.path.exists(os.path.join(model_path, env_path))
     finally:
-        mlflow.end_run()
+        mlflowacim.end_run()
 
 
 @pytest.fixture
@@ -390,21 +390,21 @@ def test_model_retrain_built_in_high_level_api(
     get_dataset_built_in_high_level_api,
 ):
     model = pd_model_built_in_high_level_api.model
-    mlflow.paddle.save_model(pd_model=model, path=model_path, training=True)
+    mlflowacim.paddle.save_model(pd_model=model, path=model_path, training=True)
 
     training_dataset, test_dataset = get_dataset_built_in_high_level_api
 
     model_retrain = paddle.Model(UCIHousing())
-    model_retrain = mlflow.paddle.load_model(model_uri=model_path, model=model_retrain)
+    model_retrain = mlflowacim.paddle.load_model(model_uri=model_path, model=model_retrain)
     optim = paddle.optimizer.Adam(learning_rate=0.015, parameters=model.parameters())
     model_retrain.prepare(optim, paddle.nn.MSELoss())
 
     model_retrain.fit(training_dataset, epochs=6, batch_size=8, verbose=1)
 
-    mlflow.paddle.save_model(pd_model=model_retrain, path=model_retrain_path, training=False)
+    mlflowacim.paddle.save_model(pd_model=model_retrain, path=model_retrain_path, training=False)
 
     with pytest.raises(TypeError, match="This model can't be loaded"):
-        mlflow.paddle.load_model(model_uri=model_retrain_path, model=model_retrain)
+        mlflowacim.paddle.load_model(model_uri=model_retrain_path, model=model_retrain)
 
     error_model = 0
     error_model_type = type(error_model)
@@ -412,9 +412,9 @@ def test_model_retrain_built_in_high_level_api(
         TypeError,
         match=f"Invalid object type `{error_model_type}` for `model`, must be `paddle.Model`",
     ):
-        mlflow.paddle.load_model(model_uri=model_retrain_path, model=error_model)
+        mlflowacim.paddle.load_model(model_uri=model_retrain_path, model=error_model)
 
-    reloaded_pd_model = mlflow.paddle.load_model(model_uri=model_retrain_path)
+    reloaded_pd_model = mlflowacim.paddle.load_model(model_uri=model_retrain_path)
     reloaded_pyfunc = pyfunc.load_model(model_uri=model_retrain_path)
     low_level_test_dataset = [x[0] for x in test_dataset]
 
@@ -442,17 +442,17 @@ def test_log_model_built_in_high_level_api(
         conda_env = os.path.join(tmpdir, "conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["paddle"])
 
-        mlflow.paddle.log_model(
+        mlflowacim.paddle.log_model(
             pd_model=model, artifact_path=artifact_path, conda_env=conda_env, training=True
         )
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
 
         model_retrain = paddle.Model(UCIHousing())
         optim = paddle.optimizer.Adam(learning_rate=0.015, parameters=model.parameters())
         model_retrain.prepare(optim, paddle.nn.MSELoss())
-        model_retrain = mlflow.paddle.load_model(model_uri=model_uri, model=model_retrain)
+        model_retrain = mlflowacim.paddle.load_model(model_uri=model_uri, model=model_retrain)
 
         np.testing.assert_array_almost_equal(
             np.array(model.predict(test_dataset)).squeeze(),
@@ -466,7 +466,7 @@ def test_log_model_built_in_high_level_api(
         env_path = model_config.flavors[pyfunc.FLAVOR_NAME][pyfunc.ENV]["conda"]
         assert os.path.exists(os.path.join(model_path, env_path))
     finally:
-        mlflow.end_run()
+        mlflowacim.end_run()
 
 
 def test_log_model_with_pip_requirements(pd_model, tmpdir):
@@ -474,28 +474,28 @@ def test_log_model_with_pip_requirements(pd_model, tmpdir):
     # Path to a requirements file
     req_file = tmpdir.join("requirements.txt")
     req_file.write("a")
-    with mlflow.start_run():
-        mlflow.paddle.log_model(pd_model.model, "model", pip_requirements=req_file.strpath)
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(pd_model.model, "model", pip_requirements=req_file.strpath)
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"), [expected_mlflow_version, "a"], strict=True
+            mlflowacim.get_artifact_uri("model"), [expected_mlflow_version, "a"], strict=True
         )
 
     # List of requirements
-    with mlflow.start_run():
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(
             pd_model.model, "model", pip_requirements=[f"-r {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"), [expected_mlflow_version, "a", "b"], strict=True
+            mlflowacim.get_artifact_uri("model"), [expected_mlflow_version, "a", "b"], strict=True
         )
 
     # Constraints file
-    with mlflow.start_run():
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(
             pd_model.model, "model", pip_requirements=[f"-c {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, "b", "-c constraints.txt"],
             ["a"],
             strict=True,
@@ -504,33 +504,33 @@ def test_log_model_with_pip_requirements(pd_model, tmpdir):
 
 def test_log_model_with_extra_pip_requirements(pd_model, tmpdir):
     expected_mlflow_version = _mlflow_major_version_string()
-    default_reqs = mlflow.paddle.get_default_pip_requirements()
+    default_reqs = mlflowacim.paddle.get_default_pip_requirements()
 
     # Path to a requirements file
     req_file = tmpdir.join("requirements.txt")
     req_file.write("a")
-    with mlflow.start_run():
-        mlflow.paddle.log_model(pd_model.model, "model", extra_pip_requirements=req_file.strpath)
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(pd_model.model, "model", extra_pip_requirements=req_file.strpath)
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"), [expected_mlflow_version, *default_reqs, "a"]
+            mlflowacim.get_artifact_uri("model"), [expected_mlflow_version, *default_reqs, "a"]
         )
 
     # List of requirements
-    with mlflow.start_run():
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(
             pd_model.model, "model", extra_pip_requirements=[f"-r {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"), [expected_mlflow_version, *default_reqs, "a", "b"]
+            mlflowacim.get_artifact_uri("model"), [expected_mlflow_version, *default_reqs, "a", "b"]
         )
 
     # Constraints file
-    with mlflow.start_run():
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(
             pd_model.model, "model", extra_pip_requirements=[f"-c {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, *default_reqs, "b", "-c constraints.txt"],
             ["a"],
         )
@@ -539,9 +539,9 @@ def test_log_model_with_extra_pip_requirements(pd_model, tmpdir):
 def test_pyfunc_serve_and_score(pd_model):
     model, inference_dataframe = pd_model
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.paddle.log_model(model, artifact_path, extra_pip_requirements=[PROTOBUF_REQUIREMENT])
-        model_uri = mlflow.get_artifact_uri(artifact_path)
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(model, artifact_path, extra_pip_requirements=[PROTOBUF_REQUIREMENT])
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
 
     resp = pyfunc_serve_and_score_model(
         model_uri,
@@ -556,33 +556,33 @@ def test_pyfunc_serve_and_score(pd_model):
 
 def test_log_model_with_code_paths(pd_model):
     artifact_path = "model"
-    with mlflow.start_run(), mock.patch(
+    with mlflowacim.start_run(), mock.patch(
         "mlflow.paddle._add_code_from_conf_to_system_path"
     ) as add_mock:
-        mlflow.paddle.log_model(pd_model.model, artifact_path, code_paths=[__file__])
-        model_uri = mlflow.get_artifact_uri(artifact_path)
-        _compare_logged_code_paths(__file__, model_uri, mlflow.paddle.FLAVOR_NAME)
-        mlflow.paddle.load_model(model_uri)
+        mlflowacim.paddle.log_model(pd_model.model, artifact_path, code_paths=[__file__])
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
+        _compare_logged_code_paths(__file__, model_uri, mlflowacim.paddle.FLAVOR_NAME)
+        mlflowacim.paddle.load_model(model_uri)
         add_mock.assert_called()
 
 
 def test_model_save_load_with_metadata(pd_model, model_path):
-    mlflow.paddle.save_model(
+    mlflowacim.paddle.save_model(
         pd_model.model, path=model_path, metadata={"metadata_key": "metadata_value"}
     )
 
-    reloaded_model = mlflow.pyfunc.load_model(model_uri=model_path)
+    reloaded_model = mlflowacim.pyfunc.load_model(model_uri=model_path)
     assert reloaded_model.metadata.metadata["metadata_key"] == "metadata_value"
 
 
 def test_model_log_with_metadata(pd_model):
     artifact_path = "model"
 
-    with mlflow.start_run():
-        mlflow.paddle.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.paddle.log_model(
             pd_model.model, artifact_path=artifact_path, metadata={"metadata_key": "metadata_value"}
         )
-        model_uri = mlflow.get_artifact_uri(artifact_path)
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
 
-    reloaded_model = mlflow.pyfunc.load_model(model_uri=model_uri)
+    reloaded_model = mlflowacim.pyfunc.load_model(model_uri=model_uri)
     assert reloaded_model.metadata.metadata["metadata_key"] == "metadata_value"

@@ -3,7 +3,7 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from sklearn.datasets import load_iris
 
-import mlflow
+import mlflowacim
 
 spark = SparkSession.builder.getOrCreate()
 
@@ -12,10 +12,10 @@ df = spark.createDataFrame(df)
 df = VectorAssembler(inputCols=df.columns[:-1], outputCol="features").transform(df)
 train, test = df.randomSplit([0.8, 0.2])
 
-mlflow.pyspark.ml.autolog()
+mlflowacim.pyspark.ml.autolog()
 lor = LogisticRegression(maxIter=5)
 
-with mlflow.start_run():
+with mlflowacim.start_run():
     lorModel = lor.fit(train)
 
 pred = lorModel.transform(test)

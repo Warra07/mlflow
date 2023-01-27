@@ -2,8 +2,8 @@ import tensorflow as tf
 import numpy as np
 import pickle
 
-import mlflow.tensorflow
-from mlflow.utils.file_utils import TempDir
+import mlflowacim.tensorflow
+from mlflowacim.utils.file_utils import TempDir
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -14,7 +14,7 @@ parser.add_argument("--save_as_type")
 parser.add_argument("--save_path")
 
 args = parser.parse_args()
-mlflow.set_tracking_uri(args.tracking_uri)
+mlflowacim.set_tracking_uri(args.tracking_uri)
 
 tf.random.set_seed(1337)
 
@@ -33,16 +33,16 @@ if save_as_type == "tf1-estimator":
         if task_type == "save_model":
             save_path = args.save_path
             # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-            mlflow.tensorflow.save_model(
+            mlflowacim.tensorflow.save_model(
                 tf_saved_model_dir=tmp.path(),
                 tf_meta_graph_tags=["serve"],
                 tf_signature_def_key="serving_default",
                 path=save_path,
             )
         elif task_type == "log_model":
-            with mlflow.start_run() as run:
+            with mlflowacim.start_run() as run:
                 # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
-                mlflow.tensorflow.log_model(
+                mlflowacim.tensorflow.log_model(
                     tf_saved_model_dir=tmp.path(),
                     tf_meta_graph_tags=["serve"],
                     tf_signature_def_key="serving_default",
@@ -54,10 +54,10 @@ if save_as_type == "tf1-estimator":
 elif save_as_type == "keras":
     if task_type == "save_model":
         save_path = args.save_path
-        mlflow.keras.save_model(model, save_path)
+        mlflowacim.keras.save_model(model, save_path)
     elif task_type == "log_model":
-        with mlflow.start_run() as run:
-            mlflow.keras.log_model(model, "model")
+        with mlflowacim.start_run() as run:
+            mlflowacim.keras.log_model(model, "model")
             run_id = run.info.run_id
     else:
         raise ValueError("Illegal arguments.")

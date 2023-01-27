@@ -4,12 +4,12 @@ import os
 import pytest
 from unittest import mock
 
-from mlflow.store.db.db_types import DATABASE_ENGINES
-from mlflow.store.model_registry.sqlalchemy_store import SqlAlchemyStore
-from mlflow.store.model_registry.rest_store import RestStore
-from mlflow.tracking._model_registry.utils import _get_store, get_registry_uri, set_registry_uri
-from mlflow.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
-from mlflow.tracking.registry import UnsupportedModelRegistryStoreURIException
+from mlflowacim.store.db.db_types import DATABASE_ENGINES
+from mlflowacim.store.model_registry.sqlalchemy_store import SqlAlchemyStore
+from mlflowacim.store.model_registry.rest_store import RestStore
+from mlflowacim.tracking._model_registry.utils import _get_store, get_registry_uri, set_registry_uri
+from mlflowacim.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
+from mlflowacim.tracking.registry import UnsupportedModelRegistryStoreURIException
 
 
 # Disable mocking tracking URI here, as we want to test setting the tracking URI via

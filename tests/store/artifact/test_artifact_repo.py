@@ -3,10 +3,10 @@ from unittest import mock
 import pytest
 import time
 
-from mlflow.entities import FileInfo
-from mlflow.exceptions import MlflowException
-from mlflow.store.artifact.artifact_repo import ArtifactRepository
-from mlflow.utils.file_utils import TempDir
+from mlflowacim.entities import FileInfo
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.artifact.artifact_repo import ArtifactRepository
+from mlflowacim.utils.file_utils import TempDir
 
 _MOCK_ERROR = "MOCK ERROR"
 _MODEL_FILE = "modelfile"

@@ -1,8 +1,8 @@
 from unittest import mock
 
-from mlflow.entities import ViewType
-from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
-from mlflow.store.tracking.abstract_store import AbstractStore
+from mlflowacim.entities import ViewType
+from mlflowacim.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
+from mlflowacim.store.tracking.abstract_store import AbstractStore
 
 
 class AbstractStoreTestImpl(AbstractStore):

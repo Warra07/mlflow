@@ -8,21 +8,21 @@ import pytest
 import yaml
 from unittest import mock
 
-import mlflow
-from mlflow.entities import Run, SourceType
-from mlflow.entities.model_registry import ModelVersion
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.recipe import Recipe
-from mlflow.recipes.step import BaseStep
-from mlflow.recipes.utils.execution import (
+import mlflowacim
+from mlflowacim.entities import Run, SourceType
+from mlflowacim.entities.model_registry import ModelVersion
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.recipe import Recipe
+from mlflowacim.recipes.step import BaseStep
+from mlflowacim.recipes.utils.execution import (
     get_step_output_path,
     _get_execution_directory_basename,
     _MAKEFILE_FORMAT_STRING,
 )
-from mlflow.tracking.client import MlflowClient
-from mlflow.tracking.context.registry import resolve_tags
-from mlflow.utils.file_utils import path_to_local_file_uri
-from mlflow.utils.mlflow_tags import (
+from mlflowacim.tracking.client import MlflowClient
+from mlflowacim.tracking.context.registry import resolve_tags
+from mlflowacim.utils.file_utils import path_to_local_file_uri
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_SOURCE_NAME,
     MLFLOW_GIT_COMMIT,
     MLFLOW_GIT_REPO_URL,
@@ -137,12 +137,12 @@ def test_recipes_log_to_expected_mlflow_backend_with_expected_run_tags_once_on_r
     with open(profile_path, "w") as f:
         yaml.safe_dump(profile_contents, f)
 
-    mlflow.set_tracking_uri(tracking_uri)
+    mlflowacim.set_tracking_uri(tracking_uri)
     recipe = Recipe(profile="local")
     recipe.clean()
     recipe.run()
 
-    logged_runs = mlflow.search_runs(experiment_names=[experiment_name], output_format="list")
+    logged_runs = mlflowacim.search_runs(experiment_names=[experiment_name], output_format="list")
     assert len(logged_runs) == 1
     logged_run = logged_runs[0]
     assert logged_run.info.artifact_uri == path_to_local_file_uri(
@@ -163,7 +163,7 @@ def test_recipes_log_to_expected_mlflow_backend_with_expected_run_tags_once_on_r
     assert resolve_tags(recipe_source_tag).items() <= run_tags.items()
 
     recipe.run()
-    logged_runs = mlflow.search_runs(experiment_names=[experiment_name], output_format="list")
+    logged_runs = mlflowacim.search_runs(experiment_names=[experiment_name], output_format="list")
     assert len(logged_runs) == 1
 
 
@@ -180,8 +180,8 @@ def test_recipes_run_sets_mlflow_git_tags():
     tracking_uri = profile_contents["experiment"]["tracking_uri"]
     experiment_name = profile_contents["experiment"]["name"]
 
-    mlflow.set_tracking_uri(tracking_uri)
-    logged_runs = mlflow.search_runs(
+    mlflowacim.set_tracking_uri(tracking_uri)
+    logged_runs = mlflowacim.search_runs(
         experiment_names=[experiment_name],
         output_format="list",
         order_by=["attributes.start_time DESC"],
@@ -273,7 +273,7 @@ def test_recipe_get_artifacts():
     assert isinstance(recipe.get_artifact("transformed_training_data"), pd.DataFrame)
     assert isinstance(recipe.get_artifact("transformed_validation_data"), pd.DataFrame)
     assert hasattr(recipe.get_artifact("transformer"), "transform")
-    assert isinstance(recipe.get_artifact("model"), mlflow.pyfunc.PyFuncModel)
+    assert isinstance(recipe.get_artifact("model"), mlflowacim.pyfunc.PyFuncModel)
     assert isinstance(recipe.get_artifact("run"), Run)
     assert isinstance(recipe.get_artifact("registered_model_version"), ModelVersion)
 

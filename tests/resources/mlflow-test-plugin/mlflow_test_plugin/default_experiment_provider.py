@@ -1,4 +1,4 @@
-from mlflow.tracking.default_experiment.abstract_context import DefaultExperimentProvider
+from mlflowacim.tracking.default_experiment.abstract_context import DefaultExperimentProvider
 
 
 class PluginDefaultExperimentProvider(DefaultExperimentProvider):

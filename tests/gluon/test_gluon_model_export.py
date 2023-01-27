@@ -13,16 +13,16 @@ from mxnet.gluon import Trainer
 from mxnet.gluon.data import DataLoader
 from mxnet.gluon.nn import HybridSequential, Dense
 
-import mlflow
-import mlflow.gluon
-import mlflow.pyfunc.scoring_server as pyfunc_scoring_server
-from mlflow import pyfunc
-from mlflow.models import infer_signature, Model
-from mlflow.models.utils import _read_example
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
-from mlflow.utils.environment import _mlflow_conda_env
-from mlflow.utils.file_utils import TempDir
-from mlflow.utils.model_utils import _get_flavor_configuration
+import mlflowacim
+import mlflowacim.gluon
+import mlflowacim.pyfunc.scoring_server as pyfunc_scoring_server
+from mlflowacim import pyfunc
+from mlflowacim.models import infer_signature, Model
+from mlflowacim.models.utils import _read_example
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.utils.environment import _mlflow_conda_env
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.utils.model_utils import _get_flavor_configuration
 
 from tests.gluon.utils import get_estimator
 from tests.helper_functions import (
@@ -92,13 +92,13 @@ def test_model_save_load(gluon_model, model_data, model_path):
     _, _, test_data = model_data
     expected = array_module.argmax(gluon_model(test_data), axis=1)
 
-    mlflow.gluon.save_model(gluon_model, model_path)
+    mlflowacim.gluon.save_model(gluon_model, model_path)
     # Loading Gluon model
-    model_loaded = mlflow.gluon.load_model(model_path, ctx.cpu())
+    model_loaded = mlflowacim.gluon.load_model(model_path, ctx.cpu())
     actual = array_module.argmax(model_loaded(test_data), axis=1)
     assert all(expected == actual)
     # Loading pyfunc model
-    pyfunc_loaded = mlflow.pyfunc.load_model(model_path)
+    pyfunc_loaded = mlflowacim.pyfunc.load_model(model_path)
     test_pyfunc_data = pd.DataFrame(test_data.asnumpy())
     pyfunc_preds = pyfunc_loaded.predict(test_pyfunc_data)
     assert all(np.argmax(pyfunc_preds.values, axis=1) == expected.asnumpy())
@@ -117,7 +117,7 @@ def test_signature_and_examples_are_saved_correctly(gluon_model, model_data):
         for example in (None, example_):
             with TempDir() as tmp:
                 path = tmp.path("model")
-                mlflow.gluon.save_model(
+                mlflowacim.gluon.save_model(
                     model, path=path, signature=signature, input_example=example
                 )
                 mlflow_model = Model.load(path)
@@ -134,19 +134,19 @@ def test_model_log_load(gluon_model, model_data, model_path):
     expected = array_module.argmax(gluon_model(test_data), axis=1)
 
     artifact_path = "model"
-    with mlflow.start_run():
-        model_info = mlflow.gluon.log_model(gluon_model, artifact_path=artifact_path)
+    with mlflowacim.start_run():
+        model_info = mlflowacim.gluon.log_model(gluon_model, artifact_path=artifact_path)
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
         assert model_info.model_uri == model_uri
 
     # Loading Gluon model
-    model_loaded = mlflow.gluon.load_model(model_uri, ctx.cpu())
+    model_loaded = mlflowacim.gluon.load_model(model_uri, ctx.cpu())
     actual = array_module.argmax(model_loaded(test_data), axis=1)
     assert all(expected == actual)
     # Loading pyfunc model
-    pyfunc_loaded = mlflow.pyfunc.load_model(model_uri)
+    pyfunc_loaded = mlflowacim.pyfunc.load_model(model_uri)
     test_pyfunc_data = pd.DataFrame(test_data.asnumpy())
     pyfunc_preds = pyfunc_loaded.predict(test_pyfunc_data)
     assert all(np.argmax(pyfunc_preds.values, axis=1) == expected.asnumpy())
@@ -155,7 +155,7 @@ def test_model_log_load(gluon_model, model_data, model_path):
 def test_model_save_persists_specified_conda_env_in_mlflow_model_directory(
     gluon_model, model_path, gluon_custom_env
 ):
-    mlflow.gluon.save_model(gluon_model=gluon_model, path=model_path, conda_env=gluon_custom_env)
+    mlflowacim.gluon.save_model(gluon_model=gluon_model, path=model_path, conda_env=gluon_custom_env)
 
     pyfunc_conf = _get_flavor_configuration(model_path=model_path, flavor_name=pyfunc.FLAVOR_NAME)
     saved_conda_env_path = os.path.join(model_path, pyfunc_conf[pyfunc.ENV]["conda"])
@@ -172,7 +172,7 @@ def test_model_save_persists_specified_conda_env_in_mlflow_model_directory(
 def test_model_save_persists_requirements_in_mlflow_model_directory(
     gluon_model, model_path, gluon_custom_env
 ):
-    mlflow.gluon.save_model(gluon_model=gluon_model, path=model_path, conda_env=gluon_custom_env)
+    mlflowacim.gluon.save_model(gluon_model=gluon_model, path=model_path, conda_env=gluon_custom_env)
 
     saved_pip_req_path = os.path.join(model_path, "requirements.txt")
     _compare_conda_env_requirements(gluon_custom_env, saved_pip_req_path)
@@ -184,19 +184,19 @@ def test_save_model_with_pip_requirements(gluon_model, tmpdir):
     tmpdir1 = tmpdir.join("1")
     req_file = tmpdir.join("requirements.txt")
     req_file.write("a")
-    mlflow.gluon.save_model(gluon_model, tmpdir1.strpath, pip_requirements=req_file.strpath)
+    mlflowacim.gluon.save_model(gluon_model, tmpdir1.strpath, pip_requirements=req_file.strpath)
     _assert_pip_requirements(tmpdir1.strpath, [expected_mlflow_version, "a"], strict=True)
 
     # List of requirements
     tmpdir2 = tmpdir.join("2")
-    mlflow.gluon.save_model(
+    mlflowacim.gluon.save_model(
         gluon_model, tmpdir2.strpath, pip_requirements=[f"-r {req_file.strpath}", "b"]
     )
     _assert_pip_requirements(tmpdir2.strpath, [expected_mlflow_version, "a", "b"], strict=True)
 
     # Constraints file
     tmpdir3 = tmpdir.join("3")
-    mlflow.gluon.save_model(
+    mlflowacim.gluon.save_model(
         gluon_model, tmpdir3.strpath, pip_requirements=[f"-c {req_file.strpath}", "b"]
     )
     _assert_pip_requirements(
@@ -206,25 +206,25 @@ def test_save_model_with_pip_requirements(gluon_model, tmpdir):
 
 def test_save_model_with_extra_pip_requirements(gluon_model, tmpdir):
     expected_mlflow_version = _mlflow_major_version_string()
-    default_reqs = mlflow.gluon.get_default_pip_requirements()
+    default_reqs = mlflowacim.gluon.get_default_pip_requirements()
 
     # Path to a requirements file
     tmpdir1 = tmpdir.join("1")
     req_file = tmpdir.join("requirements.txt")
     req_file.write("a")
-    mlflow.gluon.save_model(gluon_model, tmpdir1.strpath, extra_pip_requirements=req_file.strpath)
+    mlflowacim.gluon.save_model(gluon_model, tmpdir1.strpath, extra_pip_requirements=req_file.strpath)
     _assert_pip_requirements(tmpdir1.strpath, [expected_mlflow_version, *default_reqs, "a"])
 
     # List of requirements
     tmpdir2 = tmpdir.join("2")
-    mlflow.gluon.save_model(
+    mlflowacim.gluon.save_model(
         gluon_model, tmpdir2.strpath, extra_pip_requirements=[f"-r {req_file.strpath}", "b"]
     )
     _assert_pip_requirements(tmpdir2.strpath, [expected_mlflow_version, *default_reqs, "a", "b"])
 
     # Constraints file
     tmpdir3 = tmpdir.join("3")
-    mlflow.gluon.save_model(
+    mlflowacim.gluon.save_model(
         gluon_model, tmpdir3.strpath, extra_pip_requirements=[f"-c {req_file.strpath}", "b"]
     )
     _assert_pip_requirements(
@@ -233,9 +233,9 @@ def test_save_model_with_extra_pip_requirements(gluon_model, tmpdir):
 
 
 def test_model_save_accepts_conda_env_as_dict(gluon_model, model_path):
-    conda_env = dict(mlflow.gluon.get_default_conda_env())
+    conda_env = dict(mlflowacim.gluon.get_default_conda_env())
     conda_env["dependencies"].append("pytest")
-    mlflow.gluon.save_model(gluon_model=gluon_model, path=model_path, conda_env=conda_env)
+    mlflowacim.gluon.save_model(gluon_model=gluon_model, path=model_path, conda_env=conda_env)
 
     pyfunc_conf = _get_flavor_configuration(model_path=model_path, flavor_name=pyfunc.FLAVOR_NAME)
     saved_conda_env_path = os.path.join(model_path, pyfunc_conf[pyfunc.ENV]["conda"])
@@ -250,13 +250,13 @@ def test_log_model_persists_specified_conda_env_in_mlflow_model_directory(
     gluon_model, gluon_custom_env
 ):
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.gluon.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.gluon.log_model(
             gluon_model=gluon_model, artifact_path=artifact_path, conda_env=gluon_custom_env
         )
         model_path = _download_artifact_from_uri(
             "runs:/{run_id}/{artifact_path}".format(
-                run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+                run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
             )
         )
 
@@ -274,13 +274,13 @@ def test_log_model_persists_specified_conda_env_in_mlflow_model_directory(
 
 def test_model_log_persists_requirements_in_mlflow_model_directory(gluon_model, gluon_custom_env):
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.gluon.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.gluon.log_model(
             gluon_model=gluon_model, artifact_path=artifact_path, conda_env=gluon_custom_env
         )
         model_path = _download_artifact_from_uri(
             "runs:/{run_id}/{artifact_path}".format(
-                run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+                run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
             )
         )
 
@@ -293,10 +293,10 @@ def test_gluon_model_serving_and_scoring_as_pyfunc(gluon_model, model_data):
     expected = array_module.argmax(gluon_model(test_data), axis=1)
 
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.gluon.log_model(gluon_model, artifact_path=artifact_path)
+    with mlflowacim.start_run():
+        mlflowacim.gluon.log_model(gluon_model, artifact_path=artifact_path)
         model_uri = "runs:/{run_id}/{artifact_path}".format(
-            run_id=mlflow.active_run().info.run_id, artifact_path=artifact_path
+            run_id=mlflowacim.active_run().info.run_id, artifact_path=artifact_path
         )
 
     scoring_response = pyfunc_serve_and_score_model(
@@ -305,7 +305,7 @@ def test_gluon_model_serving_and_scoring_as_pyfunc(gluon_model, model_data):
         content_type=pyfunc_scoring_server.CONTENT_TYPE_JSON,
         extra_args=EXTRA_PYFUNC_SERVING_TEST_ARGS,
     )
-    from mlflow.deployments import PredictionsResponse
+    from mlflowacim.deployments import PredictionsResponse
 
     response_values = (
         PredictionsResponse.from_json(scoring_response.content.decode("utf-8"))
@@ -317,18 +317,18 @@ def test_gluon_model_serving_and_scoring_as_pyfunc(gluon_model, model_data):
 
 def test_log_model_with_code_paths(gluon_model):
     artifact_path = "model"
-    with mlflow.start_run(), mock.patch(
+    with mlflowacim.start_run(), mock.patch(
         "mlflow.gluon._add_code_from_conf_to_system_path"
     ) as add_mock:
-        mlflow.gluon.log_model(gluon_model, artifact_path, code_paths=[__file__])
-        model_uri = mlflow.get_artifact_uri(artifact_path)
-        _compare_logged_code_paths(__file__, model_uri, mlflow.gluon.FLAVOR_NAME)
-        mlflow.gluon.load_model(model_uri, ctx.cpu())
+        mlflowacim.gluon.log_model(gluon_model, artifact_path, code_paths=[__file__])
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
+        _compare_logged_code_paths(__file__, model_uri, mlflowacim.gluon.FLAVOR_NAME)
+        mlflowacim.gluon.load_model(model_uri, ctx.cpu())
         add_mock.assert_called()
 
 
 def test_virtualenv_subfield_points_to_correct_path(gluon_model, model_path):
-    mlflow.gluon.save_model(gluon_model, path=model_path)
+    mlflowacim.gluon.save_model(gluon_model, path=model_path)
     pyfunc_conf = _get_flavor_configuration(model_path=model_path, flavor_name=pyfunc.FLAVOR_NAME)
     python_env_path = Path(model_path, pyfunc_conf[pyfunc.ENV]["virtualenv"])
     assert python_env_path.exists()
@@ -336,22 +336,22 @@ def test_virtualenv_subfield_points_to_correct_path(gluon_model, model_path):
 
 
 def test_model_save_load_with_metadata(gluon_model, model_path):
-    mlflow.gluon.save_model(
+    mlflowacim.gluon.save_model(
         gluon_model, path=model_path, metadata={"metadata_key": "metadata_value"}
     )
 
-    reloaded_model = mlflow.pyfunc.load_model(model_uri=model_path)
+    reloaded_model = mlflowacim.pyfunc.load_model(model_uri=model_path)
     assert reloaded_model.metadata.metadata["metadata_key"] == "metadata_value"
 
 
 def test_model_log_with_metadata(gluon_model):
     artifact_path = "model"
 
-    with mlflow.start_run():
-        mlflow.gluon.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.gluon.log_model(
             gluon_model, artifact_path=artifact_path, metadata={"metadata_key": "metadata_value"}
         )
-        model_uri = mlflow.get_artifact_uri(artifact_path)
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
 
-    reloaded_model = mlflow.pyfunc.load_model(model_uri=model_uri)
+    reloaded_model = mlflowacim.pyfunc.load_model(model_uri=model_uri)
     assert reloaded_model.metadata.metadata["metadata_key"] == "metadata_value"

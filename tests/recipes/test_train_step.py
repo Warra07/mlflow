@@ -9,19 +9,19 @@ import pytest
 
 import pandas as pd
 
-import mlflow
+import mlflowacim
 import sklearn.compose
 
-from mlflow.tracking import MlflowClient
-from mlflow.utils.file_utils import read_yaml
-from mlflow.recipes.utils.execution import (
+from mlflowacim.tracking import MlflowClient
+from mlflowacim.utils.file_utils import read_yaml
+from mlflowacim.recipes.utils.execution import (
     get_step_output_path,
     _MLFLOW_RECIPES_EXECUTION_TARGET_STEP_NAME_ENV_VAR,
 )
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
-from mlflow.recipes.steps.train import TrainStep
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.recipes.steps.train import TrainStep
 
-from mlflow.utils.mlflow_tags import (
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_SOURCE_TYPE,
     MLFLOW_RECIPE_TEMPLATE_NAME,
     MLFLOW_RECIPE_PROFILE_NAME,
@@ -153,7 +153,7 @@ def setup_train_step_with_tuning(
                                 mu: 0.01
                                 sigma: 0.0001
             """.format(
-                tracking_uri=mlflow.get_tracking_uri(),
+                tracking_uri=mlflowacim.get_tracking_uri(),
                 estimator_params=estimator_params,
                 recipe=recipe,
                 fn=estimator_fn,
@@ -177,7 +177,7 @@ def setup_train_step_with_tuning(
                     tuning:
                         enabled: false
             """.format(
-                tracking_uri=mlflow.get_tracking_uri(), recipe=recipe, fn=estimator_fn
+                tracking_uri=mlflowacim.get_tracking_uri(), recipe=recipe, fn=estimator_fn
             )
         )
     recipe_config = read_yaml(recipe_root, _RECIPE_CONFIG_FILE_NAME)
@@ -207,7 +207,7 @@ def test_train_step(tmp_recipe_root_path: Path, tmp_recipe_exec_path: Path):
                 tuning:
                     enabled: false
         """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     m_train = Mock()
@@ -251,7 +251,7 @@ def test_train_step_imbalanced_data(tmp_recipe_root_path: Path, tmp_recipe_exec_
                 tuning:
                     enabled: false
         """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     m_train = Mock()
@@ -299,7 +299,7 @@ def test_train_step_classifier_automl(
                     - rf
                     - lgbm
         """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             positive_class='positive_class: "a"' if recipe == "classification/binary" else "",
         )
     )
@@ -334,7 +334,7 @@ def setup_train_step_with_automl(
     step: train
   experiment:
     name: demo
-    tracking_uri: {mlflow.get_tracking_uri()}
+    tracking_uri: {mlflowacim.get_tracking_uri()}
   steps:
     train:
       using: automl/flaml
@@ -731,7 +731,7 @@ def test_train_step_with_predict_probability(
                 tuning:
                     enabled: false
         """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     with mock.patch(
@@ -752,8 +752,8 @@ def test_train_step_with_predict_probability(
         step_name="train",
         relative_path=TrainStep.SKLEARN_MODEL_ARTIFACT_RELATIVE_PATH,
     )
-    mlflow.sklearn.load_model(sk_model_uri)
-    model = mlflow.pyfunc.load_model(model_uri)
+    mlflowacim.sklearn.load_model(sk_model_uri)
+    model = mlflowacim.pyfunc.load_model(model_uri)
     transform_step_output_dir = tmp_recipe_exec_path.joinpath("steps", "transform", "outputs")
 
     validation_dataset = pd.read_parquet(
@@ -806,7 +806,7 @@ def test_train_step_with_predict_probability_with_custom_prefix(
                 tuning:
                     enabled: false
         """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     with mock.patch(
@@ -822,7 +822,7 @@ def test_train_step_with_predict_probability_with_custom_prefix(
         step_name="train",
         relative_path=TrainStep.MODEL_ARTIFACT_RELATIVE_PATH,
     )
-    model = mlflow.pyfunc.load_model(model_uri)
+    model = mlflowacim.pyfunc.load_model(model_uri)
     transform_step_output_dir = tmp_recipe_exec_path.joinpath("steps", "transform", "outputs")
 
     validation_dataset = pd.read_parquet(
@@ -863,7 +863,7 @@ def test_train_step_with_label_encoding(tmp_recipe_root_path: Path, tmp_recipe_e
                 tuning:
                     enabled: false
         """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
     with mock.patch(
@@ -879,7 +879,7 @@ def test_train_step_with_label_encoding(tmp_recipe_root_path: Path, tmp_recipe_e
         step_name="train",
         relative_path=TrainStep.MODEL_ARTIFACT_RELATIVE_PATH,
     )
-    model = mlflow.pyfunc.load_model(model_uri)
+    model = mlflowacim.pyfunc.load_model(model_uri)
     transform_step_output_dir = tmp_recipe_exec_path.joinpath("steps", "transform", "outputs")
 
     validation_dataset = pd.read_parquet(

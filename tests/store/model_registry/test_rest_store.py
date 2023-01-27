@@ -7,8 +7,8 @@ import uuid
 from unittest import mock
 import functools
 
-from mlflow.entities.model_registry import RegisteredModelTag, ModelVersionTag
-from mlflow.protos.model_registry_pb2 import (
+from mlflowacim.entities.model_registry import RegisteredModelTag, ModelVersionTag
+from mlflowacim.protos.model_registry_pb2 import (
     CreateRegisteredModel,
     UpdateRegisteredModel,
     DeleteRegisteredModel,
@@ -28,9 +28,9 @@ from mlflow.protos.model_registry_pb2 import (
     DeleteRegisteredModelTag,
     DeleteModelVersionTag,
 )
-from mlflow.store.model_registry.rest_store import RestStore
-from mlflow.utils.proto_json_utils import message_to_json
-from mlflow.utils.rest_utils import MlflowHostCreds
+from mlflowacim.store.model_registry.rest_store import RestStore
+from mlflowacim.utils.proto_json_utils import message_to_json
+from mlflowacim.utils.rest_utils import MlflowHostCreds
 
 
 @pytest.fixture(scope="class")

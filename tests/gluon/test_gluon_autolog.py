@@ -9,11 +9,11 @@ from mxnet.gluon import Trainer
 from mxnet.gluon.data import Dataset, DataLoader
 from mxnet.gluon.nn import HybridSequential, Dense
 
-import mlflow
-import mlflow.gluon
-from mlflow import MlflowClient
-from mlflow.gluon._autolog import __MLflowGluonCallback
-from mlflow.utils.autologging_utils import BatchMetricsLogger
+import mlflowacim
+import mlflowacim.gluon
+from mlflowacim import MlflowClient
+from mlflowacim.gluon._autolog import __MLflowGluonCallback
+from mlflowacim.utils.autologging_utils import BatchMetricsLogger
 from unittest.mock import patch
 from tests.gluon.utils import is_mxnet_older_than_1_6_0, get_estimator
 
@@ -45,9 +45,9 @@ def get_train_prefix():
 
 
 def get_gluon_random_data_run(log_models=True):
-    mlflow.gluon.autolog(log_models)
+    mlflowacim.gluon.autolog(log_models)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         data = DataLoader(LogsDataset(), batch_size=128, last_batch="discard")
         validation = DataLoader(LogsDataset(), batch_size=128, last_batch="discard")
 
@@ -128,7 +128,7 @@ def test_gluon_autolog_model_can_load_from_artifact(gluon_random_data_run):
     artifacts = [x.path for x in artifacts]
     assert "model" in artifacts
     ctx = mx.cpu()
-    model = mlflow.gluon.load_model("runs:/" + gluon_random_data_run.info.run_id + "/model", ctx)
+    model = mlflowacim.gluon.load_model("runs:/" + gluon_random_data_run.info.run_id + "/model", ctx)
     model(array_module.array(np.random.rand(1000, 1, 32)))
 
 
@@ -142,7 +142,7 @@ def test_gluon_autolog_log_models_configuration(log_models):
 
 
 def test_autolog_ends_auto_created_run():
-    mlflow.gluon.autolog()
+    mlflowacim.gluon.autolog()
 
     data = DataLoader(LogsDataset(), batch_size=128, last_batch="discard")
 
@@ -160,15 +160,15 @@ def test_autolog_ends_auto_created_run():
 
     est.fit(data, epochs=3)
 
-    assert mlflow.active_run() is None
+    assert mlflowacim.active_run() is None
 
 
 def test_autolog_persists_manually_created_run():
-    mlflow.gluon.autolog()
+    mlflowacim.gluon.autolog()
 
     data = DataLoader(LogsDataset(), batch_size=128, last_batch="discard")
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
 
         model = HybridSequential()
         model.add(Dense(64, activation="relu"))
@@ -185,7 +185,7 @@ def test_autolog_persists_manually_created_run():
 
         est.fit(data, epochs=3)
 
-        assert mlflow.active_run().info.run_id == run.info.run_id
+        assert mlflowacim.active_run().info.run_id == run.info.run_id
 
 
 def test_callback_is_callable():
@@ -195,7 +195,7 @@ def test_callback_is_callable():
 
 def test_autolog_registering_model():
     registered_model_name = "test_autolog_registered_model"
-    mlflow.gluon.autolog(registered_model_name=registered_model_name)
+    mlflowacim.gluon.autolog(registered_model_name=registered_model_name)
 
     data = DataLoader(LogsDataset(), batch_size=128, last_batch="discard")
 
@@ -210,7 +210,7 @@ def test_autolog_registering_model():
     )
     est = get_estimator(model, trainer)
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         est.fit(data, epochs=3)
 
         registered_model = MlflowClient().get_registered_model(registered_model_name)

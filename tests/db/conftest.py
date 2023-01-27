@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from mlflow.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
+from mlflowacim.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
 
 
 @pytest.fixture(autouse=True)

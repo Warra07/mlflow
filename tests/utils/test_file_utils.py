@@ -12,9 +12,9 @@ import stat
 import pandas as pd
 from pyspark.sql import SparkSession
 
-from mlflow.exceptions import MissingConfigException
-from mlflow.utils import file_utils
-from mlflow.utils.file_utils import (
+from mlflowacim.exceptions import MissingConfigException
+from mlflowacim.utils import file_utils
+from mlflowacim.utils.file_utils import (
     get_parent_dir,
     _copy_file_or_tree,
     read_parquet_as_pandas_df,

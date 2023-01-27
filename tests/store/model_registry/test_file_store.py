@@ -8,20 +8,20 @@ from unittest import mock
 import uuid
 import pytest
 
-from mlflow.entities.model_registry import (
+from mlflowacim.entities.model_registry import (
     ModelVersion,
     RegisteredModelTag,
     ModelVersionTag,
 )
-from mlflow.exceptions import MlflowException
-from mlflow.store.model_registry.file_store import FileStore
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.model_registry.file_store import FileStore
 
-from mlflow.protos.databricks_pb2 import (
+from mlflowacim.protos.databricks_pb2 import (
     ErrorCode,
     RESOURCE_DOES_NOT_EXIST,
     INVALID_PARAMETER_VALUE,
 )
-from mlflow.utils.file_utils import write_yaml, path_to_local_file_uri
+from mlflowacim.utils.file_utils import write_yaml, path_to_local_file_uri
 
 from tests.helper_functions import random_int, random_str
 
@@ -1329,28 +1329,28 @@ class TestFileStore(unittest.TestCase):
         assert exception_context.value.error_code == ErrorCode.Name(INVALID_PARAMETER_VALUE)
 
     def test_pyfunc_model_registry_with_file_store(self):
-        import mlflow
-        from mlflow.pyfunc import PythonModel
+        import mlflowacim
+        from mlflowacim.pyfunc import PythonModel
 
         class MyModel(PythonModel):
             def predict(self, context, model_input):
                 return 7
 
         fs = self.get_store()
-        mlflow.set_registry_uri(path_to_local_file_uri(fs.root_directory))
-        with mlflow.start_run():
-            mlflow.pyfunc.log_model(
+        mlflowacim.set_registry_uri(path_to_local_file_uri(fs.root_directory))
+        with mlflowacim.start_run():
+            mlflowacim.pyfunc.log_model(
                 python_model=MyModel(), artifact_path="foo", registered_model_name="model1"
             )
-            mlflow.pyfunc.log_model(
+            mlflowacim.pyfunc.log_model(
                 python_model=MyModel(), artifact_path="foo", registered_model_name="model2"
             )
-            mlflow.pyfunc.log_model(
+            mlflowacim.pyfunc.log_model(
                 python_model=MyModel(), artifact_path="foo", registered_model_name="model1"
             )
 
-        with mlflow.start_run():
-            mlflow.log_param("A", "B")
+        with mlflowacim.start_run():
+            mlflowacim.log_param("A", "B")
 
         models = fs.search_registered_models(max_results=10)
         assert len(models) == 2

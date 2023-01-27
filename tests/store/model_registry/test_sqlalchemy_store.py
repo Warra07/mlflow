@@ -6,26 +6,26 @@ from unittest import mock
 import uuid
 import pytest
 
-from mlflow.entities.model_registry import (
+from mlflowacim.entities.model_registry import (
     ModelVersion,
     RegisteredModelTag,
     ModelVersionTag,
 )
-from mlflow.exceptions import MlflowException
-from mlflow.store.model_registry.dbmodels.models import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.model_registry.dbmodels.models import (
     SqlRegisteredModel,
     SqlRegisteredModelTag,
     SqlModelVersion,
     SqlModelVersionTag,
 )
-from mlflow.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
-from mlflow.protos.databricks_pb2 import (
+from mlflowacim.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
+from mlflowacim.protos.databricks_pb2 import (
     ErrorCode,
     RESOURCE_DOES_NOT_EXIST,
     INVALID_PARAMETER_VALUE,
     RESOURCE_ALREADY_EXISTS,
 )
-from mlflow.store.model_registry.sqlalchemy_store import SqlAlchemyStore
+from mlflowacim.store.model_registry.sqlalchemy_store import SqlAlchemyStore
 from tests.helper_functions import random_str
 
 DB_URI = "sqlite:///"

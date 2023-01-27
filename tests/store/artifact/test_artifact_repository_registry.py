@@ -2,9 +2,9 @@ from importlib import reload
 import pytest
 from unittest import mock
 
-import mlflow
-from mlflow.store.artifact import artifact_repository_registry
-from mlflow.store.artifact.artifact_repository_registry import ArtifactRepositoryRegistry
+import mlflowacim
+from mlflowacim.store.artifact import artifact_repository_registry
+from mlflowacim.store.artifact.artifact_repository_registry import ArtifactRepositoryRegistry
 
 
 def test_standard_artifact_registry():
@@ -68,7 +68,7 @@ def test_get_unknown_scheme():
     artifact_repository_registry = ArtifactRepositoryRegistry()
 
     with pytest.raises(
-        mlflow.exceptions.MlflowException, match="Could not find a registered artifact repository"
+        mlflowacim.exceptions.MlflowException, match="Could not find a registered artifact repository"
     ):
         artifact_repository_registry.get_artifact_repository("unknown-scheme://")
 

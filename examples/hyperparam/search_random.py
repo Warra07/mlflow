@@ -15,11 +15,11 @@ import click
 
 import numpy as np
 
-import mlflow
-import mlflow.sklearn
-import mlflow.tracking
-import mlflow.projects
-from mlflow.tracking import MlflowClient
+import mlflowacim
+import mlflowacim.sklearn
+import mlflowacim.tracking
+import mlflowacim.projects
+from mlflowacim.tracking import MlflowClient
 
 _inf = np.finfo(np.float64).max
 
@@ -43,8 +43,8 @@ def run(training_data, max_runs, max_p, epochs, metric, seed):
     ):
         def eval(parms):
             lr, momentum = parms
-            with mlflow.start_run(nested=True) as child_run:
-                p = mlflow.projects.run(
+            with mlflowacim.start_run(nested=True) as child_run:
+                p = mlflowacim.projects.run(
                     run_id=child_run.info.run_id,
                     uri=".",
                     entry_point="train",
@@ -59,7 +59,7 @@ def run(training_data, max_runs, max_p, epochs, metric, seed):
                     synchronous=False,
                 )
                 succeeded = p.wait()
-                mlflow.log_params({"lr": lr, "momentum": momentum})
+                mlflowacim.log_params({"lr": lr, "momentum": momentum})
             if succeeded:
                 training_run = tracking_client.get_run(p.run_id)
                 metrics = training_run.data.metrics
@@ -73,7 +73,7 @@ def run(training_data, max_runs, max_p, epochs, metric, seed):
                 train_loss = null_train_loss
                 val_loss = null_val_loss
                 test_loss = null_test_loss
-            mlflow.log_metrics(
+            mlflowacim.log_metrics(
                 {
                     "train_{}".format(metric): train_loss,
                     "val_{}".format(metric): val_loss,
@@ -84,7 +84,7 @@ def run(training_data, max_runs, max_p, epochs, metric, seed):
 
         return eval
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         experiment_id = run.info.experiment_id
         _, null_train_loss, null_val_loss, null_test_loss = new_eval(0, experiment_id)((0, 0))
         runs = [(np.random.uniform(1e-5, 1e-1), np.random.uniform(0, 1.0)) for _ in range(max_runs)]
@@ -109,8 +109,8 @@ def run(training_data, max_runs, max_p, epochs, metric, seed):
                 best_val_train = r.data.metrics["train_rmse"]
                 best_val_valid = r.data.metrics["val_rmse"]
                 best_val_test = r.data.metrics["test_rmse"]
-        mlflow.set_tag("best_run", best_run.info.run_id)
-        mlflow.log_metrics(
+        mlflowacim.set_tag("best_run", best_run.info.run_id)
+        mlflowacim.log_metrics(
             {
                 "train_{}".format(metric): best_val_train,
                 "val_{}".format(metric): best_val_valid,

@@ -8,17 +8,17 @@ from requests.models import Response
 from unittest import mock
 from unittest.mock import ANY
 
-from mlflow.entities.file_info import FileInfo as FileInfoEntity
-from mlflow.exceptions import MlflowException
-from mlflow.protos.databricks_artifacts_pb2 import (
+from mlflowacim.entities.file_info import FileInfo as FileInfoEntity
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.protos.databricks_artifacts_pb2 import (
     GetCredentialsForWrite,
     GetCredentialsForRead,
     ArtifactCredentialType,
     ArtifactCredentialInfo,
 )
-from mlflow.protos.service_pb2 import ListArtifacts, FileInfo
-from mlflow.store.artifact.artifact_repository_registry import get_artifact_repository
-from mlflow.store.artifact.databricks_artifact_repo import (
+from mlflowacim.protos.service_pb2 import ListArtifacts, FileInfo
+from mlflowacim.store.artifact.artifact_repository_registry import get_artifact_repository
+from mlflowacim.store.artifact.databricks_artifact_repo import (
     DatabricksArtifactRepository,
     _MAX_CREDENTIALS_REQUEST_SIZE,
 )

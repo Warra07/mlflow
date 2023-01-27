@@ -7,7 +7,7 @@ from sklearn.datasets import load_iris
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-import mlflow.pytorch
+import mlflowacim.pytorch
 
 
 class IrisClassifier(nn.Module):
@@ -88,10 +88,10 @@ if __name__ == "__main__":
     scripted_model = train_model(scripted_model, args.epochs, X_train, y_train)
     test_model(scripted_model, X_test, y_test)
 
-    with mlflow.start_run() as run:
-        mlflow.pytorch.log_model(scripted_model, "model")  # logging scripted model
-        model_path = mlflow.get_artifact_uri("model")
-        loaded_pytorch_model = mlflow.pytorch.load_model(model_path)  # loading scripted model
+    with mlflowacim.start_run() as run:
+        mlflowacim.pytorch.log_model(scripted_model, "model")  # logging scripted model
+        model_path = mlflowacim.get_artifact_uri("model")
+        loaded_pytorch_model = mlflowacim.pytorch.load_model(model_path)  # loading scripted model
         model.eval()
         with torch.no_grad():
             test_datapoint = torch.Tensor([4.4000, 3.0000, 1.3000, 0.2000]).to(device)

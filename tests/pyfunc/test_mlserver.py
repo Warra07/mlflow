@@ -1,7 +1,7 @@
 import pytest
 import os
 
-from mlflow.pyfunc.mlserver import get_cmd, MLServerMLflowRuntime, MLServerDefaultModelName
+from mlflowacim.pyfunc.mlserver import get_cmd, MLServerMLflowRuntime, MLServerDefaultModelName
 
 
 @pytest.mark.parametrize(

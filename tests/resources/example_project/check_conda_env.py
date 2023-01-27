@@ -6,7 +6,7 @@ import sys
 
 import psutil  # pylint: disable=import-error
 
-import mlflow
+import mlflowacim
 
 
 def main(expected_env_name):
@@ -15,7 +15,7 @@ def main(expected_env_name):
         f"Script expected to be run from conda env {expected_env_name} but was actually run "
         f" from env {actual_conda_env}"
     )
-    mlflow.log_metric("CPU usage", psutil.cpu_percent())
+    mlflowacim.log_metric("CPU usage", psutil.cpu_percent())
 
 
 if __name__ == "__main__":

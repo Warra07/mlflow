@@ -6,15 +6,15 @@ from unittest import mock
 import pytest
 import sqlalchemy.dialects.sqlite.pysqlite
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
 
 
 pytestmark = pytest.mark.notrackingurimock
 
 
-class Model(mlflow.pyfunc.PythonModel):
+class Model(mlflowacim.pyfunc.PythonModel):
     def load_context(self, context):
         pass
 
@@ -23,19 +23,19 @@ class Model(mlflow.pyfunc.PythonModel):
 
 
 def start_run_and_log_data():
-    with mlflow.start_run():
-        mlflow.log_param("p", "param")
-        mlflow.log_metric("m", 1.0)
-        mlflow.set_tag("t", "tag")
-        mlflow.pyfunc.log_model(
+    with mlflowacim.start_run():
+        mlflowacim.log_param("p", "param")
+        mlflowacim.log_metric("m", 1.0)
+        mlflowacim.set_tag("t", "tag")
+        mlflowacim.pyfunc.log_model(
             artifact_path="model", python_model=Model(), registered_model_name="model"
         )
 
 
 def test_search_runs():
     start_run_and_log_data()
-    runs = mlflow.search_runs(experiment_ids=["0"], order_by=["param.start_time DESC"])
-    mlflow.get_run(runs["run_id"][0])
+    runs = mlflowacim.search_runs(experiment_ids=["0"], order_by=["param.start_time DESC"])
+    mlflowacim.get_run(runs["run_id"][0])
 
 
 def test_set_run_status_to_killed():
@@ -44,7 +44,7 @@ def test_set_run_status_to_killed():
     - cfd24bdc0731_update_run_status_constraint_with_killed.py
     - 0a8213491aaa_drop_duplicate_killed_constraint.py
     """
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         pass
     client = MlflowClient()
     client.set_terminated(run_id=run.info.run_id, status="KILLED")
@@ -147,10 +147,10 @@ def test_database_operational_error(exception, monkeypatch):
     monkeypatch.setitem(
         os.environ, _TRACKING_URI_ENV_VAR, f"{os.environ[_TRACKING_URI_ENV_VAR]}-{uuid.uuid4().hex}"
     )
-    with pytest.raises(mlflow.MlflowException, match=r"sqlite3\.OperationalError"):
-        with mlflow.start_run():
+    with pytest.raises(mlflowacim.MlflowException, match=r"sqlite3\.OperationalError"):
+        with mlflowacim.start_run():
             # This statement will fail with an OperationalError.
-            mlflow.log_param(
+            mlflowacim.log_param(
                 "test_database_operational_error_1667938883_param",
                 "test_database_operational_error_1667938883_value",
             )

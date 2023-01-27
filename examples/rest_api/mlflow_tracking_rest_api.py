@@ -13,7 +13,7 @@ import argparse
 import os
 import requests
 
-from mlflow.utils.time_utils import get_current_time_millis
+from mlflowacim.utils.time_utils import get_current_time_millis
 
 _DEFAULT_USER_ID = "unknown"
 

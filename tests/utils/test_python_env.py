@@ -1,8 +1,8 @@
 import pytest
 from unittest import mock
 
-from mlflow.utils.environment import _PythonEnv
-from mlflow.utils import PYTHON_VERSION
+from mlflowacim.utils.environment import _PythonEnv
+from mlflowacim.utils import PYTHON_VERSION
 
 
 def test_constructor_argument_validation():

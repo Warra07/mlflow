@@ -1,7 +1,7 @@
 import unittest
 import pytest
 
-from mlflow.entities import RunStatus
+from mlflowacim.entities import RunStatus
 
 
 class TestRunStatus(unittest.TestCase):

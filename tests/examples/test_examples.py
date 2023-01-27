@@ -2,10 +2,10 @@ import re
 import shutil
 from pathlib import Path
 
-import mlflow
-from mlflow import cli
-from mlflow.utils import process
-from mlflow.utils.virtualenv import _get_mlflow_virtualenv_root
+import mlflowacim
+from mlflowacim import cli
+from mlflowacim.utils import process
+from mlflowacim.utils.virtualenv import _get_mlflow_virtualenv_root
 import pytest
 from tests.integration.utils import invoke_cli_runner
 
@@ -23,7 +23,7 @@ def find_python_env_yaml(directory: Path) -> Path:
 
 def replace_mlflow_with_dev_version(yml_path: Path) -> None:
     old_src = yml_path.read_text()
-    mlflow_dir = Path(mlflow.__path__[0]).parent
+    mlflow_dir = Path(mlflowacim.__path__[0]).parent
     new_src = re.sub(r"- mlflow.*\n", f"- {mlflow_dir}\n", old_src)
     yml_path.write_text(new_src)
 
@@ -89,7 +89,7 @@ def clean_up_mlflow_virtual_environments():
     ],
 )
 def test_mlflow_run_example(directory, params, tmp_path):
-    mlflow.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
+    mlflowacim.set_tracking_uri(tmp_path.joinpath("mlruns").as_uri())
     example_dir = Path(EXAMPLES_DIR, directory)
     tmp_example_dir = tmp_path.joinpath(example_dir)
     shutil.copytree(example_dir, tmp_example_dir)

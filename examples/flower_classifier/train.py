@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-import mlflow
+import mlflowacim
 
 from image_pyfunc import decode_and_resize_image, log_model, KerasImageClassifierPyfunc
 
@@ -114,7 +114,7 @@ class MLflowLogger(Callback):
                 name = "valid_" + name[4:]
             else:
                 name = "train_" + name
-            mlflow.log_metric(name, value)
+            mlflowacim.log_metric(name, value)
         val_loss = logs["val_loss"]
         if val_loss < self._best_val_loss:
             # Save the "best" weights
@@ -130,11 +130,11 @@ class MLflowLogger(Callback):
         x, y = self._train
         train_res = self._model.evaluate(x=x, y=y)
         for name, value in zip(self._model.metrics_names, train_res):
-            mlflow.log_metric("train_{}".format(name), value)
+            mlflowacim.log_metric("train_{}".format(name), value)
         x, y = self._valid
         valid_res = self._model.evaluate(x=x, y=y)
         for name, value in zip(self._model.metrics_names, valid_res):
-            mlflow.log_metric("valid_{}".format(name), value)
+            mlflowacim.log_metric("valid_{}".format(name), value)
         log_model(model=self._model, **self._pyfunc_params)
 
 
@@ -191,12 +191,12 @@ def train(
 
     input_shape = (image_width, image_height, 3)
 
-    with mlflow.start_run() as run:
-        mlflow.log_param("epochs", str(epochs))
-        mlflow.log_param("batch_size", str(batch_size))
-        mlflow.log_param("validation_ratio", str(test_ratio))
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_param("epochs", str(epochs))
+        mlflowacim.log_param("batch_size", str(batch_size))
+        mlflowacim.log_param("validation_ratio", str(test_ratio))
         if seed:
-            mlflow.log_param("seed", str(seed))
+            mlflowacim.log_param("seed", str(seed))
 
         def _read_image(filename):
             with open(filename, "rb") as f:

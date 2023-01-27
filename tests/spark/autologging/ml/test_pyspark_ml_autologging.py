@@ -31,12 +31,12 @@ from pyspark.ml.feature import HashingTF, Tokenizer, VectorAssembler, StringInde
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
 from pyspark.sql import SparkSession
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.entities import RunStatus
-from mlflow.models import Model
-from mlflow.models.utils import _read_example
-from mlflow.pyspark.ml import (
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.entities import RunStatus
+from mlflowacim.models import Model
+from mlflowacim.models.utils import _read_example
+from mlflowacim.pyspark.ml import (
     _should_log_model,
     _get_instance_param_map,
     _get_instance_param_map_recursively,
@@ -45,10 +45,10 @@ from mlflow.pyspark.ml import (
     _gen_estimator_metadata,
     _get_tuning_param_maps,
 )
-from mlflow.pyspark.ml._autolog import cast_spark_df_with_vector_to_array, get_feature_cols
-from mlflow.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID, MLFLOW_AUTOLOGGING
-from mlflow.utils import _truncate_dict
-from mlflow.utils.validation import (
+from mlflowacim.pyspark.ml._autolog import cast_spark_df_with_vector_to_array, get_feature_cols
+from mlflowacim.utils.mlflow_tags import MLFLOW_PARENT_RUN_ID, MLFLOW_AUTOLOGGING
+from mlflowacim.utils import _truncate_dict
+from mlflowacim.utils.validation import (
     MAX_PARAM_VAL_LENGTH,
     MAX_ENTITY_KEY_LENGTH,
 )
@@ -169,28 +169,28 @@ def get_params_to_log(estimator):
 
 
 def load_json_artifact(artifact_path):
-    fpath = mlflow.get_artifact_uri(artifact_path).replace("file://", "")
+    fpath = mlflowacim.get_artifact_uri(artifact_path).replace("file://", "")
     with open(fpath) as f:
         return json.load(f)
 
 
 def load_json_csv(artifact_path):
-    fpath = mlflow.get_artifact_uri(artifact_path).replace("file://", "")
+    fpath = mlflowacim.get_artifact_uri(artifact_path).replace("file://", "")
     return pd.read_csv(fpath)
 
 
 def load_model_by_run_id(run_id, model_dir=MODEL_DIR):
-    return mlflow.spark.load_model(f"runs:/{run_id}/{model_dir}")
+    return mlflowacim.spark.load_model(f"runs:/{run_id}/{model_dir}")
 
 
 def test_basic_estimator(dataset_binomial):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     for estimator in [
         LinearRegression(),
         MultilayerPerceptronClassifier(layers=[2, 2, 2], seed=123, blockSize=1),
     ]:
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             model = estimator.fit(dataset_binomial)
         run_id = run.info.run_id
         run_data = get_run_data(run_id)
@@ -211,7 +211,7 @@ def test_basic_estimator(dataset_binomial):
     reason="This test require spark version >= 3.1",
 )
 def test_models_in_allowlist_exist(spark_session):  # pylint: disable=unused-argument
-    mlflow.pyspark.ml.autolog()  # initialize the variable `mlflow.pyspark.ml._log_model_allowlist`
+    mlflowacim.pyspark.ml.autolog()  # initialize the variable `mlflow.pyspark.ml._log_model_allowlist`
 
     def model_does_not_exist(model_class):
         module_name, class_name = model_class.rsplit(".", 1)
@@ -222,7 +222,7 @@ def test_models_in_allowlist_exist(spark_session):  # pylint: disable=unused-arg
             return True
 
     non_existent_classes = list(
-        filter(model_does_not_exist, mlflow.pyspark.ml._log_model_allowlist)
+        filter(model_does_not_exist, mlflowacim.pyspark.ml._log_model_allowlist)
     )
     assert (
         len(non_existent_classes) == 0
@@ -230,17 +230,17 @@ def test_models_in_allowlist_exist(spark_session):  # pylint: disable=unused-arg
 
 
 def test_autolog_does_not_terminate_active_run(dataset_binomial):
-    mlflow.pyspark.ml.autolog()
-    mlflow.start_run()
+    mlflowacim.pyspark.ml.autolog()
+    mlflowacim.start_run()
     lr = LinearRegression()
     lr.fit(dataset_binomial)
-    assert mlflow.active_run() is not None
-    mlflow.end_run()
+    assert mlflowacim.active_run() is not None
+    mlflowacim.end_run()
 
 
 def test_meta_estimator_fit(dataset_binomial):
-    mlflow.pyspark.ml.autolog()
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog()
+    with mlflowacim.start_run() as run:
         svc = LinearSVC()
         ova = OneVsRest(classifier=svc)
         ova_model = ova.fit(dataset_binomial)
@@ -255,15 +255,15 @@ def test_meta_estimator_fit(dataset_binomial):
 
     # assert no nested run spawned
     query = "tags.{} = '{}'".format(MLFLOW_PARENT_RUN_ID, run.info.run_id)
-    assert len(mlflow.search_runs([run.info.experiment_id])) == 1
-    assert len(mlflow.search_runs([run.info.experiment_id], query)) == 0
+    assert len(mlflowacim.search_runs([run.info.experiment_id])) == 1
+    assert len(mlflowacim.search_runs([run.info.experiment_id], query)) == 0
 
 
 def test_fit_with_params(dataset_binomial):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
     lr = LinearRegression()
     extra_params = {lr.maxIter: 3, lr.standardization: False}
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         lr_model = lr.fit(dataset_binomial, params=extra_params)
     run_id = run.info.run_id
     run_data = get_run_data(run_id)
@@ -277,7 +277,7 @@ def test_fit_with_params(dataset_binomial):
 
 
 def test_fit_with_a_list_of_params(dataset_binomial):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
     lr = LinearRegression()
     extra_params = {lr.maxIter: 3, lr.standardization: False}
     # Test calling fit with a list/tuple of paramMap
@@ -285,7 +285,7 @@ def test_fit_with_a_list_of_params(dataset_binomial):
         with mock.patch("mlflow.log_params") as mock_log_params, mock.patch(
             "mlflow.set_tags"
         ) as mock_set_tags:
-            with mlflow.start_run():
+            with mlflowacim.start_run():
                 with mock.patch("mlflow.pyspark.ml._logger.warning") as mock_warning:
                     lr_model_iter = lr.fit(dataset_binomial, params=params)
                     mock_warning.called_once_with(
@@ -319,24 +319,24 @@ def lr_pipeline(tokenizer, hashing_tf, lr):
 def test_should_log_model(
     dataset_binomial, dataset_multinomial, dataset_text, lr_pipeline, tokenizer, hashing_tf, lr
 ):
-    mlflow.pyspark.ml.autolog(log_models=True)
+    mlflowacim.pyspark.ml.autolog(log_models=True)
     lor = LogisticRegression()
 
     ova1 = OneVsRest(classifier=lor)
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         mlor_model = lor.fit(dataset_multinomial)
     assert _should_log_model(mlor_model)
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         ova1_model = ova1.fit(dataset_multinomial)
     assert _should_log_model(ova1_model)
 
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         pipeline_model = lr_pipeline.fit(dataset_text)
     assert _should_log_model(pipeline_model)
 
     nested_pipeline = Pipeline(stages=[tokenizer, Pipeline(stages=[hashing_tf, lr])])
-    with mlflow.start_run():
+    with mlflowacim.start_run():
         nested_pipeline_model = nested_pipeline.fit(dataset_text)
     assert _should_log_model(nested_pipeline_model)
 
@@ -349,10 +349,10 @@ def test_should_log_model(
         },
     ), mock.patch("mlflow.pyspark.ml._logger.warning") as mock_warning:
         lr = LinearRegression()
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             lr_model = lr.fit(dataset_binomial)
         assert _should_log_model(lr_model)
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             lor_model = lor.fit(dataset_binomial)
         assert not _should_log_model(lor_model)
         mock_warning.called_once_with(_get_warning_msg_for_skip_log_model(lor_model))
@@ -362,7 +362,7 @@ def test_should_log_model(
 
 
 def test_should_log_model_with_wildcards_in_allowlist(dataset_binomial, dataset_multinomial):
-    mlflow.pyspark.ml.autolog(log_models=True)
+    mlflowacim.pyspark.ml.autolog(log_models=True)
     lor = LogisticRegression()
     ova1 = OneVsRest(classifier=lor)
     ova1_model = ova1.fit(dataset_multinomial)
@@ -376,10 +376,10 @@ def test_should_log_model_with_wildcards_in_allowlist(dataset_binomial, dataset_
         },
     ):
         lr = LinearRegression()
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             lr_model = lr.fit(dataset_binomial)
         assert _should_log_model(lr_model)
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             lor_model = lor.fit(dataset_binomial)
         assert _should_log_model(lor_model)
         assert not _should_log_model(ova1_model)
@@ -425,8 +425,8 @@ def test_log_stage_type_params(spark_session):
     assert param_map["model"] == "OneHotEncoderModel"
     assert param_map["evaluator"] == "BinaryClassificationEvaluator"
 
-    mlflow.pyspark.ml.autolog()
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog()
+    with mlflowacim.start_run() as run:
         estimator.fit(df)
         metadata = _gen_estimator_metadata(estimator)
         estimator_info = load_json_artifact("estimator_info.json")
@@ -456,8 +456,8 @@ def test_param_map_captures_wrapped_params(dataset_binomial):
     assert not param_map["LogisticRegression.standardization"]
     assert param_map["LogisticRegression.tol"] == lor.getOrDefault(lor.tol)
 
-    mlflow.pyspark.ml.autolog()
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog()
+    with mlflowacim.start_run() as run:
         ova.fit(dataset_binomial.withColumn("abcd", dataset_binomial.label))
         metadata = _gen_estimator_metadata(ova)
         estimator_info = load_json_artifact("estimator_info.json")
@@ -468,7 +468,7 @@ def test_param_map_captures_wrapped_params(dataset_binomial):
 
 
 def test_pipeline(dataset_text):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     tokenizer = Tokenizer(inputCol="text", outputCol="words")
     hashing_tf = HashingTF(inputCol=tokenizer.getOutputCol(), outputCol="features")
@@ -478,7 +478,7 @@ def test_pipeline(dataset_text):
     nested_pipeline = Pipeline(stages=[tokenizer, inner_pipeline])
 
     for estimator in [pipeline, nested_pipeline]:
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             model = estimator.fit(dataset_text)
             estimator_info = load_json_artifact("estimator_info.json")
             metadata = _gen_estimator_metadata(estimator)
@@ -503,7 +503,7 @@ def test_pipeline(dataset_text):
 def test_param_search_estimator(  # pylint: disable=unused-argument
     metric_name, param_search_estimator, spark_session, dataset_regression
 ):
-    mlflow.pyspark.ml.autolog(log_input_examples=True)
+    mlflowacim.pyspark.ml.autolog(log_input_examples=True)
     lr = LinearRegression(solver="l-bfgs", regParam=0.01)
     lrParamMaps = [
         {lr.maxIter: 1, lr.standardization: False},
@@ -513,7 +513,7 @@ def test_param_search_estimator(  # pylint: disable=unused-argument
     best_params = {"LinearRegression.maxIter": 200, "LinearRegression.standardization": True}
     eva = RegressionEvaluator(metricName=metric_name)
     estimator = param_search_estimator(estimator=lr, estimatorParamMaps=lrParamMaps, evaluator=eva)
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = estimator.fit(dataset_regression)
         estimator_info = load_json_artifact("estimator_info.json")
         metadata = _gen_estimator_metadata(estimator)
@@ -592,7 +592,7 @@ def test_param_search_estimator(  # pylint: disable=unused-argument
         )
         assert (
             child_run.data.tags.get(MLFLOW_AUTOLOGGING)
-            == mlflow.pyspark.ml.AUTOLOGGING_INTEGRATION_NAME
+            == mlflowacim.pyspark.ml.AUTOLOGGING_INTEGRATION_NAME
         )
 
         metric_name = estimator.getEvaluator().getMetricName()
@@ -723,12 +723,12 @@ def test_gen_estimator_metadata(spark_session):  # pylint: disable=unused-argume
 
 
 def test_basic_post_training_metric_autologging(dataset_iris_binomial):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     estimator = LogisticRegression(maxIter=1, family="binomial", regParam=5.0, fitIntercept=False)
     eval_dataset = dataset_iris_binomial.sample(fraction=0.3, seed=1)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         model = estimator.fit(dataset_iris_binomial)
         mce = MulticlassClassificationEvaluator(metricName="logLoss")
         pred_result = model.transform(eval_dataset)
@@ -801,7 +801,7 @@ def test_basic_post_training_metric_autologging(dataset_iris_binomial):
         },
     }
 
-    mlflow.pyspark.ml.autolog(disable=True)
+    mlflowacim.pyspark.ml.autolog(disable=True)
     recall_original = mce.evaluate(pred_result)
     assert np.isclose(logloss, recall_original)
     accuracy_original = mce.evaluate(pred_result, params={mce.metricName: "accuracy"})
@@ -811,7 +811,7 @@ def test_basic_post_training_metric_autologging(dataset_iris_binomial):
 
 
 def test_multi_model_interleaved_fit_and_post_train_metric_call(dataset_iris_binomial):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     estimator1 = LogisticRegression(maxIter=1, family="binomial", regParam=5.0, fitIntercept=False)
     estimator2 = LogisticRegression(maxIter=5, family="binomial", regParam=5.0, fitIntercept=False)
@@ -819,10 +819,10 @@ def test_multi_model_interleaved_fit_and_post_train_metric_call(dataset_iris_bin
     eval_dataset2 = dataset_iris_binomial.sample(fraction=0.3, seed=2)
     mce = MulticlassClassificationEvaluator(metricName="logLoss")
 
-    with mlflow.start_run() as run1:
+    with mlflowacim.start_run() as run1:
         model1 = estimator1.fit(dataset_iris_binomial)
 
-    with mlflow.start_run() as run2:
+    with mlflowacim.start_run() as run2:
         model2 = estimator2.fit(dataset_iris_binomial)
 
     pred1_result = model1.transform(eval_dataset1)
@@ -839,7 +839,7 @@ def test_multi_model_interleaved_fit_and_post_train_metric_call(dataset_iris_bin
 
 
 def test_meta_estimator_disable_post_training_autologging(dataset_regression):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
     lr = LinearRegression(solver="l-bfgs", regParam=0.01)
     eval_dataset = dataset_regression.sample(fraction=0.3, seed=1)
     lr_param_maps = [
@@ -859,7 +859,7 @@ def test_meta_estimator_disable_post_training_autologging(dataset_regression):
     ) as mock_log_post_training_metric, mock.patch(
         "mlflow.pyspark.ml._AutologgingMetricsManager.register_prediction_input_dataset"
     ) as mock_register_prediction_input_dataset:
-        with mlflow.start_run():
+        with mlflowacim.start_run():
             model = estimator.fit(dataset_regression)
 
         model.transform(eval_dataset)
@@ -871,7 +871,7 @@ def test_meta_estimator_disable_post_training_autologging(dataset_regression):
 
 
 def test_is_metrics_value_loggable():
-    is_metric_value_loggable = mlflow.pyspark.ml._AutologgingMetricsManager.is_metric_value_loggable
+    is_metric_value_loggable = mlflowacim.pyspark.ml._AutologgingMetricsManager.is_metric_value_loggable
     assert is_metric_value_loggable(3)
     assert is_metric_value_loggable(3.5)
     assert is_metric_value_loggable(np.float32(3.5))
@@ -887,9 +887,9 @@ def test_log_post_training_metrics_configuration(dataset_iris_binomial):
 
     # Ensure post-traning metrics autologging can be toggled on / off
     for log_post_training_metrics in [True, False, True]:
-        mlflow.pyspark.ml.autolog(log_post_training_metrics=log_post_training_metrics)
+        mlflowacim.pyspark.ml.autolog(log_post_training_metrics=log_post_training_metrics)
 
-        with mlflow.start_run() as run:
+        with mlflowacim.start_run() as run:
             model = estimator.fit(dataset_iris_binomial)
             pred_result = model.transform(dataset_iris_binomial)
             mce.evaluate(pred_result)
@@ -899,7 +899,7 @@ def test_log_post_training_metrics_configuration(dataset_iris_binomial):
 
 
 def test_autologging_handle_wrong_pipeline_stage(dataset_regression):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     lr = LinearRegression(maxIter=1)
     pipeline = Pipeline(stages=lr)
@@ -908,7 +908,7 @@ def test_autologging_handle_wrong_pipeline_stage(dataset_regression):
 
 
 def test_autologging_handle_wrong_tuning_params(dataset_regression):
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     lr = LinearRegression(maxIter=1)
     lr2 = LinearRegression(maxIter=2)
@@ -930,8 +930,8 @@ def test_autologging_handle_wrong_tuning_params(dataset_regression):
 
 def test_autolog_registering_model(spark_session, dataset_binomial):
     registered_model_name = "test_autolog_registered_model"
-    mlflow.pyspark.ml.autolog(registered_model_name=registered_model_name)
-    with mlflow.start_run():
+    mlflowacim.pyspark.ml.autolog(registered_model_name=registered_model_name)
+    with mlflowacim.start_run():
         lr = LinearRegression()
         lr.fit(dataset_binomial)
 
@@ -969,40 +969,40 @@ def _assert_autolog_infers_model_signature_correctly(run, input_sig_spec, output
 
 
 def test_autolog_input_example_with_estimator(spark_session, dataset_multinomial, lr):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         lr.fit(dataset_multinomial)
         model_path = pathlib.Path(run.info.artifact_uri).joinpath("model")
         model_conf = Model.load(model_path.joinpath("MLmodel"))
         input_example = _read_example(model_conf, model_path.as_posix())
-        pyfunc_model = mlflow.pyfunc.load_model(model_path.as_posix())
+        pyfunc_model = mlflowacim.pyfunc.load_model(model_path.as_posix())
         pyfunc_model.predict(input_example)
 
 
 def test_autolog_signature_with_estimator(spark_session, dataset_multinomial, lr):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         lr.fit(dataset_multinomial)
         model_conf = _read_model_conf_as_dict(run)
         assert "signature" not in model_conf
 
 
 def test_autolog_input_example_with_pipeline(lr_pipeline, dataset_text):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    with mlflowacim.start_run() as run:
         lr_pipeline.fit(dataset_text)
         model_path = pathlib.Path(run.info.artifact_uri).joinpath("model")
         model_conf = Model.load(model_path.joinpath("MLmodel"))
         input_example = _read_example(model_conf, model_path.as_posix())
-        pyfunc_model = mlflow.pyfunc.load_model(model_path.as_posix())
+        pyfunc_model = mlflowacim.pyfunc.load_model(model_path.as_posix())
         pyfunc_model.predict(input_example)
 
 
 def test_autolog_signature_with_pipeline(lr_pipeline, dataset_text):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    with mlflowacim.start_run() as run:
         lr_pipeline.fit(dataset_text)
         _assert_autolog_infers_model_signature_correctly(
             run, input_sig_spec=[{"name": "text", "type": "string"}], output_sig_spec=None
@@ -1010,8 +1010,8 @@ def test_autolog_signature_with_pipeline(lr_pipeline, dataset_text):
 
 
 def test_autolog_signature_non_scaler_input(dataset_multinomial, lr):
-    mlflow.pyspark.ml.autolog(log_models=True, log_model_signatures=True)
-    with mlflow.start_run() as run, mock.patch("mlflow.pyspark.ml._logger.warning") as mock_warning:
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_model_signatures=True)
+    with mlflowacim.start_run() as run, mock.patch("mlflow.pyspark.ml._logger.warning") as mock_warning:
         lr.fit(dataset_multinomial)
         mock_warning.assert_called_once_with(AnyStringWith("Model signature is not logged"))
         model_path = pathlib.Path(run.info.artifact_uri).joinpath("model")
@@ -1020,12 +1020,12 @@ def test_autolog_signature_non_scaler_input(dataset_multinomial, lr):
 
 
 def test_autolog_signature_scalar_input_and_non_scalar_output(dataset_numeric):
-    mlflow.pyspark.ml.autolog(log_models=True, log_model_signatures=True)
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_model_signatures=True)
     input_cols = [c for c in dataset_numeric.columns if c != "label"]
     pipe = Pipeline(
         stages=[VectorAssembler(inputCols=input_cols, outputCol="features"), LinearRegression()]
     )
-    with mlflow.start_run() as run, mock.patch("mlflow.pyspark.ml._logger.warning") as mock_warning:
+    with mlflowacim.start_run() as run, mock.patch("mlflow.pyspark.ml._logger.warning") as mock_warning:
         pipe.fit(dataset_numeric)
         mock_warning.assert_called_once_with(AnyStringWith("Output schema is not be logged"))
         ml_model_path = pathlib.Path(run.info.artifact_uri).joinpath("model", "MLmodel")
@@ -1063,21 +1063,21 @@ def multinomial_lr_with_index_to_string_stage_pipeline(multinomial_df_with_strin
 def test_input_example_with_index_to_string_stage(
     multinomial_df_with_string_labels, multinomial_lr_with_index_to_string_stage_pipeline
 ):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    with mlflowacim.start_run() as run:
         multinomial_lr_with_index_to_string_stage_pipeline.fit(multinomial_df_with_string_labels)
         model_path = pathlib.Path(run.info.artifact_uri).joinpath("model")
         model_conf = Model.load(model_path.joinpath("MLmodel"))
         input_example = _read_example(model_conf, model_path.as_posix())
-        pyfunc_model = mlflow.pyfunc.load_model(model_path.as_posix())
+        pyfunc_model = mlflowacim.pyfunc.load_model(model_path.as_posix())
         pyfunc_model.predict(input_example)
 
 
 def test_signature_with_index_to_string_stage(
     multinomial_df_with_string_labels, multinomial_lr_with_index_to_string_stage_pipeline
 ):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    with mlflowacim.start_run() as run:
         multinomial_lr_with_index_to_string_stage_pipeline.fit(multinomial_df_with_string_labels)
         _assert_autolog_infers_model_signature_correctly(
             run, input_sig_spec=[{"name": "id", "type": "long"}], output_sig_spec=None
@@ -1118,8 +1118,8 @@ def pipeline_for_feature_cols(input_df_with_non_features):
 def test_signature_with_non_feature_input_columns(
     input_df_with_non_features, pipeline_for_feature_cols
 ):
-    mlflow.pyspark.ml.autolog(log_models=True, log_input_examples=True)
-    with mlflow.start_run() as run:
+    mlflowacim.pyspark.ml.autolog(log_models=True, log_input_examples=True)
+    with mlflowacim.start_run() as run:
         pipeline_for_feature_cols.fit(input_df_with_non_features)
         _assert_autolog_infers_model_signature_correctly(
             run,
@@ -1165,7 +1165,7 @@ def test_get_feature_cols_with_indexer_and_assembler(spark_session):
 
 
 def test_find_and_set_features_col_as_vector_if_needed(lr, dataset_binomial):
-    from mlflow.spark import _find_and_set_features_col_as_vector_if_needed
+    from mlflowacim.spark import _find_and_set_features_col_as_vector_if_needed
     from pyspark.ml.linalg import VectorUDT
     from pyspark.sql.utils import IllegalArgumentException
 

@@ -10,15 +10,15 @@ import math
 import pytest
 import sqlalchemy
 import time
-import mlflow
+import mlflowacim
 import uuid
 import json
 from concurrent.futures import ThreadPoolExecutor
 from unittest import mock
 
-import mlflow.db
-import mlflow.store.db.base_sql_model
-from mlflow.entities import (
+import mlflowacim.db
+import mlflowacim.store.db.base_sql_model
+from mlflowacim.entities import (
     ViewType,
     RunTag,
     SourceType,
@@ -28,32 +28,32 @@ from mlflow.entities import (
     Param,
     ExperimentTag,
 )
-from mlflow.protos.databricks_pb2 import (
+from mlflowacim.protos.databricks_pb2 import (
     ErrorCode,
     BAD_REQUEST,
     RESOURCE_DOES_NOT_EXIST,
     INVALID_PARAMETER_VALUE,
     TEMPORARILY_UNAVAILABLE,
 )
-from mlflow.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
-from mlflow.store.db.utils import (
+from mlflowacim.store.tracking import SEARCH_MAX_RESULTS_DEFAULT
+from mlflowacim.store.db.utils import (
     _get_schema_version,
     _get_latest_schema_revision,
 )
-from mlflow.store.tracking.dbmodels import models
-from mlflow.store.db.db_types import SQLITE, POSTGRES, MYSQL, MSSQL
-from mlflow import entities
-from mlflow.exceptions import MlflowException
-from mlflow.store.tracking.sqlalchemy_store import SqlAlchemyStore, _get_orderby_clauses
-from mlflow.utils import mlflow_tags
-from mlflow.utils.file_utils import TempDir
-from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME
-from mlflow.utils.name_utils import _GENERATOR_PREDICATES
-from mlflow.utils.uri import extract_db_type_from_uri
-from mlflow.utils.time_utils import get_current_time_millis
-from mlflow.store.tracking.dbmodels.initial_models import Base as InitialBase
-from mlflow.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
-from mlflow.store.tracking.dbmodels.models import (
+from mlflowacim.store.tracking.dbmodels import models
+from mlflowacim.store.db.db_types import SQLITE, POSTGRES, MYSQL, MSSQL
+from mlflowacim import entities
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.tracking.sqlalchemy_store import SqlAlchemyStore, _get_orderby_clauses
+from mlflowacim.utils import mlflow_tags
+from mlflowacim.utils.file_utils import TempDir
+from mlflowacim.utils.mlflow_tags import MLFLOW_RUN_NAME
+from mlflowacim.utils.name_utils import _GENERATOR_PREDICATES
+from mlflowacim.utils.uri import extract_db_type_from_uri
+from mlflowacim.utils.time_utils import get_current_time_millis
+from mlflowacim.store.tracking.dbmodels.initial_models import Base as InitialBase
+from mlflowacim.tracking._tracking_service.utils import _TRACKING_URI_ENV_VAR
+from mlflowacim.store.tracking.dbmodels.models import (
     SqlParam,
     SqlTag,
     SqlMetric,
@@ -681,7 +681,7 @@ class TestSqlAlchemyStore(unittest.TestCase, AbstractStoreTest):
             "entry_point_name": "main.py",
             "start_time": get_current_time_millis(),
             "end_time": get_current_time_millis(),
-            "source_version": mlflow.__version__,
+            "source_version": mlflowacim.__version__,
             "lifecycle_stage": entities.LifecycleStage.ACTIVE,
             "artifact_uri": "//",
         }
@@ -2434,7 +2434,7 @@ class TestSqlAlchemyStore(unittest.TestCase, AbstractStoreTest):
         engine = sqlalchemy.create_engine(self.db_url)
         assert _get_schema_version(engine) == _get_latest_schema_revision()
         for _ in range(3):
-            invoke_cli_runner(mlflow.db.commands, ["upgrade", self.db_url])
+            invoke_cli_runner(mlflowacim.db.commands, ["upgrade", self.db_url])
             assert _get_schema_version(engine) == _get_latest_schema_revision()
 
     def test_metrics_materialization_upgrade_succeeds_and_produces_expected_latest_metric_values(
@@ -2493,7 +2493,7 @@ class TestSqlAlchemyStore(unittest.TestCase, AbstractStoreTest):
                 dst=db_path,
             )
 
-            invoke_cli_runner(mlflow.db.commands, ["upgrade", db_url])
+            invoke_cli_runner(mlflowacim.db.commands, ["upgrade", db_url])
             store = self._get_store(db_uri=db_url)
             with open(expected_metric_values_path) as f:
                 expected_metric_values = json.load(f)
@@ -2688,7 +2688,7 @@ class TestSqlAlchemyStoreMigratedDB(TestSqlAlchemyStore):
         super()._setup_db_uri()
         engine = sqlalchemy.create_engine(self.db_url)
         InitialBase.metadata.create_all(engine)
-        invoke_cli_runner(mlflow.db.commands, ["upgrade", self.db_url])
+        invoke_cli_runner(mlflowacim.db.commands, ["upgrade", self.db_url])
         self.store = SqlAlchemyStore(self.db_url, ARTIFACT_URI)
 
 

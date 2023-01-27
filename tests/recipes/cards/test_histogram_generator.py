@@ -3,8 +3,8 @@ Unit tests for histogram_generator.py
 """
 import pytest
 
-from mlflow.protos import facet_feature_statistics_pb2
-from mlflow.recipes.cards import histogram_generator
+from mlflowacim.protos import facet_feature_statistics_pb2
+from mlflowacim.recipes.cards import histogram_generator
 from google.protobuf import text_format
 
 

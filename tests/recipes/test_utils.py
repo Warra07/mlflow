@@ -5,14 +5,14 @@ import shutil
 
 import pytest
 
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.utils import (
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.utils import (
     get_recipe_root_path,
     get_recipe_name,
     get_recipe_config,
     get_default_profile,
 )
-from mlflow.utils.file_utils import write_yaml
+from mlflowacim.utils.file_utils import write_yaml
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (

@@ -1,11 +1,11 @@
 import pytest
 
-import mlflow
-from mlflow import tracking
-from mlflow.tracking.fluent import start_run
+import mlflowacim
+from mlflowacim import tracking
+from mlflowacim.tracking.fluent import start_run
 
-from mlflow.exceptions import MlflowException, INVALID_PARAMETER_VALUE, ErrorCode
-from mlflow.tracking.metric_value_conversion_utils import convert_metric_value_to_float_if_possible
+from mlflowacim.exceptions import MlflowException, INVALID_PARAMETER_VALUE, ErrorCode
+from mlflowacim.tracking.metric_value_conversion_utils import convert_metric_value_to_float_if_possible
 from tests.helper_functions import random_int
 
 import numpy as np
@@ -34,7 +34,7 @@ def test_log_np_array_as_metric():
     ndarray_float_val = float(ndarray_val[0])
 
     with start_run() as run:
-        mlflow.log_metric("name_numpy", ndarray_val)
+        mlflowacim.log_metric("name_numpy", ndarray_val)
 
     finished_run = tracking.MlflowClient().get_run(run.info.run_id)
     assert finished_run.data.metrics == {"name_numpy": ndarray_float_val}

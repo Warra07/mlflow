@@ -1,13 +1,13 @@
 import pytest
 from pathlib import Path
 
-import mlflow
-from mlflow.utils.file_utils import read_yaml
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
-from mlflow.recipes.steps.evaluate import EvaluateStep
-from mlflow.recipes.steps.register import RegisterStep, _REGISTERED_MV_INFO_FILE
-from mlflow.exceptions import MlflowException
-from mlflow.utils.mlflow_tags import (
+import mlflowacim
+from mlflowacim.utils.file_utils import read_yaml
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.recipes.steps.evaluate import EvaluateStep
+from mlflowacim.recipes.steps.register import RegisterStep, _REGISTERED_MV_INFO_FILE
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_SOURCE_TYPE,
     MLFLOW_RECIPE_TEMPLATE_NAME,
 )
@@ -66,7 +66,7 @@ custom_metrics:
     function: weighted_mean_squared_error
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             mae_threshold=mae_threshold,
             allow_non_validated_model=register_flag,
         )
@@ -88,7 +88,7 @@ def weighted_mean_squared_error(eval_df, builtin_metrics):
     recipe_config = read_yaml(tmp_recipe_root_path, _RECIPE_CONFIG_FILE_NAME)
     evaluate_step = EvaluateStep.from_recipe_config(recipe_config, str(tmp_recipe_root_path))
     evaluate_step.run(str(evaluate_step_output_dir))
-    assert len(mlflow.tracking.MlflowClient().search_registered_models()) == 0
+    assert len(mlflowacim.tracking.MlflowClient().search_registered_models()) == 0
     register_step = RegisterStep.from_recipe_config(recipe_config, str(tmp_recipe_root_path))
     if mae_threshold < 0:
         with pytest.raises(MlflowException, match=r"Model registration on .* failed"):
@@ -100,7 +100,7 @@ def weighted_mean_squared_error(eval_df, builtin_metrics):
         assert model_validation_status_path.read_text() == "VALIDATED"
         mv_info_file_path = register_step_output_dir.joinpath(_REGISTERED_MV_INFO_FILE)
         assert mv_info_file_path.exists()
-        assert len(mlflow.tracking.MlflowClient().search_registered_models()) == 1
+        assert len(mlflowacim.tracking.MlflowClient().search_registered_models()) == 1
 
 
 @pytest.mark.usefixtures("clear_custom_metrics_module_cache")
@@ -125,7 +125,7 @@ steps:
   register:
     {allow_non_validated_model}
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             allow_non_validated_model=register_flag,
         )
     )
@@ -134,7 +134,7 @@ steps:
     recipe_config = read_yaml(tmp_recipe_root_path, _RECIPE_CONFIG_FILE_NAME)
     evaluate_step = EvaluateStep.from_recipe_config(recipe_config, str(tmp_recipe_root_path))
     evaluate_step.run(str(evaluate_step_output_dir))
-    assert len(mlflow.tracking.MlflowClient().search_registered_models()) == 0
+    assert len(mlflowacim.tracking.MlflowClient().search_registered_models()) == 0
     register_step = RegisterStep.from_recipe_config(recipe_config, str(tmp_recipe_root_path))
     if register_flag == "":
         with pytest.raises(MlflowException, match=r"Model registration on .* failed"):
@@ -146,7 +146,7 @@ steps:
         assert model_validation_status_path.read_text() == "UNKNOWN"
         mv_info_file_path = register_step_output_dir.joinpath(_REGISTERED_MV_INFO_FILE)
         assert mv_info_file_path.exists()
-        assert len(mlflow.tracking.MlflowClient().search_registered_models()) == 1
+        assert len(mlflowacim.tracking.MlflowClient().search_registered_models()) == 1
 
 
 def test_usage_tracking_correctly_added(
@@ -179,7 +179,7 @@ custom_metrics:
     function: weighted_mean_squared_error
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
         )
     )
     recipe_steps_dir = tmp_recipe_root_path.joinpath("steps")
@@ -201,7 +201,7 @@ def weighted_mean_squared_error(eval_df, builtin_metrics):
     evaluate_step.run(str(evaluate_step_output_dir))
     register_step = RegisterStep.from_recipe_config(recipe_config, str(tmp_recipe_root_path))
     register_step.run(str(register_step_output_dir))
-    registered_models = mlflow.tracking.MlflowClient().search_registered_models()
+    registered_models = mlflowacim.tracking.MlflowClient().search_registered_models()
     latest_tag = registered_models[0].latest_versions[0].tags
     assert latest_tag[MLFLOW_SOURCE_TYPE] == "RECIPE"
     assert latest_tag[MLFLOW_RECIPE_TEMPLATE_NAME] == "regression/v1"
@@ -240,7 +240,7 @@ custom_metrics:
     function: weighted_mean_squared_error
     greater_is_better: False
 """.format(
-            tracking_uri=mlflow.get_tracking_uri(),
+            tracking_uri=mlflowacim.get_tracking_uri(),
             registry_uri=registry_uri,
         )
     )
@@ -263,7 +263,7 @@ def weighted_mean_squared_error(eval_df, builtin_metrics):
     evaluate_step.run(str(evaluate_step_output_dir))
     register_step = RegisterStep.from_recipe_config(recipe_config, str(tmp_recipe_root_path))
     register_step.run(str(register_step_output_dir))
-    assert mlflow.get_registry_uri() == registry_uri
+    assert mlflowacim.get_registry_uri() == registry_uri
 
 
 def test_register_step_writes_card_with_model_link_and_version_link_on_databricks(
@@ -291,7 +291,7 @@ steps:
       - metric: root_mean_squared_error
         threshold: 1_000_000
 """.format(
-            tracking_uri=mlflow.get_tracking_uri()
+            tracking_uri=mlflowacim.get_tracking_uri()
         )
     )
 

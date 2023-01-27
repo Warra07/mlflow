@@ -1,18 +1,18 @@
-import mlflow
+import mlflowacim
 from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 
-mlflow.sklearn.autolog()
+mlflowacim.sklearn.autolog()
 
 X, y = make_classification(n_samples=10000, n_classes=10, n_informative=5, random_state=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
-with mlflow.start_run() as run:
+with mlflowacim.start_run() as run:
     model = LogisticRegression(solver="liblinear").fit(X_train, y_train)
-    model_uri = mlflow.get_artifact_uri("model")
-    result = mlflow.evaluate(
+    model_uri = mlflowacim.get_artifact_uri("model")
+    result = mlflowacim.evaluate(
         model_uri,
         X_test,
         targets=y_test,

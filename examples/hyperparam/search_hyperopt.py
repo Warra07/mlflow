@@ -16,8 +16,8 @@ import numpy as np
 
 from hyperopt import fmin, hp, tpe, rand
 
-import mlflow.projects
-from mlflow.tracking import MlflowClient
+import mlflowacim.projects
+from mlflowacim.tracking import MlflowClient
 
 _inf = np.finfo(np.float64).max
 
@@ -65,11 +65,11 @@ def train(training_data, max_runs, epochs, metric, algo, seed):
                           learning_rate, drop_out_1
             :return: The metric value evaluated on the validation data.
             """
-            import mlflow.tracking
+            import mlflowacim.tracking
 
             lr, momentum = params
-            with mlflow.start_run(nested=True) as child_run:
-                p = mlflow.projects.run(
+            with mlflowacim.start_run(nested=True) as child_run:
+                p = mlflowacim.projects.run(
                     uri=".",
                     entry_point="train",
                     run_id=child_run.info.run_id,
@@ -84,7 +84,7 @@ def train(training_data, max_runs, epochs, metric, algo, seed):
                     synchronous=False,  # Allow the run to fail if a model is not properly created
                 )
                 succeeded = p.wait()
-                mlflow.log_params({"lr": lr, "momentum": momentum})
+                mlflowacim.log_params({"lr": lr, "momentum": momentum})
 
             if succeeded:
                 training_run = tracking_client.get_run(p.run_id)
@@ -100,7 +100,7 @@ def train(training_data, max_runs, epochs, metric, algo, seed):
                 valid_loss = null_valid_loss
                 test_loss = null_test_loss
 
-            mlflow.log_metrics(
+            mlflowacim.log_metrics(
                 {
                     "train_{}".format(metric): train_loss,
                     "val_{}".format(metric): valid_loss,
@@ -120,7 +120,7 @@ def train(training_data, max_runs, epochs, metric, algo, seed):
         hp.uniform("momentum", 0.0, 1.0),
     ]
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
         experiment_id = run.info.experiment_id
         # Evaluate null model first.
         train_null_loss, valid_null_loss, test_null_loss = new_eval(
@@ -132,7 +132,7 @@ def train(training_data, max_runs, epochs, metric, algo, seed):
             algo=tpe.suggest if algo == "tpe.suggest" else rand.suggest,
             max_evals=max_runs,
         )
-        mlflow.set_tag("best params", str(best))
+        mlflowacim.set_tag("best params", str(best))
         # find the best run, log its metrics as the final metrics of this run.
         client = MlflowClient()
         runs = client.search_runs(
@@ -148,8 +148,8 @@ def train(training_data, max_runs, epochs, metric, algo, seed):
                 best_val_train = r.data.metrics["train_rmse"]
                 best_val_valid = r.data.metrics["val_rmse"]
                 best_val_test = r.data.metrics["test_rmse"]
-        mlflow.set_tag("best_run", best_run.info.run_id)
-        mlflow.log_metrics(
+        mlflowacim.set_tag("best_run", best_run.info.run_id)
+        mlflowacim.log_metrics(
             {
                 "train_{}".format(metric): best_val_train,
                 "val_{}".format(metric): best_val_valid,

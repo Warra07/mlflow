@@ -1,7 +1,7 @@
 import random
 import datetime
 
-import mlflow
+import mlflowacim
 from pyspark.sql import SparkSession
 from sklearn.datasets import load_iris
 from sklearn.neighbors import KNeighborsClassifier
@@ -30,7 +30,7 @@ def main():
     )
     print_with_title("Ran input", X.head(30), X.dtypes)
 
-    signature = mlflow.models.infer_signature(X, y)
+    signature = mlflowacim.models.infer_signature(X, y)
     print_with_title("Signature", signature)
 
     month_extractor = FunctionTransformer(extract_month, validate=False)
@@ -46,8 +46,8 @@ def main():
     )
     model.fit(X, y)
 
-    with mlflow.start_run():
-        model_info = mlflow.sklearn.log_model(model, "model", signature=signature)
+    with mlflowacim.start_run():
+        model_info = mlflowacim.sklearn.log_model(model, "model", signature=signature)
 
     with SparkSession.builder.getOrCreate() as spark:
         infer_spark_df = spark.createDataFrame(X.sample(n=10, random_state=42))
@@ -57,7 +57,7 @@ def main():
             infer_spark_df._jdf.schema().treeString(),
         )
 
-        pyfunc_udf = mlflow.pyfunc.spark_udf(spark, model_info.model_uri, env_manager="conda")
+        pyfunc_udf = mlflowacim.pyfunc.spark_udf(spark, model_info.model_uri, env_manager="conda")
         result = infer_spark_df.select(pyfunc_udf(*X.columns).alias("predictions")).toPandas()
         print_with_title("Inference result", result)
 

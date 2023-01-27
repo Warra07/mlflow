@@ -1,5 +1,5 @@
 import pytest
-from mlflow.utils import gorilla
+from mlflowacim.utils import gorilla
 
 
 class Delegator:

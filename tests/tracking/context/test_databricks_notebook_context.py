@@ -1,7 +1,7 @@
 from unittest import mock
 
-from mlflow.entities import SourceType
-from mlflow.utils.mlflow_tags import (
+from mlflowacim.entities import SourceType
+from mlflowacim.utils.mlflow_tags import (
     MLFLOW_SOURCE_NAME,
     MLFLOW_SOURCE_TYPE,
     MLFLOW_DATABRICKS_NOTEBOOK_ID,
@@ -10,7 +10,7 @@ from mlflow.utils.mlflow_tags import (
     MLFLOW_DATABRICKS_WORKSPACE_URL,
     MLFLOW_DATABRICKS_WORKSPACE_ID,
 )
-from mlflow.tracking.context.databricks_notebook_context import DatabricksNotebookRunContext
+from mlflowacim.tracking.context.databricks_notebook_context import DatabricksNotebookRunContext
 from tests.helper_functions import multi_context
 
 

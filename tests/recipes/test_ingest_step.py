@@ -9,11 +9,11 @@ import pandas as pd
 import pytest
 from pyspark.sql import SparkSession
 
-from mlflow.exceptions import MlflowException
-from mlflow.recipes.steps.ingest import IngestStep
-from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-from mlflow.utils.file_utils import read_yaml
-from mlflow.recipes.utils import _RECIPE_CONFIG_FILE_NAME
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.recipes.steps.ingest import IngestStep
+from mlflowacim.store.artifact.s3_artifact_repo import S3ArtifactRepository
+from mlflowacim.utils.file_utils import read_yaml
+from mlflowacim.recipes.utils import _RECIPE_CONFIG_FILE_NAME
 
 # pylint: disable=unused-import
 from tests.recipes.helper_functions import (

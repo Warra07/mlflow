@@ -1,7 +1,7 @@
 import re
 
 import pytest
-from mlflow.utils.annotations import deprecated
+from mlflowacim.utils.annotations import deprecated
 
 
 class MyClass:

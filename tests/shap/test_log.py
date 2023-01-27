@@ -8,12 +8,12 @@ import sklearn
 from sklearn.datasets import load_diabetes, fetch_california_housing
 import shap
 
-import mlflow
-from mlflow import MlflowClient
-import mlflow.pyfunc.scoring_server as pyfunc_scoring_server
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
-from mlflow.utils import PYTHON_VERSION
-from mlflow.utils.model_utils import _get_flavor_configuration
+import mlflowacim
+from mlflowacim import MlflowClient
+import mlflowacim.pyfunc.scoring_server as pyfunc_scoring_server
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
+from mlflowacim.utils import PYTHON_VERSION
+from mlflowacim.utils.model_utils import _get_flavor_configuration
 
 from tests.helper_functions import (
     pyfunc_serve_and_score_model,
@@ -43,7 +43,7 @@ def test_sklearn_log_explainer():
     Tests mlflow.shap log_explainer with mlflow serialization of the underlying model
     """
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
 
         run_id = run.info.run_id
 
@@ -55,20 +55,20 @@ def test_sklearn_log_explainer():
         explainer_original = shap.Explainer(model.predict, X, algorithm="permutation")
         shap_values_original = explainer_original(X[:5])
 
-        mlflow.shap.log_explainer(explainer_original, "test_explainer")
+        mlflowacim.shap.log_explainer(explainer_original, "test_explainer")
 
         explainer_uri = "runs:/" + run_id + "/test_explainer"
 
-        explainer_loaded = mlflow.shap.load_explainer(explainer_uri)
+        explainer_loaded = mlflowacim.shap.load_explainer(explainer_uri)
         shap_values_new = explainer_loaded(X[:5])
 
         explainer_path = _download_artifact_from_uri(artifact_uri=explainer_uri)
         flavor_conf = _get_flavor_configuration(
-            model_path=explainer_path, flavor_name=mlflow.shap.FLAVOR_NAME
+            model_path=explainer_path, flavor_name=mlflowacim.shap.FLAVOR_NAME
         )
         underlying_model_flavor = flavor_conf["underlying_model_flavor"]
 
-        assert underlying_model_flavor == mlflow.sklearn.FLAVOR_NAME
+        assert underlying_model_flavor == mlflowacim.sklearn.FLAVOR_NAME
         np.testing.assert_array_equal(shap_values_original.base_values, shap_values_new.base_values)
         np.testing.assert_allclose(
             shap_values_original.values, shap_values_new.values, rtol=100, atol=100
@@ -80,7 +80,7 @@ def test_sklearn_log_explainer_self_serialization():
     Tests mlflow.shap log_explainer with SHAP internal serialization of the underlying model
     """
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
 
         run_id = run.info.run_id
 
@@ -92,18 +92,18 @@ def test_sklearn_log_explainer_self_serialization():
         explainer_original = shap.Explainer(model.predict, X, algorithm="permutation")
         shap_values_original = explainer_original(X[:5])
 
-        mlflow.shap.log_explainer(
+        mlflowacim.shap.log_explainer(
             explainer_original, "test_explainer", serialize_model_using_mlflow=False
         )
 
         explainer_uri = "runs:/" + run_id + "/test_explainer"
 
-        explainer_loaded = mlflow.shap.load_explainer("runs:/" + run_id + "/test_explainer")
+        explainer_loaded = mlflowacim.shap.load_explainer("runs:/" + run_id + "/test_explainer")
         shap_values_new = explainer_loaded(X[:5])
 
         explainer_path = _download_artifact_from_uri(artifact_uri=explainer_uri)
         flavor_conf = _get_flavor_configuration(
-            model_path=explainer_path, flavor_name=mlflow.shap.FLAVOR_NAME
+            model_path=explainer_path, flavor_name=mlflowacim.shap.FLAVOR_NAME
         )
         underlying_model_flavor = flavor_conf["underlying_model_flavor"]
 
@@ -120,7 +120,7 @@ def test_sklearn_log_explainer_pyfunc():
     serialization of the underlying model using pyfunc flavor
     """
 
-    with mlflow.start_run() as run:
+    with mlflowacim.start_run() as run:
 
         run_id = run.info.run_id
 
@@ -132,9 +132,9 @@ def test_sklearn_log_explainer_pyfunc():
         explainer_original = shap.Explainer(model.predict, X, algorithm="permutation")
         shap_values_original = explainer_original(X[:2])
 
-        mlflow.shap.log_explainer(explainer_original, "test_explainer")
+        mlflowacim.shap.log_explainer(explainer_original, "test_explainer")
 
-        explainer_pyfunc = mlflow.pyfunc.load_model("runs:/" + run_id + "/test_explainer")
+        explainer_pyfunc = mlflowacim.pyfunc.load_model("runs:/" + run_id + "/test_explainer")
         shap_values_new = explainer_pyfunc.predict(X[:2])
 
         np.testing.assert_allclose(shap_values_original.values, shap_values_new, rtol=100, atol=100)
@@ -142,15 +142,15 @@ def test_sklearn_log_explainer_pyfunc():
 
 def test_log_explanation_doesnt_create_autologged_run():
     try:
-        mlflow.sklearn.autolog(disable=False, exclusive=False)
+        mlflowacim.sklearn.autolog(disable=False, exclusive=False)
         X, y = sklearn.datasets.load_diabetes(return_X_y=True, as_frame=True)
         X = X.iloc[:50, :4]
         y = y.iloc[:50]
         model = sklearn.linear_model.LinearRegression()
         model.fit(X, y)
 
-        with mlflow.start_run() as run:
-            mlflow.shap.log_explanation(model.predict, X)
+        with mlflowacim.start_run() as run:
+            mlflowacim.shap.log_explanation(model.predict, X)
 
         run_data = MlflowClient().get_run(run.info.run_id).data
         metrics, params, tags = run_data.metrics, run_data.params, run_data.tags
@@ -159,7 +159,7 @@ def test_log_explanation_doesnt_create_autologged_run():
         assert all("mlflow." in key for key in tags)
         assert "mlflow.autologging" not in tags
     finally:
-        mlflow.sklearn.autolog(disable=True)
+        mlflowacim.sklearn.autolog(disable=True)
 
 
 def test_load_pyfunc(tmpdir):
@@ -172,9 +172,9 @@ def test_load_pyfunc(tmpdir):
     explainer_original = shap.Explainer(model.predict, X, algorithm="permutation")
     shap_values_original = explainer_original(X[:2])
     path = tmpdir.join("pyfunc_test").strpath
-    mlflow.shap.save_explainer(explainer_original, path)
+    mlflowacim.shap.save_explainer(explainer_original, path)
 
-    explainer_pyfunc = mlflow.shap._load_pyfunc(path)
+    explainer_pyfunc = mlflowacim.shap._load_pyfunc(path)
     shap_values_new = explainer_pyfunc.predict(X[:2])
 
     np.testing.assert_allclose(shap_values_original.values, shap_values_new, rtol=100, atol=100)
@@ -213,14 +213,14 @@ def test_merge_environment():
         ],
     }
 
-    actual_merged_env = mlflow.shap._merge_environments(test_shap_env, test_model_env)
+    actual_merged_env = mlflowacim.shap._merge_environments(test_shap_env, test_model_env)
 
     assert sorted(expected_merged_env["channels"]) == sorted(actual_merged_env["channels"])
 
-    expected_conda_deps, expected_pip_deps = mlflow.shap._get_conda_and_pip_dependencies(
+    expected_conda_deps, expected_pip_deps = mlflowacim.shap._get_conda_and_pip_dependencies(
         expected_merged_env
     )
-    actual_conda_deps, actual_pip_deps = mlflow.shap._get_conda_and_pip_dependencies(
+    actual_conda_deps, actual_pip_deps = mlflowacim.shap._get_conda_and_pip_dependencies(
         actual_merged_env
     )
 
@@ -230,36 +230,36 @@ def test_merge_environment():
 
 def test_log_model_with_pip_requirements(shap_model, tmpdir):
     expected_mlflow_version = _mlflow_major_version_string()
-    sklearn_default_reqs = mlflow.sklearn.get_default_pip_requirements(include_cloudpickle=True)
+    sklearn_default_reqs = mlflowacim.sklearn.get_default_pip_requirements(include_cloudpickle=True)
     # Path to a requirements file
     req_file = tmpdir.join("requirements.txt")
     req_file.write("a")
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(shap_model, "model", pip_requirements=req_file.strpath)
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(shap_model, "model", pip_requirements=req_file.strpath)
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, "a", *sklearn_default_reqs],
             strict=False,
         )
 
     # List of requirements
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(
             shap_model, "model", pip_requirements=[f"-r {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, "a", "b", *sklearn_default_reqs],
             strict=False,
         )
 
     # Constraints file
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(
             shap_model, "model", pip_requirements=[f"-c {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, "b", "-c constraints.txt", *sklearn_default_reqs],
             ["a"],
             strict=False,
@@ -268,36 +268,36 @@ def test_log_model_with_pip_requirements(shap_model, tmpdir):
 
 def test_log_model_with_extra_pip_requirements(shap_model, tmpdir):
     expected_mlflow_version = _mlflow_major_version_string()
-    shap_default_reqs = mlflow.shap.get_default_pip_requirements()
-    sklearn_default_reqs = mlflow.sklearn.get_default_pip_requirements(include_cloudpickle=True)
+    shap_default_reqs = mlflowacim.shap.get_default_pip_requirements()
+    sklearn_default_reqs = mlflowacim.sklearn.get_default_pip_requirements(include_cloudpickle=True)
 
     # Path to a requirements file
     req_file = tmpdir.join("requirements.txt")
     req_file.write("a")
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(shap_model, "model", extra_pip_requirements=req_file.strpath)
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(shap_model, "model", extra_pip_requirements=req_file.strpath)
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, *shap_default_reqs, "a", *sklearn_default_reqs],
         )
 
     # List of requirements
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(
             shap_model, "model", extra_pip_requirements=[f"-r {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [expected_mlflow_version, *shap_default_reqs, "a", "b", *sklearn_default_reqs],
         )
 
     # Constraints file
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(
             shap_model, "model", extra_pip_requirements=[f"-c {req_file.strpath}", "b"]
         )
         _assert_pip_requirements(
-            mlflow.get_artifact_uri("model"),
+            mlflowacim.get_artifact_uri("model"),
             [
                 expected_mlflow_version,
                 *shap_default_reqs,
@@ -339,9 +339,9 @@ def test_pyfunc_serve_and_score():
         link=create_identity_function(),
     )
     artifact_path = "model"
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(model, artifact_path)
-        model_uri = mlflow.get_artifact_uri(artifact_path)
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(model, artifact_path)
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
 
     resp = pyfunc_serve_and_score_model(
         model_uri,
@@ -355,34 +355,34 @@ def test_pyfunc_serve_and_score():
 
 def test_log_model_with_code_paths(shap_model):
     artifact_path = "model"
-    with mlflow.start_run(), mock.patch(
+    with mlflowacim.start_run(), mock.patch(
         "mlflow.shap._add_code_from_conf_to_system_path"
     ) as add_mock:
-        mlflow.shap.log_explainer(shap_model, artifact_path, code_paths=[__file__])
-        model_uri = mlflow.get_artifact_uri(artifact_path)
-        _compare_logged_code_paths(__file__, model_uri, mlflow.shap.FLAVOR_NAME)
-        mlflow.shap.load_explainer(model_uri)
+        mlflowacim.shap.log_explainer(shap_model, artifact_path, code_paths=[__file__])
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
+        _compare_logged_code_paths(__file__, model_uri, mlflowacim.shap.FLAVOR_NAME)
+        mlflowacim.shap.load_explainer(model_uri)
         add_mock.assert_called()
 
 
 def test_model_save_load_with_metadata(shap_model, tmpdir):
     model_path = tmpdir.join("pyfunc_test").strpath
-    mlflow.shap.save_explainer(
+    mlflowacim.shap.save_explainer(
         shap_model, path=model_path, metadata={"metadata_key": "metadata_value"}
     )
 
-    reloaded_model = mlflow.pyfunc.load_model(model_uri=model_path)
+    reloaded_model = mlflowacim.pyfunc.load_model(model_uri=model_path)
     assert reloaded_model.metadata.metadata["metadata_key"] == "metadata_value"
 
 
 def test_model_log_with_metadata(shap_model):
     artifact_path = "model"
 
-    with mlflow.start_run():
-        mlflow.shap.log_explainer(
+    with mlflowacim.start_run():
+        mlflowacim.shap.log_explainer(
             shap_model, artifact_path=artifact_path, metadata={"metadata_key": "metadata_value"}
         )
-        model_uri = mlflow.get_artifact_uri(artifact_path)
+        model_uri = mlflowacim.get_artifact_uri(artifact_path)
 
-    reloaded_model = mlflow.pyfunc.load_model(model_uri=model_uri)
+    reloaded_model = mlflowacim.pyfunc.load_model(model_uri=model_uri)
     assert reloaded_model.metadata.metadata["metadata_key"] == "metadata_value"

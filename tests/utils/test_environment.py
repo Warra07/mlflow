@@ -2,7 +2,7 @@ import os
 import pytest
 import yaml
 
-from mlflow.utils.environment import (
+from mlflowacim.utils.environment import (
     _mlflow_conda_env,
     _is_pip_deps,
     _get_pip_deps,

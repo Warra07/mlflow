@@ -1,7 +1,7 @@
 from unittest import mock
 import pytest
 
-from mlflow.utils import (
+from mlflowacim.utils import (
     get_unique_resource_id,
     _chunk_dict,
     _truncate_dict,
@@ -101,7 +101,7 @@ def test_get_fully_qualified_class_name():
 
 
 def test_inspect_original_var_name():
-    from mlflow.utils import _inspect_original_var_name
+    from mlflowacim.utils import _inspect_original_var_name
 
     def f1(a1, expected_name):
         assert _inspect_original_var_name(a1, "unknown") == expected_name
@@ -129,7 +129,7 @@ def test_inspect_original_var_name():
 
 
 def test_random_name_generation():
-    from mlflow.utils import name_utils
+    from mlflowacim.utils import name_utils
 
     # Validate exhausted loop truncation
     name = name_utils._generate_random_name(max_length=8)

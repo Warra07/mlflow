@@ -3,8 +3,8 @@ import os
 from unittest import mock
 from unittest.mock import ANY
 
-import mlflow
-from mlflow.tracking.artifact_utils import (
+import mlflowacim
+from mlflowacim.tracking.artifact_utils import (
     _download_artifact_from_uri,
     _upload_artifacts_to_databricks,
 )
@@ -18,9 +18,9 @@ def test_artifact_can_be_downloaded_from_absolute_uri_successfully(tmpdir):
         out.write(artifact_text)
 
     logged_artifact_path = "artifact"
-    with mlflow.start_run():
-        mlflow.log_artifact(local_path=local_artifact_path, artifact_path=logged_artifact_path)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path=logged_artifact_path)
+    with mlflowacim.start_run():
+        mlflowacim.log_artifact(local_path=local_artifact_path, artifact_path=logged_artifact_path)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path=logged_artifact_path)
 
     downloaded_artifact_path = os.path.join(
         _download_artifact_from_uri(artifact_uri), artifact_file_name
@@ -39,9 +39,9 @@ def test_download_artifact_from_absolute_uri_persists_data_to_specified_output_d
         out.write(artifact_text)
 
     logged_artifact_subdir = "logged_artifact"
-    with mlflow.start_run():
-        mlflow.log_artifact(local_path=local_artifact_path, artifact_path=logged_artifact_subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path=logged_artifact_subdir)
+    with mlflowacim.start_run():
+        mlflowacim.log_artifact(local_path=local_artifact_path, artifact_path=logged_artifact_subdir)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path=logged_artifact_subdir)
 
     artifact_output_path = tmpdir.join("artifact_output").strpath
     os.makedirs(artifact_output_path)
@@ -66,9 +66,9 @@ def test_download_artifact_with_special_characters_in_file_name_and_path(tmpdir)
         out.write(artifact_text)
 
     logged_artifact_subdir = "logged_artifact"
-    with mlflow.start_run():
-        mlflow.log_artifact(local_path=local_artifact_path, artifact_path=logged_artifact_subdir)
-        artifact_uri = mlflow.get_artifact_uri(artifact_path=logged_artifact_subdir)
+    with mlflowacim.start_run():
+        mlflowacim.log_artifact(local_path=local_artifact_path, artifact_path=logged_artifact_subdir)
+        artifact_uri = mlflowacim.get_artifact_uri(artifact_path=logged_artifact_subdir)
 
     artifact_output_path = os.path.join(tmpdir, "artifact output path!")
     os.makedirs(artifact_output_path)

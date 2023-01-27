@@ -5,11 +5,11 @@ from subprocess import Popen, STDOUT, PIPE
 import pytest
 from unittest import mock
 
-import mlflow
-import mlflow.pyfunc
-from mlflow.entities import FileInfo
-from mlflow.store.artifact.cli import _file_infos_to_json
-from mlflow.tracking.artifact_utils import _download_artifact_from_uri
+import mlflowacim
+import mlflowacim.pyfunc
+from mlflowacim.entities import FileInfo
+from mlflowacim.store.artifact.cli import _file_infos_to_json
+from mlflowacim.tracking.artifact_utils import _download_artifact_from_uri
 
 
 @pytest.fixture()
@@ -18,8 +18,8 @@ def run_with_artifact(tmp_path):
     artifact_content = "content"
     local_path = tmp_path.joinpath("file.txt")
     local_path.write_text(artifact_content)
-    with mlflow.start_run() as run:
-        mlflow.log_artifact(local_path, artifact_path)
+    with mlflowacim.start_run() as run:
+        mlflowacim.log_artifact(local_path, artifact_path)
 
     return (run, artifact_path, artifact_content)
 

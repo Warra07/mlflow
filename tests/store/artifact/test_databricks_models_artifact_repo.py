@@ -4,10 +4,10 @@ import pytest
 from unittest import mock
 from unittest.mock import ANY
 
-from mlflow.entities.model_registry import ModelVersion
-from mlflow.exceptions import MlflowException
-from mlflow.store.artifact.databricks_models_artifact_repo import DatabricksModelsArtifactRepository
-from mlflow import MlflowClient
+from mlflowacim.entities.model_registry import ModelVersion
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.artifact.databricks_models_artifact_repo import DatabricksModelsArtifactRepository
+from mlflowacim import MlflowClient
 
 DATABRICKS_MODEL_ARTIFACT_REPOSITORY_PACKAGE = (
     "mlflow.store.artifact.databricks_models_artifact_repo"

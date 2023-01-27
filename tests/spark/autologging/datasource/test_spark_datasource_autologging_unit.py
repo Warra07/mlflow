@@ -1,10 +1,10 @@
 import pytest
 from unittest import mock
 
-import mlflow
-from mlflow.exceptions import MlflowException
-import mlflow.spark
-from mlflow._spark_autologging import _get_current_listener, PythonSubscriber
+import mlflowacim
+from mlflowacim.exceptions import MlflowException
+import mlflowacim.spark
+from mlflowacim._spark_autologging import _get_current_listener, PythonSubscriber
 from tests.spark.autologging.utils import _get_or_create_spark_session
 
 
@@ -24,9 +24,9 @@ def mock_get_current_listener():
 
 @pytest.mark.usefixtures("spark_session")
 def test_autolog_call_idempotent():
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()
     listener = _get_current_listener()
-    mlflow.spark.autolog()
+    mlflowacim.spark.autolog()
     assert _get_current_listener() == listener
 
 
@@ -50,4 +50,4 @@ def test_enabling_autologging_throws_for_wrong_spark_version(
         with pytest.raises(
             MlflowException, match="Spark autologging unsupported for Spark versions < 3"
         ):
-            mlflow.spark.autolog()
+            mlflowacim.spark.autolog()

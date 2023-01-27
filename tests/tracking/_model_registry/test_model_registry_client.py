@@ -7,15 +7,15 @@ import pytest
 from unittest import mock
 from unittest.mock import ANY, patch
 
-from mlflow.entities.model_registry import (
+from mlflowacim.entities.model_registry import (
     ModelVersion,
     RegisteredModel,
     RegisteredModelTag,
     ModelVersionTag,
 )
-from mlflow.exceptions import MlflowException
-from mlflow.store.entities.paged_list import PagedList
-from mlflow.tracking._model_registry.client import ModelRegistryClient
+from mlflowacim.exceptions import MlflowException
+from mlflowacim.store.entities.paged_list import PagedList
+from mlflowacim.tracking._model_registry.client import ModelRegistryClient
 
 
 @pytest.fixture

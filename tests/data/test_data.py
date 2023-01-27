@@ -3,8 +3,8 @@ import os
 import shutil
 import tempfile
 
-from mlflow.data import is_uri
-from mlflow.projects import _project_spec
+from mlflowacim.data import is_uri
+from mlflowacim.projects import _project_spec
 
 TEST_DIR = "tests"
 TEST_PROJECT_DIR = os.path.join(TEST_DIR, "resources", "example_project")

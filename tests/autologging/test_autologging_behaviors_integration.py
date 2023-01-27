@@ -10,10 +10,10 @@ from io import StringIO
 from itertools import permutations
 from unittest import mock
 
-import mlflow
-from mlflow import MlflowClient
-from mlflow.utils import gorilla
-from mlflow.utils.autologging_utils import (
+import mlflowacim
+from mlflowacim import MlflowClient
+from mlflowacim.utils import gorilla
+from mlflowacim.utils.autologging_utils import (
     safe_patch,
     get_autologging_config,
     autologging_is_disabled,
@@ -24,16 +24,16 @@ from tests.autologging.fixtures import reset_stderr  # pylint: disable=unused-im
 
 
 AUTOLOGGING_INTEGRATIONS_TO_TEST = {
-    mlflow.sklearn: "sklearn",
-    mlflow.xgboost: "xgboost",
-    mlflow.lightgbm: "lightgbm",
-    mlflow.pytorch: "torch",
-    mlflow.gluon: "mxnet.gluon",
-    mlflow.fastai: "fastai",
-    mlflow.statsmodels: "statsmodels",
-    mlflow.spark: "pyspark",
-    mlflow.pyspark.ml: "pyspark",
-    mlflow.tensorflow: "tensorflow",
+    mlflowacim.sklearn: "sklearn",
+    mlflowacim.xgboost: "xgboost",
+    mlflowacim.lightgbm: "lightgbm",
+    mlflowacim.pytorch: "torch",
+    mlflowacim.gluon: "mxnet.gluon",
+    mlflowacim.fastai: "fastai",
+    mlflowacim.statsmodels: "statsmodels",
+    mlflowacim.spark: "pyspark",
+    mlflowacim.pyspark.ml: "pyspark",
+    mlflowacim.tensorflow: "tensorflow",
 }
 
 
@@ -129,20 +129,20 @@ def test_autologging_integrations_use_safe_patch_for_monkey_patching(integration
 def test_autolog_respects_exclusive_flag(setup_sklearn_model):
     x, y, model = setup_sklearn_model
 
-    mlflow.sklearn.autolog(exclusive=True)
-    run = mlflow.start_run()
+    mlflowacim.sklearn.autolog(exclusive=True)
+    run = mlflowacim.start_run()
     model.fit(x, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run_data = MlflowClient().get_run(run.info.run_id).data
     metrics, params, tags = run_data.metrics, run_data.params, run_data.tags
     assert not metrics
     assert not params
     assert all("mlflow." in key for key in tags)
 
-    mlflow.sklearn.autolog(exclusive=False)
-    run = mlflow.start_run()
+    mlflowacim.sklearn.autolog(exclusive=False)
+    run = mlflowacim.start_run()
     model.fit(x, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run_data = MlflowClient().get_run(run.info.run_id).data
     metrics, params = run_data.metrics, run_data.params
     assert metrics
@@ -152,20 +152,20 @@ def test_autolog_respects_exclusive_flag(setup_sklearn_model):
 def test_autolog_respects_disable_flag(setup_sklearn_model):
     x, y, model = setup_sklearn_model
 
-    mlflow.sklearn.autolog(disable=True, exclusive=False)
-    run = mlflow.start_run()
+    mlflowacim.sklearn.autolog(disable=True, exclusive=False)
+    run = mlflowacim.start_run()
     model.fit(x, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run_data = MlflowClient().get_run(run.info.run_id).data
     metrics, params, tags = run_data.metrics, run_data.params, run_data.tags
     assert not metrics
     assert not params
     assert all("mlflow." in key for key in tags)
 
-    mlflow.sklearn.autolog(disable=False, exclusive=False)
-    run = mlflow.start_run()
+    mlflowacim.sklearn.autolog(disable=False, exclusive=False)
+    run = mlflowacim.start_run()
     model.fit(x, y)
-    mlflow.end_run()
+    mlflowacim.end_run()
     run_data = MlflowClient().get_run(run.info.run_id).data
     metrics, params = run_data.metrics, run_data.params
     assert metrics
@@ -183,7 +183,7 @@ def test_autolog_reverts_patched_code_when_disabled():
     original_fit_predict = model.fit_predict
 
     # After patching.
-    mlflow.sklearn.autolog(disable=False)
+    mlflowacim.sklearn.autolog(disable=False)
     patched_fit = model.fit
     patched_fit_transform = model.fit_transform
     patched_fit_predict = model.fit_predict
@@ -192,7 +192,7 @@ def test_autolog_reverts_patched_code_when_disabled():
     assert patched_fit_predict != original_fit_predict
 
     # After revert of patching.
-    mlflow.sklearn.autolog(disable=True)
+    mlflowacim.sklearn.autolog(disable=True)
     reverted_fit = model.fit
     reverted_fit_transform = model.fit_transform
     reverted_fit_predict = model.fit_predict
@@ -211,9 +211,9 @@ def test_autolog_respects_disable_flag_across_import_orders():
 
         iris = datasets.load_iris()
         svc = svm.SVC(C=2.0, degree=5, kernel="rbf")
-        run = mlflow.start_run()
+        run = mlflowacim.start_run()
         svc.fit(iris.data, iris.target)
-        mlflow.end_run()
+        mlflowacim.end_run()
         run_data = MlflowClient().get_run(run.info.run_id).data
         metrics, params, tags = run_data.metrics, run_data.params, run_data.tags
         assert not metrics
@@ -224,10 +224,10 @@ def test_autolog_respects_disable_flag_across_import_orders():
         import sklearn  # pylint: disable=unused-import
 
     def disable_autolog():
-        mlflow.sklearn.autolog(disable=True)
+        mlflowacim.sklearn.autolog(disable=True)
 
     def mlflow_autolog():
-        mlflow.autolog()
+        mlflowacim.autolog()
 
     import_list = [import_sklearn, disable_autolog, mlflow_autolog]
 
@@ -241,13 +241,13 @@ def test_autolog_respects_disable_flag_across_import_orders():
 def test_autolog_respects_silent_mode(tmpdir):
     # Use file-based experiment storage for this test. Otherwise, concurrent experiment creation in
     # multithreaded contexts may fail for other storage backends (e.g. SQLAlchemy)
-    mlflow.set_tracking_uri(str(tmpdir))
-    mlflow.set_experiment("test_experiment")
+    mlflowacim.set_tracking_uri(str(tmpdir))
+    mlflowacim.set_experiment("test_experiment")
 
     og_showwarning = warnings.showwarning
     stream = StringIO()
     sys.stderr = stream
-    logger = logging.getLogger(mlflow.__name__)
+    logger = logging.getLogger(mlflowacim.__name__)
 
     from sklearn import datasets
 
@@ -268,8 +268,8 @@ def test_autolog_respects_silent_mode(tmpdir):
 
     # Call general and framework-specific autologging APIs to cover a
     # larger surface area for testing purposes
-    mlflow.autolog(silent=True)
-    mlflow.sklearn.autolog(silent=True, log_input_examples=True)
+    mlflowacim.autolog(silent=True)
+    mlflowacim.sklearn.autolog(silent=True, log_input_examples=True)
 
     executions = []
     with ThreadPoolExecutor(max_workers=50) as executor:
@@ -287,7 +287,7 @@ def test_autolog_respects_silent_mode(tmpdir):
 
     stream.truncate(0)
 
-    mlflow.sklearn.autolog(silent=False, log_input_examples=True)
+    mlflowacim.sklearn.autolog(silent=False, log_input_examples=True)
 
     executions = []
     with ThreadPoolExecutor(max_workers=50) as executor:
@@ -305,12 +305,12 @@ def test_autolog_respects_silent_mode(tmpdir):
 
     # TODO: Investigate why this test occasionally leaks a run, which causes the
     # `clean_up_leaked_runs` fixture in `tests/conftest.py` to fail.
-    while mlflow.active_run():
-        mlflow.end_run()
+    while mlflowacim.active_run():
+        mlflowacim.end_run()
 
 
 def test_autolog_globally_configured_flag_set_correctly():
-    from mlflow.utils.autologging_utils import AUTOLOGGING_INTEGRATIONS
+    from mlflowacim.utils.autologging_utils import AUTOLOGGING_INTEGRATIONS
 
     AUTOLOGGING_INTEGRATIONS.clear()
     import sklearn  # pylint: disable=unused-import
@@ -318,13 +318,13 @@ def test_autolog_globally_configured_flag_set_correctly():
     import pyspark.ml  # pylint: disable=unused-import
 
     integrations_to_test = ["sklearn", "spark", "pyspark.ml"]
-    mlflow.autolog()
+    mlflowacim.autolog()
     for integration_name in integrations_to_test:
         assert AUTOLOGGING_INTEGRATIONS[integration_name]["globally_configured"]
 
-    mlflow.sklearn.autolog()
-    mlflow.spark.autolog()
-    mlflow.pyspark.ml.autolog()
+    mlflowacim.sklearn.autolog()
+    mlflowacim.spark.autolog()
+    mlflowacim.pyspark.ml.autolog()
 
     for integration_name in integrations_to_test:
         assert "globally_configured" not in AUTOLOGGING_INTEGRATIONS[integration_name]

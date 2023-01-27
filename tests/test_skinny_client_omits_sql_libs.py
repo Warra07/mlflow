@@ -7,7 +7,7 @@ import os
 )
 def test_fails_import_sqlalchemy():
 
-    import mlflow  # pylint: disable=unused-import
+    import mlflowacim  # pylint: disable=unused-import
 
     with pytest.raises(ImportError, match="sqlalchemy"):
         import sqlalchemy  # pylint: disable=unused-import

@@ -1,7 +1,7 @@
 import entrypoints
 from unittest import mock
 
-from mlflow.projects.backend import loader
+from mlflowacim.projects.backend import loader
 
 
 def test_plugin_backend():
