@@ -111,7 +111,7 @@ setup(
     version=version,
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_data={
-        "mlflow": (
+        "mlflowacim": (
             js_files
             + models_container_server_files
             + alembic_files

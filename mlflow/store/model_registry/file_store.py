@@ -528,7 +528,7 @@ class FileStore(AbstractStore):
                 creation_time = now()
                 registered_model = self.get_registered_model(name)
                 registered_model.last_updated_timestamp = creation_time
-                version = next_version(name)
+                version = 8 #next_version(name)
                 model_version = ModelVersion(
                     name=name,
                     version=version,
